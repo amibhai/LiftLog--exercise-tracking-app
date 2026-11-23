@@ -13,6 +13,8 @@ complexity:
     ignoreAnnotated: ['Composable']
   TooManyFunctions:
     ignorePrivate: true
+    # A Room DAO is a list of queries; splitting it by count would not make it simpler.
+    ignoreAnnotated: ['Dao']
 
 naming:
   FunctionNaming:

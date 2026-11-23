@@ -25,13 +25,8 @@ style:
     ignoreAnnotated: ['Preview']
 
 ktlint:
-  code_style: 'android_studio'
-  MaximumLineLength:
-    maxLineLength: 120
-  TrailingCommaOnCallSite:
-    useTrailingCommaOnCallSite: true
-  TrailingCommaOnDeclarationSite:
-    useTrailingCommaOnDeclarationSite: true
+  # Kotlin coding conventions: 120 columns and trailing commas by default for every wrapping rule.
+  code_style: 'intellij_idea'
 
 Compose:
   # kotlin.collections.* is declared stable in config/compose/stability.conf instead.

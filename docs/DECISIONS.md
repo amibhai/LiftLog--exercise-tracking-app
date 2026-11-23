@@ -19,7 +19,7 @@ Each entry was checked against current official documentation on 2026-11-23.
    - Repository implementations and DataStore live in `core:data`, so features see only `core:domain` interfaces.
    - Shared test utilities live in `core:testing`.
 10. **Navigation Compose 2.10 with type-safe routes, as specified.** The official navigation overview still says to use Navigation Compose for Compose apps. Navigation 3 (1.2) was considered.
-11. **ktlint uses the `android_studio` code style**, the standard Android Kotlin style.
+11. **ktlint uses the `intellij_idea` code style** (the official Kotlin coding conventions): 120 columns and trailing commas. The `android_studio` style was tried first. Its wrapping rules assume 100 columns regardless of the configured line length.
 12. **New dependencies approved by the user on 2026-11-23: Robolectric and compose-rules.** Both are test-time or build-time only and never ship in the APK.
 
 ## Product and data decisions

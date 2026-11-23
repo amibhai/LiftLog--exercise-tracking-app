@@ -1,0 +1,39 @@
+# Layered on top of detekt's defaults (buildUponDefaultConfig = true) and the default configs
+# shipped by the ktlint-wrapper and compose-rules plugins. Only overrides live here.
+config:
+  validation: true
+
+complexity:
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+  LongParameterList:
+    allowedFunctionParameters: 8
+    allowedConstructorParameters: 10
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    ignorePrivate: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+
+style:
+  MagicNumber:
+    ignoreAnnotated: ['Composable', 'Preview']
+  UnusedPrivateFunction:
+    ignoreAnnotated: ['Preview']
+
+ktlint:
+  code_style: 'android_studio'
+  MaximumLineLength:
+    maxLineLength: 120
+  TrailingCommaOnCallSite:
+    useTrailingCommaOnCallSite: true
+  TrailingCommaOnDeclarationSite:
+    useTrailingCommaOnDeclarationSite: true
+
+Compose:
+  # kotlin.collections.* is declared stable in config/compose/stability.conf instead.
+  UnstableCollections:
+    active: false

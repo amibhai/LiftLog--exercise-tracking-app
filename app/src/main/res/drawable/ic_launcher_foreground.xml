@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Original LiftLog mark: a loaded barbell, drawn inside the 66dp adaptive-icon safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Bar -->
+    <path
+        android:fillColor="@color/liftlog_lime"
+        android:pathData="M28,51.5h52a2.5,2.5 0,0 1,0 5h-52a2.5,2.5 0,0 1,0 -5z" />
+    <!-- Outer plates -->
+    <path
+        android:fillColor="@color/liftlog_lime"
+        android:pathData="M34,38h4a2,2 0,0 1,2 2v28a2,2 0,0 1,-2 2h-4a2,2 0,0 1,-2 -2v-28a2,2 0,0 1,2 -2z" />
+    <path
+        android:fillColor="@color/liftlog_lime"
+        android:pathData="M70,38h4a2,2 0,0 1,2 2v28a2,2 0,0 1,-2 2h-4a2,2 0,0 1,-2 -2v-28a2,2 0,0 1,2 -2z" />
+    <!-- Inner plates -->
+    <path
+        android:fillColor="@color/liftlog_lime"
+        android:pathData="M43,44h3a1.5,1.5 0,0 1,1.5 1.5v17a1.5,1.5 0,0 1,-1.5 1.5h-3a1.5,1.5 0,0 1,-1.5 -1.5v-17a1.5,1.5 0,0 1,1.5 -1.5z" />
+    <path
+        android:fillColor="@color/liftlog_lime"
+        android:pathData="M62,44h3a1.5,1.5 0,0 1,1.5 1.5v17a1.5,1.5 0,0 1,-1.5 1.5h-3a1.5,1.5 0,0 1,-1.5 -1.5v-17a1.5,1.5 0,0 1,1.5 -1.5z" />
+</vector>

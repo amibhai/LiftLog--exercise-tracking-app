@@ -1,0 +1,27 @@
+# Gradle / build output
+.gradle/
+.kotlin/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local, machine-specific or secret config
+local.properties
+keystore.properties
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Exercise pipeline download cache
+tools/exercise-pipeline/.cache/
+__pycache__/
+*.pyc

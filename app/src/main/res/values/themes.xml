@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window theme behind Compose; edge-to-edge and colours are handled in Compose. -->
+    <style name="Theme.LiftLog" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/liftlog_charcoal</item>
+    </style>
+
+    <!-- Splash screen (androidx.core:core-splashscreen) shown until settings are loaded. -->
+    <style name="Theme.LiftLog.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/liftlog_charcoal</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.LiftLog</item>
+    </style>
+</resources>

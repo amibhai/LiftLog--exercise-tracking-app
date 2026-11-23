@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash and launcher colours. The in-app palette lives in core:ui (Compose). -->
+    <color name="liftlog_charcoal">#FF121411</color>
+    <color name="liftlog_lime">#FFC6F24E</color>
+</resources>

@@ -41,6 +41,7 @@ internal fun WorkoutRoute(
     val finishedId = ready?.takeIf { it.isFinished }?.id
     LaunchedEffect(state) { if (state == WorkoutUiState.Gone) close() }
     LaunchedEffect(finishedId) { finishedId?.let(finish) }
+    if (ready?.isInProgress == true) RequestNotificationPermission()
     if (ready != null) WorkoutScreen(state = ready, onAction = viewModel::onAction, navigation = navigation)
 }
 

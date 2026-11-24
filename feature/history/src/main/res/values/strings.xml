@@ -3,4 +3,41 @@
     <string name="history_title">History</string>
     <string name="history_empty_title">No workouts yet</string>
     <string name="history_empty_body">Every workout you finish shows up here, ready to review or edit.</string>
+
+    <!-- History list -->
+    <string name="history_stats">%1$s · %2$s · %3$s</string>
+    <plurals name="history_sets">
+        <item quantity="one">%1$d set</item>
+        <item quantity="other">%1$d sets</item>
+    </plurals>
+    <string name="history_exercise_line">%1$d × %2$s</string>
+    <plurals name="history_more_exercises">
+        <item quantity="one">+%1$d more exercise</item>
+        <item quantity="other">+%1$d more exercises</item>
+    </plurals>
+
+    <!-- Workout detail -->
+    <string name="history_stat_time">Time</string>
+    <string name="history_stat_volume">Volume</string>
+    <string name="history_stat_sets">Sets</string>
+    <string name="history_superset">Superset %1$s</string>
+    <string name="history_edit">Edit workout</string>
+    <string name="history_repeat">Repeat workout</string>
+    <string name="history_delete">Delete workout</string>
+    <string name="history_delete_title">Delete this workout?</string>
+    <string name="history_delete_text">It will be removed from your history.</string>
+    <string name="history_finished_title">Workout complete</string>
+    <string name="history_finished_body">Saved to your history.</string>
+    <string name="history_done">Done</string>
+    <string name="history_save_routine">Save as routine</string>
+    <string name="history_save_routine_body">Start these exercises again with one tap next time.</string>
+    <string name="history_routine_name">Routine name</string>
+    <string name="history_update_routine">Update routine</string>
+    <string name="history_update_routine_title">Update “%1$s”?</string>
+    <string name="history_update_routine_body">This workout differs from the routine. Update the routine to match its exercises, order and sets.</string>
+    <string name="history_routine_saved">Saved as routine “%1$s”.</string>
+    <string name="history_routine_updated">“%1$s” now matches this workout.</string>
+    <string name="history_active_title">A workout is in progress</string>
+    <string name="history_active_text">Finish or discard it before you start another.</string>
+    <string name="history_resume">Resume workout</string>
 </resources>

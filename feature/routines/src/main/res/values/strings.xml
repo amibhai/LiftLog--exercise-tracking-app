@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="routine_new">New routine</string>
+    <string name="routine_name">Routine name</string>
+    <string name="routine_rename">Rename routine</string>
+    <string name="routine_reorder">Reorder exercises</string>
+    <string name="routine_add_exercises">Add exercises</string>
+    <string name="routine_empty_title">No exercises yet</string>
+    <string name="routine_empty_body">Add the exercises of this routine. When you start it, their sets come filled in from your last workout.</string>
+
+    <string name="routine_exercise_options">Options for %1$s</string>
+    <string name="routine_exercise_note">Note</string>
+    <string name="routine_exercise_replace">Replace exercise</string>
+    <string name="routine_exercise_superset">Superset with…</string>
+    <string name="routine_exercise_leave_superset">Leave superset</string>
+    <string name="routine_exercise_remove">Remove exercise</string>
+    <string name="routine_exercise_removed">Exercise removed</string>
+    <string name="routine_superset">Superset %1$s</string>
+    <string name="routine_superset_title">Superset with</string>
+    <string name="routine_superset_confirm">Group</string>
+
+    <plurals name="routine_sets">
+        <item quantity="one">%1$d set</item>
+        <item quantity="other">%1$d sets</item>
+    </plurals>
+    <string name="routine_fewer_sets">Fewer sets</string>
+    <string name="routine_more_sets">More sets</string>
+    <string name="routine_reps_title">Reps per set</string>
+    <string name="routine_reps_any">Any reps</string>
+    <plurals name="routine_reps">
+        <item quantity="one">%1$s rep</item>
+        <item quantity="other">%1$s reps</item>
+    </plurals>
+    <string name="routine_rest">Rest %1$s</string>
+    <string name="routine_no_rest">No rest</string>
+    <string name="routine_effort_title">Effort target</string>
+    <string name="routine_effort_none">No %1$s target</string>
+</resources>

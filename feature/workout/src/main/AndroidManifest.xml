@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The rest timer (SPEC §6): a countdown while the app is in the background, and the end of rest. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Lets the countdown show as a status bar chip (Live Updates, Android 16 and later). -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!--
+        Ends the rest on time with the screen off. A rest timer is what USE_EXACT_ALARM is for, and it is
+        granted at install (Android 13+). On Android 12 SCHEDULE_EXACT_ALARM is granted by default; when it
+        is switched off the alert comes a little late instead.
+    -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+
+    <application>
+        <receiver
+            android:name=".timer.RestTimerReceiver"
+            android:exported="false" />
+    </application>
+
+</manifest>

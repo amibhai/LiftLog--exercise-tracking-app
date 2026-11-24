@@ -74,9 +74,15 @@ sealed interface NumberPadKey {
 /**
  * In-app number pad (SPEC §5): a non-modal bottom sheet docked under the list, so the row being edited
  * stays visible and other fields stay tappable. Big keys in the thumb zone; −/+ use the exercise step.
+ * A [hint], such as the plates to load, goes above the keys.
  */
 @Composable
-fun NumberPad(state: NumberPadUiState, onKey: (NumberPadKey) -> Unit, modifier: Modifier = Modifier) {
+fun NumberPad(
+    state: NumberPadUiState,
+    onKey: (NumberPadKey) -> Unit,
+    modifier: Modifier = Modifier,
+    hint: (@Composable () -> Unit)? = null,
+) {
     val haptics = LocalHapticFeedback.current
     val press: (NumberPadKey) -> Unit = { key ->
         haptics.performHapticFeedback(HapticFeedbackType.KeyboardTap)
@@ -94,6 +100,7 @@ fun NumberPad(state: NumberPadUiState, onKey: (NumberPadKey) -> Unit, modifier: 
             verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
         ) {
             PadHeader(state = state, onHide = { press(NumberPadKey.Hide) })
+            hint?.invoke()
             KeyRow {
                 DigitKey(1, press)
                 DigitKey(2, press)

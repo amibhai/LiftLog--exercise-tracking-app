@@ -37,8 +37,6 @@ import io.github.amibhai.liftlog.feature.progress.navigation.progressGraph
 import io.github.amibhai.liftlog.feature.routines.editor.RoutineEditorNavigation
 import io.github.amibhai.liftlog.feature.routines.navigation.navigateToRoutineEditor
 import io.github.amibhai.liftlog.feature.routines.navigation.routineEditorScreen
-import io.github.amibhai.liftlog.feature.settings.navigation.AboutDestination
-import io.github.amibhai.liftlog.feature.settings.navigation.ComponentGalleryDestination
 import io.github.amibhai.liftlog.feature.settings.navigation.SettingsDestination
 import io.github.amibhai.liftlog.feature.settings.navigation.settingsGraph
 import io.github.amibhai.liftlog.feature.workout.active.ActiveWorkoutBanner
@@ -135,13 +133,7 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
                 onOpenExercise = { navController.navigateToExerciseDetail(it) },
             )
             exercisesGraph(navController)
-            settingsGraph(
-                appVersion = appVersion,
-                showDeveloperOptions = showDeveloperOptions,
-                onBack = { navController.popBackStack() },
-                onOpenAbout = { navController.navigate(AboutDestination) },
-                onOpenGallery = { navController.navigate(ComponentGalleryDestination) },
-            )
+            settingsGraph(navController, appVersion, showDeveloperOptions)
         }
     }
 }

@@ -44,6 +44,7 @@
     <string name="workout_exercise_note">Note for this workout</string>
     <string name="workout_exercise_pinned_note">Pinned note</string>
     <string name="workout_exercise_rest">Rest time</string>
+    <string name="workout_exercise_warmups">Add warm-up sets</string>
     <string name="workout_exercise_replace">Replace exercise</string>
     <string name="workout_exercise_superset">Superset with…</string>
     <string name="workout_exercise_leave_superset">Leave superset</string>
@@ -64,6 +65,7 @@
     <string name="workout_keep_logging">Keep logging</string>
 
     <string name="workout_set_deleted">Set deleted</string>
+    <string name="workout_warmups_added">Warm-up sets added</string>
     <string name="workout_exercise_removed">Exercise removed</string>
 
     <string name="workout_banner_resume">Resume</string>

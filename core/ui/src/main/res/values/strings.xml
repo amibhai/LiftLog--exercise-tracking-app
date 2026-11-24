@@ -93,6 +93,12 @@
     <string name="ui_numpad_done">Done</string>
     <string name="ui_numpad_hide">Hide keypad</string>
 
+    <!-- Plates -->
+    <string name="ui_plates_per_side">%1$s per side</string>
+    <string name="ui_plates_empty_bar">Empty bar</string>
+    <string name="ui_plates_bar">Bar: %1$s</string>
+    <string name="ui_plates_closest">Closest with your plates: %1$s</string>
+
     <!-- Rest timer -->
     <string name="ui_timer_remaining">Rest, %1$s remaining</string>
     <string name="ui_timer_over">Rest over</string>

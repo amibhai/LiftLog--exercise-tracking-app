@@ -51,4 +51,5 @@ object LiftLogIcons {
     val SkipNext = R.drawable.ic_skip_next
     val Timer = R.drawable.ic_timer
     val Trophy = R.drawable.ic_trophy
+    val Warmup = R.drawable.ic_local_fire_department
 }

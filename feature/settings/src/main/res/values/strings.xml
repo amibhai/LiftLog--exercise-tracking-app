@@ -43,6 +43,42 @@
     <string name="settings_section_developer">Developer</string>
     <string name="settings_gallery">Component gallery</string>
 
+    <!-- Plates -->
+    <string name="plates_title">Plates</string>
+    <string name="plates_body">The plate calculator and the warm-up generator use these. A pair is one plate for each side of the bar.</string>
+    <string name="plates_add">Add a plate size</string>
+    <string name="plates_weight">Weight (%1$s)</string>
+    <string name="plates_reset">Use the standard plates</string>
+    <string name="plates_remove">Remove %1$s plates</string>
+    <string name="plates_fewer">%1$s: fewer pairs</string>
+    <string name="plates_more">%1$s: more pairs</string>
+    <string name="plates_unlimited">Unlimited</string>
+    <string name="plates_none">None</string>
+    <plurals name="plates_pairs">
+        <item quantity="one">%1$d pair</item>
+        <item quantity="other">%1$d pairs</item>
+    </plurals>
+
+    <!-- Warm-up -->
+    <string name="warmup_title">Warm-up sets</string>
+    <string name="warmup_body">Parts of your working weight, added by \u201cAdd warm-up sets\u201d in a workout. Weights are rounded to your plates.</string>
+    <string name="warmup_bar">Empty bar</string>
+    <string name="warmup_percent">%1$d%%</string>
+    <string name="warmup_step">%1$s × %2$d</string>
+    <plurals name="warmup_reps">
+        <item quantity="one">%1$d rep</item>
+        <item quantity="other">%1$d reps</item>
+    </plurals>
+    <string name="warmup_lighter">Warm-up set %1$d: lighter</string>
+    <string name="warmup_heavier">Warm-up set %1$d: heavier</string>
+    <string name="warmup_fewer_reps">Warm-up set %1$d: fewer reps</string>
+    <string name="warmup_more_reps">Warm-up set %1$d: more reps</string>
+    <string name="warmup_remove">Remove warm-up set %1$d</string>
+    <string name="warmup_add">Add a warm-up set</string>
+    <string name="warmup_reset">Use the standard warm-up</string>
+    <string name="warmup_example">Before %1$s on a barbell</string>
+    <string name="warmup_example_none">No warm-up sets</string>
+
     <string name="about_title">About &amp; attributions</string>
     <string name="about_app_name" translatable="false">LiftLog</string>
     <string name="about_version">Version %1$s</string>

@@ -33,6 +33,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import io.github.amibhai.liftlog.core.ui.component.NumberPad
 import io.github.amibhai.liftlog.core.ui.component.NumberPadUiState
+import io.github.amibhai.liftlog.core.ui.component.PlateBar
 import io.github.amibhai.liftlog.core.ui.component.RestTimerBar
 import io.github.amibhai.liftlog.core.ui.format.LiftLogFormat
 import io.github.amibhai.liftlog.core.ui.format.workoutTitle
@@ -196,6 +197,7 @@ internal fun BottomControls(
                     isLastField = pad.isLastField,
                 ),
                 onKey = { onAction(WorkoutAction.PadKey(it)) },
+                hint = pad.plates?.let { plates -> { PlateBar(plates) } },
             )
         }
     }

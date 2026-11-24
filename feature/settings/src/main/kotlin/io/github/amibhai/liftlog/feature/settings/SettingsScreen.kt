@@ -8,15 +8,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,42 +30,47 @@ import io.github.amibhai.liftlog.core.domain.model.ThemeMode
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.ui.component.SwitchRow
+import io.github.amibhai.liftlog.core.ui.format.LiftLogFormat
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.label.labelRes
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
+import io.github.amibhai.liftlog.feature.settings.warmup.percentText
+import java.math.BigDecimal
 
 @Composable
 internal fun SettingsRoute(
     showDeveloperOptions: Boolean,
-    onBack: () -> Unit,
-    onOpenAbout: () -> Unit,
-    onOpenGallery: () -> Unit,
+    navigation: SettingsNavigation,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     SettingsScreen(
         state = state,
         actions = SettingsActions(
-            onBack = onBack,
             onThemeModeChange = viewModel::setThemeMode,
             onDynamicColorChange = viewModel::setDynamicColor,
             onWeightUnitChange = viewModel::setWeightUnit,
             onChange = viewModel::change,
-            onOpenAbout = onOpenAbout,
-            onOpenGallery = onOpenGallery,
         ),
+        navigation = navigation,
         showDeveloperOptions = showDeveloperOptions,
         dynamicColorAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
     )
 }
 
-/** Everything the settings screen can ask for, grouped so the screen stays easy to call and test. */
+/** Everything the settings screen can change, grouped so the screen stays easy to call and test. */
 internal class SettingsActions(
-    val onBack: () -> Unit,
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
     val onWeightUnitChange: (WeightUnit) -> Unit,
     val onChange: (SettingChange) -> Unit,
+)
+
+/** Where the settings lead. */
+internal class SettingsNavigation(
+    val onBack: () -> Unit,
+    val onOpenPlates: () -> Unit,
+    val onOpenWarmup: () -> Unit,
     val onOpenAbout: () -> Unit,
     val onOpenGallery: () -> Unit,
 )
@@ -77,28 +79,18 @@ internal class SettingsActions(
 internal fun SettingsScreen(
     state: SettingsUiState,
     actions: SettingsActions,
+    navigation: SettingsNavigation,
     showDeveloperOptions: Boolean,
     dynamicColorAvailable: Boolean,
     modifier: Modifier = Modifier,
 ) {
     var dialog by rememberSaveable { mutableStateOf<SettingsDialog?>(null) }
-    Scaffold(
+    SettingsPage(
+        title = stringResource(R.string.settings_title),
+        onBack = navigation.onBack,
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
-                navigationIcon = {
-                    IconButton(onClick = actions.onBack) {
-                        Icon(
-                            painterResource(LiftLogIcons.ArrowBack),
-                            contentDescription = stringResource(R.string.settings_back),
-                        )
-                    }
-                },
-            )
-        },
     ) { padding ->
-        val settings = (state as? SettingsUiState.Ready)?.settings ?: return@Scaffold
+        val settings = (state as? SettingsUiState.Ready)?.settings ?: return@SettingsPage
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -115,15 +107,28 @@ internal fun SettingsScreen(
                 onSelect = actions.onWeightUnitChange,
             )
             WeightRows(settings, onOpen = { dialog = it })
+            NavigationRow(
+                title = stringResource(R.string.plates_title),
+                value = settings.plates(settings.weightUnit).sortedByDescending { it.weight }
+                    .joinToString { LiftLogFormat.decimal(BigDecimal.valueOf(it.weight)) },
+                onClick = navigation.onOpenPlates,
+            )
             SectionHeader(stringResource(R.string.settings_section_workout))
             WorkoutRows(settings, onChange = actions.onChange, onOpen = { dialog = it })
+            NavigationRow(
+                title = stringResource(R.string.warmup_title),
+                value = settings.warmupSteps
+                    .map { stringResource(R.string.warmup_step, percentText(it.percent), it.reps) }
+                    .joinToString(),
+                onClick = navigation.onOpenWarmup,
+            )
             SectionHeader(stringResource(R.string.settings_section_progress))
             ProgressRows(settings, onChange = actions.onChange, onOpen = { dialog = it })
             SectionHeader(stringResource(R.string.settings_section_about))
-            NavigationRow(title = stringResource(R.string.settings_about), onClick = actions.onOpenAbout)
+            NavigationRow(title = stringResource(R.string.settings_about), onClick = navigation.onOpenAbout)
             if (showDeveloperOptions) {
                 SectionHeader(stringResource(R.string.settings_section_developer))
-                NavigationRow(title = stringResource(R.string.settings_gallery), onClick = actions.onOpenGallery)
+                NavigationRow(title = stringResource(R.string.settings_gallery), onClick = navigation.onOpenGallery)
             }
         }
         dialog?.let { SettingsDialogs(it, settings, onChange = actions.onChange, onDismiss = { dialog = null }) }
@@ -203,10 +208,11 @@ internal fun <T> ChoiceRow(
 }
 
 @Composable
-private fun NavigationRow(title: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun NavigationRow(title: String, onClick: () -> Unit, modifier: Modifier = Modifier, value: String? = null) {
     ListItem(
         onClick = onClick,
         modifier = modifier,
+        supportingContent = value?.let { { Text(it) } },
         trailingContent = { Icon(painterResource(LiftLogIcons.ChevronRight), contentDescription = null) },
     ) {
         Text(title)

@@ -9,6 +9,7 @@ import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
 import io.github.amibhai.liftlog.core.domain.progression.SuggestionReason
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
+import io.github.amibhai.liftlog.core.ui.component.PlateBarUiModel
 import io.github.amibhai.liftlog.core.ui.component.RestTimerUiState
 import io.github.amibhai.liftlog.core.ui.component.SetRowUiModel
 import io.github.amibhai.liftlog.core.ui.format.WorkoutTitle
@@ -66,6 +67,8 @@ sealed interface WorkoutItem {
         /** The exercise's own rest time, or the one in the settings. */
         val defaultRestSeconds: Int,
         val columns: List<ColumnUiModel>,
+        /** There is a working weight to warm up for. */
+        val canWarmUp: Boolean = false,
         /** Why the sets are planned as they are. */
         val reason: SuggestionReason? = null,
         val unit: WeightUnit = WeightUnit.KG,
@@ -101,6 +104,8 @@ data class PadUiModel(
     val allowsDecimal: Boolean,
     val canUsePrevious: Boolean,
     val isLastField: Boolean,
+    /** How to load the weight; null without a bar. */
+    val plates: PlateBarUiModel? = null,
 )
 
 /** [serial] makes the same set a new target when it is focused again. */
@@ -108,4 +113,4 @@ data class PadUiModel(
 data class FocusTarget(val setId: String, val serial: Int)
 
 /** Something that can be undone. */
-enum class WorkoutMessage { SET_DELETED, EXERCISE_REMOVED }
+enum class WorkoutMessage { SET_DELETED, EXERCISE_REMOVED, WARMUPS_ADDED }

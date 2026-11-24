@@ -209,6 +209,12 @@ private fun ExerciseMenu(
             MenuItem(stringResource(R.string.workout_exercise_rest), LiftLogIcons.Timer) {
                 open(WorkoutDialog.Rest(header))
             }
+            if (header.canWarmUp) {
+                MenuItem(stringResource(R.string.workout_exercise_warmups), LiftLogIcons.Warmup) {
+                    isOpen = false
+                    onAction(WorkoutAction.AddWarmups(header.id))
+                }
+            }
             MenuItem(stringResource(R.string.workout_exercise_replace), LiftLogIcons.Replace) {
                 isOpen = false
                 onReplace()

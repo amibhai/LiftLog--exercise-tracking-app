@@ -15,6 +15,7 @@ import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
+import io.github.amibhai.liftlog.core.domain.plates.PlateCount
 import io.github.amibhai.liftlog.core.domain.progression.PlannedSession
 import io.github.amibhai.liftlog.core.domain.progression.SuggestionReason
 import io.github.amibhai.liftlog.core.domain.units.Weight
@@ -185,6 +186,36 @@ class WorkoutViewModelTest {
         viewModel.onAction(WorkoutAction.Undo)
         assertThat(stored.exercises[0].sets.map { it.id.value }).containsExactly("1", "2").inOrder()
         assertThat(ready(viewModel).message).isNull()
+    }
+
+    @Test
+    fun warmUpsLeadToTheWorkingWeightAndCanBeTakenBack() = runTest {
+        val viewModel = viewModel()
+        val header = ready(viewModel).items.filterIsInstance<WorkoutItem.Header>().single()
+        assertThat(header.canWarmUp).isTrue()
+
+        viewModel.onAction(WorkoutAction.AddWarmups(header.id))
+
+        val sets = stored.exercises[0].sets
+        assertThat(sets.map { it.type }.take(4)).containsExactlyElementsIn(List(4) { SetType.WARMUP })
+        assertThat(sets.take(4).map { it.target.weight?.kg }).containsExactly(20.0, 32.5, 47.5, 65.0).inOrder()
+        assertThat(ready(viewModel).message).isEqualTo(WorkoutMessage.WARMUPS_ADDED)
+
+        viewModel.onAction(WorkoutAction.Undo)
+        assertThat(stored.exercises[0].sets.map { it.id.value }).containsExactly("1", "2").inOrder()
+    }
+
+    @Test
+    fun theWeightPadShowsThePlatesToLoad() = runTest {
+        val viewModel = viewModel()
+
+        viewModel.onAction(WorkoutAction.Row(SetRowAction.EditField("1", SetField.WEIGHT)))
+        val plates = ready(viewModel).pad?.plates?.load
+        assertThat(plates?.total).isEqualTo(Weight(80.0))
+        assertThat(plates?.perSide).containsExactly(PlateCount(25.0, 1), PlateCount(5.0, 1)).inOrder()
+
+        viewModel.onAction(WorkoutAction.PadKey(NumberPadKey.Next))
+        assertThat(ready(viewModel).pad?.plates).isNull()
     }
 
     @Test

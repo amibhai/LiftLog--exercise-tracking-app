@@ -1,7 +1,10 @@
 package io.github.amibhai.liftlog.feature.workout.logging
 
+import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExerciseId
+import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
+import io.github.amibhai.liftlog.core.domain.plates.warmupSets
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseEditor
 import io.github.amibhai.liftlog.core.domain.workout.addSet
 import io.github.amibhai.liftlog.core.domain.workout.adjustedBy
@@ -12,6 +15,8 @@ import io.github.amibhai.liftlog.core.domain.workout.leaveSuperset
 import io.github.amibhai.liftlog.core.domain.workout.removeExercise
 import io.github.amibhai.liftlog.core.domain.workout.reorderExercises
 import io.github.amibhai.liftlog.core.domain.workout.supersetWith
+import io.github.amibhai.liftlog.core.domain.workout.withWarmups
+import io.github.amibhai.liftlog.core.domain.workout.workingWeight
 
 /** What can be done with whole exercises and the workout itself. */
 internal class ExerciseHandler(private val session: WorkoutSession, private val exercises: ExerciseEditor) {
@@ -22,6 +27,8 @@ internal class ExerciseHandler(private val session: WorkoutSession, private val 
                 val id = WorkoutSetId(session.editor.newId())
                 session.edit { it.addSet(action.id, id) }
             }
+
+            is WorkoutAction.AddWarmups -> addWarmups(action.id)
 
             is WorkoutAction.RemoveExercise -> remove(action.id)
 
@@ -74,6 +81,17 @@ internal class ExerciseHandler(private val session: WorkoutSession, private val 
 
             WorkoutAction.Discard -> session.editor.delete(session.id)
         }
+    }
+
+    private fun addWarmups(id: WorkoutExerciseId) {
+        val exercise = session.current?.exercises?.firstOrNull { it.id == id }
+        val weight = exercise?.workingWeight ?: return
+        val warmups = warmupSets(exercise.exercise, weight, session.settings).map {
+            WorkoutSet(WorkoutSetId(session.editor.newId()), SetType.WARMUP, target = it)
+        }
+        session.undo = { workout -> workout.editExercise(id) { it.copy(sets = exercise.sets) } }
+        session.edit { it.withWarmups(id, warmups) }
+        session.updateLocal { it.copy(editing = null, message = WorkoutMessage.WARMUPS_ADDED) }
     }
 
     private fun remove(id: WorkoutExerciseId) {

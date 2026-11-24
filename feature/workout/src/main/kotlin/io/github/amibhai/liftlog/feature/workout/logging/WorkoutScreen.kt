@@ -121,6 +121,7 @@ private fun UndoSnackbar(message: WorkoutMessage?, host: SnackbarHostState, onAc
             when (it) {
                 WorkoutMessage.SET_DELETED -> R.string.workout_set_deleted
                 WorkoutMessage.EXERCISE_REMOVED -> R.string.workout_exercise_removed
+                WorkoutMessage.WARMUPS_ADDED -> R.string.workout_warmups_added
             },
         )
     }

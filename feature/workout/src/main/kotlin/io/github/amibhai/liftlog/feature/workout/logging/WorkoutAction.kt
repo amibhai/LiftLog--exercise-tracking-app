@@ -21,6 +21,9 @@ sealed interface WorkoutAction {
 
     data class AddSet(val id: WorkoutExerciseId) : OnExercise
 
+    /** Warm-up sets for the working weight, from the steps in the settings. */
+    data class AddWarmups(val id: WorkoutExerciseId) : OnExercise
+
     data class RemoveExercise(val id: WorkoutExerciseId) : OnExercise
 
     data class SetNotes(val id: WorkoutExerciseId, val notes: String) : OnExercise

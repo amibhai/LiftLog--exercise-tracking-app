@@ -1,7 +1,9 @@
 package io.github.amibhai.liftlog.feature.settings
 
 import io.github.amibhai.liftlog.core.domain.model.EffortMode
+import io.github.amibhai.liftlog.core.domain.model.Plate
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
+import io.github.amibhai.liftlog.core.domain.model.WarmupStep
 import io.github.amibhai.liftlog.core.domain.progress.E1rmFormula
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import java.time.DayOfWeek
@@ -13,6 +15,11 @@ sealed interface SettingChange {
     data class DumbbellStep(val step: Double) : SettingChange
 
     data class BarWeight(val weight: Double) : SettingChange
+
+    /** The plates in the chosen unit. */
+    data class Plates(val plates: List<Plate>) : SettingChange
+
+    data class Warmup(val steps: List<WarmupStep>) : SettingChange
 
     data class DefaultRest(val seconds: Int) : SettingChange
 
@@ -52,6 +59,10 @@ internal fun UserSettings.with(change: SettingChange): UserSettings {
         }
 
         is SettingChange.BarWeight -> if (isKg) copy(barWeightKg = change.weight) else copy(barWeightLb = change.weight)
+
+        is SettingChange.Plates -> if (isKg) copy(platesKg = change.plates) else copy(platesLb = change.plates)
+
+        is SettingChange.Warmup -> copy(warmupSteps = change.steps)
 
         is SettingChange.DefaultRest -> copy(defaultRestSeconds = change.seconds)
 

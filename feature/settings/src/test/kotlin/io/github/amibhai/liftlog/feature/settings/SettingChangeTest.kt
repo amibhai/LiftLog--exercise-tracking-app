@@ -2,7 +2,9 @@ package io.github.amibhai.liftlog.feature.settings
 
 import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.domain.model.EffortMode
+import io.github.amibhai.liftlog.core.domain.model.Plate
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
+import io.github.amibhai.liftlog.core.domain.model.WarmupStep
 import io.github.amibhai.liftlog.core.domain.progress.E1rmFormula
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import org.junit.Test
@@ -26,6 +28,20 @@ class SettingChangeTest {
         val lb = kg.copy(weightUnit = WeightUnit.LB).with(SettingChange.BarWeight(35.0))
         assertThat(lb.barWeight).isEqualTo(35.0)
         assertThat(lb.barWeightKg).isEqualTo(15.0)
+    }
+
+    @Test
+    fun platesChangeForTheChosenUnitOnlyAndWarmUpsForBoth() {
+        val plates = listOf(Plate(20.0, pairs = 2))
+        val steps = listOf(WarmupStep(50, 5))
+
+        val changed = UserSettings(weightUnit = WeightUnit.LB)
+            .with(SettingChange.Plates(plates))
+            .with(SettingChange.Warmup(steps))
+
+        assertThat(changed.platesLb).isEqualTo(plates)
+        assertThat(changed.platesKg).isEqualTo(UserSettings().platesKg)
+        assertThat(changed.warmupSteps).isEqualTo(steps)
     }
 
     @Test

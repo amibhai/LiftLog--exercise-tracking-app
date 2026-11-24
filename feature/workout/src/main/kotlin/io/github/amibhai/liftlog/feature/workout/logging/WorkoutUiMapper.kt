@@ -9,15 +9,20 @@ import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExercise
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
+import io.github.amibhai.liftlog.core.domain.plates.loadPlates
+import io.github.amibhai.liftlog.core.domain.plates.warmupSets
 import io.github.amibhai.liftlog.core.domain.progress.recordsBrokenBy
 import io.github.amibhai.liftlog.core.domain.progression.Advice
 import io.github.amibhai.liftlog.core.domain.time.partOfDay
 import io.github.amibhai.liftlog.core.domain.units.Weight
+import io.github.amibhai.liftlog.core.domain.workout.barWeight
 import io.github.amibhai.liftlog.core.domain.workout.effort
 import io.github.amibhai.liftlog.core.domain.workout.matchPrevious
 import io.github.amibhai.liftlog.core.domain.workout.supersetLetters
 import io.github.amibhai.liftlog.core.domain.workout.totals
 import io.github.amibhai.liftlog.core.domain.workout.workingNumbers
+import io.github.amibhai.liftlog.core.domain.workout.workingWeight
+import io.github.amibhai.liftlog.core.ui.component.PlateBarUiModel
 import io.github.amibhai.liftlog.core.ui.component.RestTimerUiState
 import io.github.amibhai.liftlog.core.ui.component.SetFieldUiModel
 import io.github.amibhai.liftlog.core.ui.component.SetRowUiModel
@@ -102,6 +107,7 @@ internal class WorkoutUiMapper(
         restSeconds = exercise.restSeconds,
         defaultRestSeconds = exercise.exercise.defaults.restSeconds ?: settings.defaultRestSeconds,
         columns = exercise.exercise.type.fields.map { ColumnUiModel(it, text.unitOf(exercise.exercise.type, it)) },
+        canWarmUp = exercise.workingWeight?.let { warmupSets(exercise.exercise, it, settings) }.orEmpty().isNotEmpty(),
         reason = exercise.advice?.suggestion?.reason,
         unit = settings.weightUnit,
     )
@@ -166,7 +172,20 @@ internal class WorkoutUiMapper(
             allowsDecimal = editing.allowsDecimal,
             canUsePrevious = previousValue(exercise, editing, past.previous, settings.weightUnit) != null,
             isLastField = nextField(exercise, editing) == null,
+            plates = if (editing.field == SetField.WEIGHT) plates(editing, exercise) else null,
         )
+    }
+
+    /** The plates for the weight being typed (SPEC §5). */
+    private fun plates(editing: PadEditing, exercise: WorkoutExercise): PlateBarUiModel? {
+        val unit = settings.weightUnit
+        val bar = exercise.exercise.barWeight(settings)
+        val target = editing.input.value?.let { Weight.of(it, unit) }
+        return if (bar == null || target == null) {
+            null
+        } else {
+            PlateBarUiModel(loadPlates(target, bar, settings.plates(unit), unit), unit)
+        }
     }
 
     private val WorkoutExercise.advice: Advice? get() = routineExerciseId?.let { past.advice[it] }

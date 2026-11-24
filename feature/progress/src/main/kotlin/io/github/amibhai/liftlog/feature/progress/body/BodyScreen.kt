@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -205,14 +206,18 @@ private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun PhotosHeader(onPick: () -> Unit, onTake: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.padding(horizontal = LiftLogDimens.screenGutter)) {
-        SectionTitle(stringResource(R.string.progress_photos), Modifier.padding(horizontal = 0.dp))
+    Column(modifier) {
+        SectionTitle(stringResource(R.string.progress_photos))
         Text(
             text = stringResource(R.string.progress_photos_private),
+            modifier = Modifier.padding(horizontal = LiftLogDimens.screenGutter),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS)) {
+        FlowRow(
+            modifier = Modifier.padding(horizontal = LiftLogDimens.spacingXs),
+            horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
+        ) {
             TextButton(onClick = onTake) {
                 Icon(painterResource(LiftLogIcons.Image), contentDescription = null)
                 Text(stringResource(R.string.progress_photo_take))

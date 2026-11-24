@@ -63,30 +63,31 @@ internal fun SetBadge(
     }
     val duplicateLabel = stringResource(R.string.ui_set_action_duplicate)
     val deleteLabel = stringResource(R.string.ui_set_action_delete)
-    Box(
-        modifier = modifier
-            .size(LiftLogDimens.minTouchTarget)
-            .clip(CircleShape)
-            .clickable(onClickLabel = stringResource(R.string.ui_set_action_change_type), onClick = onOpenMenu)
-            .semantics {
-                contentDescription = description
-                customActions = listOf(
-                    CustomAccessibilityAction(duplicateLabel) {
-                        onAction(SetRowAction.Duplicate(model.id))
-                        true
-                    },
-                    CustomAccessibilityAction(deleteLabel) {
-                        onAction(SetRowAction.Delete(model.id))
-                        true
-                    },
-                )
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text = label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
-        if (model.isRecord) {
-            RecordMark(Modifier.align(Alignment.TopEnd))
+    Box(modifier) {
+        Box(
+            modifier = Modifier
+                .size(LiftLogDimens.minTouchTarget)
+                .clip(CircleShape)
+                .clickable(onClickLabel = stringResource(R.string.ui_set_action_change_type), onClick = onOpenMenu)
+                .semantics {
+                    contentDescription = description
+                    customActions = listOf(
+                        CustomAccessibilityAction(duplicateLabel) {
+                            onAction(SetRowAction.Duplicate(model.id))
+                            true
+                        },
+                        CustomAccessibilityAction(deleteLabel) {
+                            onAction(SetRowAction.Delete(model.id))
+                            true
+                        },
+                    )
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
         }
+        // Not inside the round touch target, which would cut its corner off.
+        if (model.isRecord) RecordMark(Modifier.align(Alignment.TopEnd))
     }
 }
 

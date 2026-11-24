@@ -5,7 +5,7 @@
     <string name="progress_empty_body">Estimated 1RMs, personal records, weekly sets per muscle and your training calendar will appear here.</string>
 
     <string name="progress_calendar">Training calendar</string>
-    <string name="progress_calendar_hint">Each column is a week and each square a day. Stronger colour means more sets.</string>
+    <string name="progress_calendar_hint">Each column is a week and each square a day. Stronger color means more sets.</string>
     <plurals name="progress_calendar_description">
         <item quantity="one">%1$d day with training in the last %2$d weeks</item>
         <item quantity="other">%1$d days with training in the last %2$d weeks</item>

@@ -3,7 +3,9 @@ package io.github.amibhai.liftlog.ui
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -13,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -31,6 +34,8 @@ import io.github.amibhai.liftlog.feature.settings.navigation.AboutDestination
 import io.github.amibhai.liftlog.feature.settings.navigation.ComponentGalleryDestination
 import io.github.amibhai.liftlog.feature.settings.navigation.SettingsDestination
 import io.github.amibhai.liftlog.feature.settings.navigation.settingsGraph
+
+private val MinTabLabelSize = 8.sp
 
 /**
  * The navigation shell: a bottom bar for the top-level tabs (hidden on detail screens) around a
@@ -54,7 +59,7 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
                             selected = tab == currentTab,
                             onClick = { navController.navigateToTab(tab) },
                             icon = { Icon(painterResource(tab.icon), contentDescription = null) },
-                            label = { Text(stringResource(tab.label)) },
+                            label = { TabLabel(stringResource(tab.label)) },
                         )
                     }
                 }
@@ -94,4 +99,19 @@ private fun NavHostController.navigateToTab(tab: TopLevelDestination) {
         launchSingleTop = true
         restoreState = true
     }
+}
+
+/** Shrinks at large font sizes instead of breaking "Exercises" mid-word. */
+@Composable
+private fun TabLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        modifier = modifier,
+        autoSize = TextAutoSize.StepBased(
+            minFontSize = MinTabLabelSize,
+            maxFontSize = MaterialTheme.typography.labelMedium.fontSize,
+        ),
+        softWrap = false,
+        maxLines = 1,
+    )
 }

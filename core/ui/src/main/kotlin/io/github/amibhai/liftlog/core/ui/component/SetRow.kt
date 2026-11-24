@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.github.amibhai.liftlog.core.domain.model.SetField
 import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.ui.R
@@ -95,6 +97,10 @@ private const val PREVIOUS_WEIGHT = 1.1f
 private const val COMPLETED_TINT_ALPHA = 0.45f
 private const val IDLE_CHECK_SCALE = 0.88f
 private val FocusBorderWidth = 2.dp
+
+// Coarse steps: rows are measured while scrolling, so the fit search stays short.
+private val MinSuggestionSize = 7.sp
+private val SuggestionSizeStep = 1.sp
 
 /** One logged set: badge (set type), previous result, value fields and the complete button. */
 @Composable
@@ -181,12 +187,13 @@ private fun PreviousValue(previous: String?, modifier: Modifier = Modifier) {
         stringResource(R.string.ui_set_previous_none_description)
     }
     Text(
-        text = previous ?: stringResource(R.string.ui_set_previous_none),
+        // At large font sizes "77.5 × 8" wraps to "77.5" and "× 8"; the reps never stand alone.
+        text = previous?.replace("× ", "×\u00A0") ?: stringResource(R.string.ui_set_previous_none),
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
-        maxLines = 1,
+        maxLines = 2,
         overflow = TextOverflow.Ellipsis,
     )
 }
@@ -218,11 +225,18 @@ private fun FieldCell(field: SetFieldUiModel, suggestion: String?, onClick: () -
             verticalArrangement = Arrangement.Center,
         ) {
             if (suggestion != null) {
+                val style = MaterialTheme.typography.labelSmall
                 Text(
                     text = suggestion,
-                    style = MaterialTheme.typography.labelSmall,
                     color = colors.primary,
+                    autoSize = TextAutoSize.StepBased(
+                        minFontSize = MinSuggestionSize,
+                        maxFontSize = style.fontSize,
+                        stepSize = SuggestionSizeStep,
+                    ),
+                    softWrap = false,
                     maxLines = 1,
+                    style = style,
                 )
             }
             Text(

@@ -80,6 +80,14 @@ class RoomBodyRepositoryTest {
     }
 
     @Test
+    fun aPhotoWhoseFileIsGoneIsLeftOut() = runTest {
+        val photo = body.addPhoto(picture("a picture"), NOW)!!
+        File(photo.path).delete()
+
+        assertThat(body.observePhotos().first()).isEmpty()
+    }
+
+    @Test
     fun deletedPhotosCanBeBroughtBackAndAreLaterRemovedForGood() = runTest {
         val photo = body.addPhoto(picture("old"), NOW)!!
         body.deletePhoto(photo.id)

@@ -22,10 +22,8 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import io.github.amibhai.liftlog.core.domain.model.Muscle
 import io.github.amibhai.liftlog.core.ui.R
+import io.github.amibhai.liftlog.core.ui.theme.LiftLogColors
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
-
-/** How much an unworked muscle stands out from the body around it. */
-private const val IDLE_SHADE = 0.12f
 
 /** A muscle with any work at all is clearly visible. */
 private const val LEAST_LEVEL = 0.25f
@@ -60,7 +58,8 @@ private fun Figure(
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
-    val idle = lerp(colors.surfaceVariant, colors.onSurface, IDLE_SHADE)
+    val idle = LiftLogColors.idle
+    val silhouette = LiftLogColors.silhouette
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(
             Modifier
@@ -70,7 +69,7 @@ private fun Figure(
                     val scale = size.width / FIGURE_WIDTH
                     onDrawBehind {
                         scale(scale, scale, pivot = Offset.Zero) {
-                            for (part in body) drawPath(part.path, colors.surfaceVariant)
+                            for (part in body) drawPath(part.path, silhouette)
                             for (outline in muscles) {
                                 val level = outline.muscle?.let { levels[it] } ?: 0f
                                 val fill = if (level <= 0f) {

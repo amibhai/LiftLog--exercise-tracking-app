@@ -43,16 +43,13 @@ private val ColumnThickness = 14.dp
 private val PointSize = 6.dp
 private const val MAX_LABELS = 6
 
-/** Room above and below the line, as a part of the values' spread. */
-private const val PADDING = 0.1
-
 /** A value of a chart; [label] goes under it. */
 @Immutable
 data class ChartPoint(val label: String, val value: Double)
 
 /**
- * Values over time, oldest first, with an optional second line such as a trend (SPEC §8). TalkBack
- * reads [description] instead of the picture.
+ * Values over time, oldest first, with an optional second line such as a trend (SPEC §8). With
+ * [wholeNumbers] the axis does not show parts of a rep. TalkBack reads [description] instead of the picture.
  */
 @Composable
 fun LineChart(
@@ -61,6 +58,7 @@ fun LineChart(
     description: String,
     modifier: Modifier = Modifier,
     trend: List<Double>? = null,
+    wholeNumbers: Boolean = false,
 ) {
     val producer = remember { CartesianChartModelProducer() }
     LaunchedEffect(points, trend) {
@@ -72,7 +70,9 @@ fun LineChart(
         }
     }
     val colors = MaterialTheme.colorScheme
-    val range = remember(points, trend) { lineRange(points.map { it.value } + trend.orEmpty()) }
+    val axis = remember(points, trend, wholeNumbers) {
+        ValueAxis.around(points.map { it.value } + trend.orEmpty(), wholeNumbers)
+    }
     ProvideVicoTheme(rememberM3VicoTheme()) {
         CartesianChartHost(
             chart = rememberCartesianChart(
@@ -91,9 +91,9 @@ fun LineChart(
                             fill = LineCartesianLayer.LineFill.single(Fill(colors.tertiary)),
                         ),
                     ),
-                    rangeProvider = range,
+                    rangeProvider = remember(axis) { axis.rangeProvider() },
                 ),
-                startAxis = startAxis(valueText),
+                startAxis = startAxis(valueText, axis),
                 bottomAxis = bottomAxis(points),
             ),
             modelProducer = producer,
@@ -113,12 +113,14 @@ fun ColumnChart(
     valueText: (Double) -> String,
     description: String,
     modifier: Modifier = Modifier,
+    wholeNumbers: Boolean = false,
 ) {
     val producer = remember { CartesianChartModelProducer() }
     LaunchedEffect(points) {
         producer.runTransaction { columnModel { series(points.map { it.value }) } }
     }
     val color = MaterialTheme.colorScheme.primary
+    val axis = remember(points, wholeNumbers) { ValueAxis.fromZero(points.map { it.value }, wholeNumbers) }
     ProvideVicoTheme(rememberM3VicoTheme()) {
         CartesianChartHost(
             chart = rememberCartesianChart(
@@ -130,9 +132,9 @@ fun ColumnChart(
                             shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp),
                         ),
                     ),
-                    rangeProvider = remember { CartesianLayerRangeProvider.fixed(minY = 0.0) },
+                    rangeProvider = remember(axis) { axis.rangeProvider() },
                 ),
-                startAxis = startAxis(valueText),
+                startAxis = startAxis(valueText, axis),
                 bottomAxis = bottomAxis(points),
             ),
             modelProducer = producer,
@@ -146,12 +148,15 @@ fun ColumnChart(
 }
 
 @Composable
-private fun startAxis(valueText: (Double) -> String): VerticalAxis<Axis.Position.Vertical.Start> {
+private fun startAxis(valueText: (Double) -> String, axis: ValueAxis): VerticalAxis<Axis.Position.Vertical.Start> {
     val text by rememberUpdatedState(valueText)
     return VerticalAxis.rememberStart(
         valueFormatter = remember { CartesianValueFormatter { _, value, _ -> text(value) } },
+        itemPlacer = remember(axis) { VerticalAxis.ItemPlacer.step({ axis.step }) },
     )
 }
+
+private fun ValueAxis.rangeProvider() = CartesianLayerRangeProvider.fixed(minY = min, maxY = max)
 
 /** Labels under some of the points, as many as fit. */
 @Composable
@@ -162,12 +167,4 @@ private fun bottomAxis(points: List<ChartPoint>): HorizontalAxis<Axis.Position.H
         valueFormatter = remember { CartesianValueFormatter { _, value, _ -> labels.getOrNull(value.toInt()) ?: "·" } },
         itemPlacer = remember(spacing) { HorizontalAxis.ItemPlacer.aligned(spacing = { spacing }) },
     )
-}
-
-/** Room around the values, so that small changes of large numbers stay visible. */
-private fun lineRange(values: List<Double>): CartesianLayerRangeProvider {
-    val low = values.minOrNull() ?: 0.0
-    val high = values.maxOrNull() ?: 1.0
-    val padding = max((high - low) * PADDING, high * PADDING / 2).coerceAtLeast(PADDING)
-    return CartesianLayerRangeProvider.fixed(minY = (low - padding).coerceAtLeast(0.0), maxY = high + padding)
 }

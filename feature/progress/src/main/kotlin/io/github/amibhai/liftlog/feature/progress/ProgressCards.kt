@@ -50,6 +50,7 @@ import io.github.amibhai.liftlog.core.ui.format.dayMonthText
 import io.github.amibhai.liftlog.core.ui.format.setCountText
 import io.github.amibhai.liftlog.core.ui.format.symbol
 import io.github.amibhai.liftlog.core.ui.label.labelRes
+import io.github.amibhai.liftlog.core.ui.theme.LiftLogColors
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -72,7 +73,7 @@ internal fun CalendarCard(state: ProgressUiState.Ready, modifier: Modifier = Mod
     val description = pluralStringResource(R.plurals.progress_calendar_description, workouts, workouts, CALENDAR_WEEKS)
     LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingM) {
         CardTitle(stringResource(R.string.progress_calendar))
-        val idle = MaterialTheme.colorScheme.surfaceVariant
+        val idle = LiftLogColors.idle
         val full = MaterialTheme.colorScheme.primary
         Canvas(
             Modifier
@@ -148,6 +149,7 @@ internal fun WeeklyChartCard(state: ProgressUiState.Ready, modifier: Modifier = 
                 text.label(points.last().value),
                 pluralStringResource(R.plurals.progress_weeks, CHART_WEEKS, CHART_WEEKS),
             ),
+            wholeNumbers = metric == WeeklyMetric.WORKOUTS,
         )
     }
 }

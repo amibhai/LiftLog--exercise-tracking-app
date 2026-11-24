@@ -38,10 +38,26 @@ The user asked to go on with Phase 1 and left open decisions to us ("do whatever
 3. **Edits are pure functions.** Every change to a workout or routine is a pure function in `core:domain`. The repository applies it to the stored row tree in one transaction and writes only the rows that changed.
 4. **Previous sets.** Warm-ups are matched with warm-ups and working sets with working sets, so an extra warm-up does not shift the "Previous" column.
 5. **Carried-over weight.** When a set is done with a different weight than planned, the following sets that expected the planned weight follow. Reps never carry over.
-6. **Finishing opens the workout's detail page.** SPEC §14 puts the finish summary (PRs, sets per muscle, heatmap) in Phase 2. Until then, Finish opens the workout's history page with a "Workout complete" header and the "Save as routine" / "Update routine" choice from §5. Finishing drops sets that were not done; a workout with nothing done can only be discarded.
+6. **Finishing opens the workout's detail page**, which is also the finish summary of §5: one page instead of two. Phase 1 gave it the "Workout complete" header and the "Save as routine" / "Update routine" choice; Phase 2 added the records, the sets per muscle and the body heatmap. Finishing drops sets that were not done; a workout with nothing done can only be discarded.
 7. **Rest timer without a foreground service** (SPEC §6, checked against the Android 16/17 docs on 2026-11-24). The timer is stored as an end time. An exact alarm (`USE_EXACT_ALARM`, granted at install for timer apps from Android 13; `SCHEDULE_EXACT_ALARM` up to Android 12, with an inexact fallback when it is off) wakes the app when the rest ends. While the app is in the background, an ongoing notification shows a chronometer countdown with +15s and Skip, and asks to be promoted (`setRequestPromotedOngoing`, `POST_PROMOTED_NOTIFICATIONS`). On Android 16+ that makes it a Live Update in the status bar. Android 17 mutes sounds that background apps play themselves, so the end-of-rest alert is a high-importance notification. Sound and vibration belong to its channel, so there is one channel per combination of the two settings. With the app on screen, it vibrates and plays the sound itself instead. `POST_NOTIFICATIONS` is asked for on the workout screen. Note: Google Play limits `USE_EXACT_ALARM` to alarm and timer apps; LiftLog is sideloaded.
 8. **Routine targets from presets.** Reps per set are picked from common targets (8, 8–12, …) rather than typed. Sets use a stepper; rest and RPE/RIR targets use the same one-tap dialogs as the workout screen.
 9. **Deleting a workout asks first.** Workouts are deleted from their detail page after a confirmation, not with an undo snackbar. The page closes at once, so there would be nowhere to show the snackbar. Sets, exercises and routines keep the undo snackbar.
 10. **One workout at a time.** Starting a workout while one is in progress offers to resume it instead of starting a second one.
 11. **A new routine is created before its editor opens**, so that the exercise picker can add to it. If it is left without a name and without exercises, it is deleted again.
 
+## Phase 2 (2026-11-24)
+
+The user asked for Phases 2 to 4 in one go, without Health Connect (SPEC §14 lists it as optional).
+
+1. **A record beats an earlier value.** The first session of an exercise is the baseline, not a list of five records. The records table still shows every best, including those of a first session.
+2. **Records are a cache.** `personal_record` is worked out from the finished sets, per exercise, in the transaction that finishes, edits, deletes or restores a workout. It is rebuilt as a whole when it is empty or the 1RM formula changes. Nothing else is stored, so it can always be rebuilt (SPEC §10).
+3. **Record types follow the exercise type.** SPEC §8 lists weight-based records. Exercises without a weight get most reps, longest time or longest distance instead, and assisted exercises get least assistance.
+4. **e1RM: sets of 1 to 12 reps**, as in §8. A bodyweight exercise with added weight has no e1RM, because the body weight at the time is not part of the set.
+5. **Vico 3.3.1** for charts, as named in the spec. Charts use Vico's line and column builders with the app's colors; TalkBack reads one sentence per chart.
+6. **The body heatmap is drawn from our own outlines**, written as simple vector paths in code. A muscle is shaded by its weekly sets compared with the lower end of the target range.
+7. **The calendar heatmap shows 17 weeks**, one column per week, and shades a day by its sets.
+8. **A week counts for the streak with one workout.** The current week never breaks a streak; it can only extend it.
+9. **Body measurements are stored in canonical units** (kg, cm, percent) and shown in the unit system of the weights, like everything else.
+10. **Progress photos stay in the app's private storage**, out of the gallery and out of cloud backups (Android limits those to 25 MB). They do move along when you set up a new phone directly from the old one. The camera app writes to a `FileProvider` URI, so no camera or storage permission is needed. A deleted photo's file is removed after 7 days, so the undo works.
+11. **The body page can be opened before the first workout**, from the Progress tab.
+12. **Celebration.** A record gets a trophy on its set badge and a haptic while logging. The confetti plays once, on the finish summary, and not at all when animations are turned off.

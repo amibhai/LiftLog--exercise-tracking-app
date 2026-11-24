@@ -17,6 +17,7 @@ import io.github.amibhai.liftlog.core.domain.progress.ProgressPhoto
 import io.github.amibhai.liftlog.core.domain.repository.BodyRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -68,9 +69,11 @@ internal class RoomBodyRepository @Inject constructor(
 
     override suspend fun restoreMetric(id: BodyMetricId) = setMetricDeleted(id, deletedAt = null)
 
+    /** A restored database can know of pictures that did not come along; those are left out. */
     override fun observePhotos(): Flow<List<ProgressPhoto>> = dao.observePhotos().map { rows ->
         rows.map { ProgressPhoto(ProgressPhotoId(it.id), it.takenAt, File(folder, it.fileName).path) }
-    }
+            .filter { File(it.path).exists() }
+    }.flowOn(io)
 
     override suspend fun addPhoto(sourceUri: String, takenAt: Long): ProgressPhoto? = withContext(io) {
         purgeDeletedPhotos()

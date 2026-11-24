@@ -165,6 +165,7 @@ private fun ProgressChart(state: ExerciseProgressUiState, modifier: Modifier = M
                 text.label(metric, first),
                 pluralStringResource(R.plurals.exercises_progress_workouts, points.size, points.size),
             ),
+            wholeNumbers = metric == ProgressMetric.REPS,
         )
     }
 }

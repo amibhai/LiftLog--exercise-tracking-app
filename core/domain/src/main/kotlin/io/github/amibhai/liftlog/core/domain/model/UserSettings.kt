@@ -1,7 +1,11 @@
 package io.github.amibhai.liftlog.core.domain.model
 
+import io.github.amibhai.liftlog.core.domain.progress.E1rmFormula
 import io.github.amibhai.liftlog.core.domain.units.Weight
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
+import java.time.DayOfWeek
+import java.time.temporal.WeekFields
+import java.util.Locale
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
@@ -34,7 +38,19 @@ data class UserSettings(
     val restTimerVibration: Boolean = true,
     val effortMode: EffortMode = EffortMode.RPE,
     val keepScreenOn: Boolean = true,
+    val e1rmFormula: E1rmFormula = E1rmFormula.EPLEY,
+    /** How much of a set a secondary muscle gets in the weekly count (SPEC §8). */
+    val secondaryMuscleSets: Double = DEFAULT_SECONDARY_SETS,
+    val weeklySetTargetMin: Int = DEFAULT_TARGET_MIN,
+    val weeklySetTargetMax: Int = DEFAULT_TARGET_MAX,
+    /** Null follows the phone's language. */
+    val firstDayOfWeek: DayOfWeek? = null,
 ) {
+    val weeklySetTarget: IntRange get() = weeklySetTargetMin..weeklySetTargetMax
+
+    fun weekStartsOn(locale: Locale = Locale.getDefault()): DayOfWeek =
+        firstDayOfWeek ?: WeekFields.of(locale).firstDayOfWeek
+
     /** Default −/+ step for an exercise without its own override, in [unit]. */
     fun weightStep(equipment: Equipment, unit: WeightUnit): Double {
         val steps = if (unit == WeightUnit.KG) stepsKg else stepsLb
@@ -57,6 +73,9 @@ data class UserSettings(
         const val DEFAULT_BAR_KG = 20.0
         const val DEFAULT_BAR_LB = 45.0
         const val DEFAULT_REST_SECONDS = 120
+        const val DEFAULT_SECONDARY_SETS = 0.5
+        const val DEFAULT_TARGET_MIN = 10
+        const val DEFAULT_TARGET_MAX = 20
         val DEFAULT_PLATES_KG = listOf(25.0, 20.0, 15.0, 10.0, 5.0, 2.5, 1.25)
         val DEFAULT_PLATES_LB = listOf(45.0, 35.0, 25.0, 10.0, 5.0, 2.5)
     }

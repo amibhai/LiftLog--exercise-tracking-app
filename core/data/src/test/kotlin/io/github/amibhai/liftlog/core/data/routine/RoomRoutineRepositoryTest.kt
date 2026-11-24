@@ -89,7 +89,7 @@ class RoomRoutineRepositoryTest {
         create()
         assertThat(repository().observeAll().first().single().lastPerformedAt).isNull()
 
-        RoomWorkoutRepository(db.database, db.database.workoutDao(), clock).create(
+        RoomWorkoutRepository(db.database, db.database.workoutDao(), clock, db.recordKeeper(clock)).create(
             Workout(WorkoutId("w"), startedAt = NOW - 5, endedAt = NOW, routineId = push.id, isInProgress = false),
         )
 

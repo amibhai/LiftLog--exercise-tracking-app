@@ -5,8 +5,10 @@ import io.github.amibhai.liftlog.core.domain.model.Plate
 import io.github.amibhai.liftlog.core.domain.model.ThemeMode
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.model.WeightSteps
+import io.github.amibhai.liftlog.core.domain.progress.E1rmFormula
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import kotlinx.serialization.Serializable
+import java.time.DayOfWeek
 
 /** The single source of default values: the domain model. */
 private val DEFAULTS = UserSettings()
@@ -34,6 +36,12 @@ internal data class SettingsJson(
     val restTimerVibration: Boolean = DEFAULTS.restTimerVibration,
     val effortMode: EffortMode = DEFAULTS.effortMode,
     val keepScreenOn: Boolean = DEFAULTS.keepScreenOn,
+    val e1rmFormula: E1rmFormula = DEFAULTS.e1rmFormula,
+    val secondaryMuscleSets: Double = DEFAULTS.secondaryMuscleSets,
+    val weeklySetTargetMin: Int = DEFAULTS.weeklySetTargetMin,
+    val weeklySetTargetMax: Int = DEFAULTS.weeklySetTargetMax,
+    /** The name of a [DayOfWeek]; null follows the phone's language. */
+    val firstDayOfWeek: String? = null,
 )
 
 @Serializable
@@ -62,6 +70,11 @@ internal fun SettingsJson.toDomain() = UserSettings(
     restTimerVibration = restTimerVibration,
     effortMode = effortMode,
     keepScreenOn = keepScreenOn,
+    e1rmFormula = e1rmFormula,
+    secondaryMuscleSets = secondaryMuscleSets,
+    weeklySetTargetMin = weeklySetTargetMin,
+    weeklySetTargetMax = weeklySetTargetMax,
+    firstDayOfWeek = DayOfWeek.entries.firstOrNull { it.name == firstDayOfWeek },
 )
 
 internal fun UserSettings.toJson() = SettingsJson(
@@ -80,4 +93,9 @@ internal fun UserSettings.toJson() = SettingsJson(
     restTimerVibration = restTimerVibration,
     effortMode = effortMode,
     keepScreenOn = keepScreenOn,
+    e1rmFormula = e1rmFormula,
+    secondaryMuscleSets = secondaryMuscleSets,
+    weeklySetTargetMin = weeklySetTargetMin,
+    weeklySetTargetMax = weeklySetTargetMax,
+    firstDayOfWeek = firstDayOfWeek?.name,
 )

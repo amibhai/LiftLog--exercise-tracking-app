@@ -4,12 +4,15 @@ import android.content.Context
 import androidx.room3.Room
 import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
+import io.github.amibhai.liftlog.core.data.progress.RecordKeeper
 import io.github.amibhai.liftlog.core.database.LiftLogDatabase
 import io.github.amibhai.liftlog.core.database.entity.ExerciseEntity
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
 import io.github.amibhai.liftlog.core.domain.model.Equipment
 import io.github.amibhai.liftlog.core.domain.model.ExerciseCategory
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
+import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
+import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
 import org.junit.rules.ExternalResource
 import java.time.Clock
 import java.time.Instant
@@ -33,6 +36,9 @@ class TestDatabase : ExternalResource() {
     override fun after() {
         database.close()
     }
+
+    internal fun recordKeeper(clock: Clock, settings: SettingsRepository = FakeSettingsRepository()) =
+        RecordKeeper(database, database.progressDao(), settings, CountingIds(), clock)
 
     suspend fun addExercise(id: String, name: String = id, type: ExerciseType = ExerciseType.WEIGHT_REPS) {
         database.exerciseDao().insert(exerciseEntity(id = id, name = name, type = type, sourceRef = "test:$id"))

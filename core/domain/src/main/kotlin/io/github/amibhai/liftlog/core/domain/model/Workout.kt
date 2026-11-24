@@ -65,7 +65,14 @@ data class Workout(
 )
 
 /** A completed set of an earlier session. */
-data class LoggedSet(val type: SetType, val values: SetValues, val rpe: Double? = null, val rir: Int? = null)
+data class LoggedSet(
+    val type: SetType,
+    val values: SetValues,
+    val rpe: Double? = null,
+    val rir: Int? = null,
+    /** Null for a set that is not stored yet. */
+    val id: WorkoutSetId? = null,
+)
 
 /** One exercise's completed sets in one past workout. */
 data class ExerciseSession(val workoutId: WorkoutId, val at: Long, val sets: List<LoggedSet>)

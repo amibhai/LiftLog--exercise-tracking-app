@@ -171,7 +171,12 @@ class RoomWorkoutRepositoryTest {
         assertThat(repository().observe(id).first()).isEqualTo(workout)
     }
 
-    private fun repository() = RoomWorkoutRepository(db.database, db.database.workoutDao(), clock)
+    private fun repository() = RoomWorkoutRepository(
+        db.database,
+        db.database.workoutDao(),
+        clock,
+        db.recordKeeper(clock),
+    )
 
     private suspend fun create() {
         db.addExercise("bench")

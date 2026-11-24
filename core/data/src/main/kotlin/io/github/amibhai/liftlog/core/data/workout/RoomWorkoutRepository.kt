@@ -1,6 +1,7 @@
 package io.github.amibhai.liftlog.core.data.workout
 
 import androidx.room3.withWriteTransaction
+import io.github.amibhai.liftlog.core.data.progress.RecordKeeper
 import io.github.amibhai.liftlog.core.database.LiftLogDatabase
 import io.github.amibhai.liftlog.core.database.dao.WorkoutDao
 import io.github.amibhai.liftlog.core.database.dao.WorkoutGraph
@@ -17,6 +18,7 @@ internal class RoomWorkoutRepository @Inject constructor(
     private val database: LiftLogDatabase,
     private val dao: WorkoutDao,
     private val clock: Clock,
+    private val records: RecordKeeper,
 ) : WorkoutRepository {
 
     override fun observeActive(): Flow<Workout?> = dao.observeActive().map { it?.toDomain() }.distinctUntilChanged()
@@ -31,20 +33,35 @@ internal class RoomWorkoutRepository @Inject constructor(
 
     override suspend fun create(workout: Workout) {
         database.withWriteTransaction { write(stored = null, after = workout) }
+        records.rebuild(workout.finishedExercises)
     }
 
-    override suspend fun edit(id: WorkoutId, change: (Workout) -> Workout): Workout? = database.withWriteTransaction {
-        dao.load(id.value)?.let { stored -> change(stored.toDomain()).also { write(stored, it) } }
+    override suspend fun edit(id: WorkoutId, change: (Workout) -> Workout): Workout? {
+        val edited: Pair<Workout, Workout>? = database.withWriteTransaction {
+            dao.load(id.value)?.let { stored ->
+                val before = stored.toDomain()
+                before to change(before).also { write(stored, it) }
+            }
+        }
+        edited?.let { (before, after) -> records.rebuild(before.finishedExercises + after.finishedExercises) }
+        return edited?.second
     }
 
     override suspend fun delete(id: WorkoutId) {
+        val deleted = dao.load(id.value)?.toDomain()
         val now = clock.millis()
         dao.setDeleted(id.value, deletedAt = now, now = now)
+        records.rebuild(deleted?.finishedExercises.orEmpty())
     }
 
     override suspend fun restore(id: WorkoutId) {
         dao.setDeleted(id.value, deletedAt = null, now = clock.millis())
+        records.rebuild(dao.load(id.value)?.toDomain()?.finishedExercises.orEmpty())
     }
+
+    /** Records only follow finished workouts. */
+    private val Workout.finishedExercises: Set<String>
+        get() = if (isInProgress) emptySet() else exercises.mapTo(mutableSetOf()) { it.exercise.id.value }
 
     /** Writes only the rows that differ from [stored]; rows that are gone are soft-deleted. */
     private suspend fun write(stored: WorkoutGraph?, after: Workout) {

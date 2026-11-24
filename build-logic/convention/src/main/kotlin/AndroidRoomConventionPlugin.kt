@@ -19,7 +19,8 @@ class AndroidRoomConventionPlugin : Plugin<Project> {
             }
 
             dependencies {
-                "implementation"(libs.library("room-runtime"))
+                // api: the database class extends RoomDatabase, so consumers need Room on their classpath.
+                "api"(libs.library("room-runtime"))
                 "implementation"(libs.library("sqlite-bundled"))
                 "ksp"(libs.library("room-compiler"))
                 "testImplementation"(libs.library("room-testing"))

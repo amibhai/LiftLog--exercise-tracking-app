@@ -24,8 +24,8 @@
     <string name="about_license">License: %1$s</string>
     <string name="about_revision">Version used: %1$s</string>
     <plurals name="about_exercise_count">
-        <item quantity="one">%1$d exercise in LiftLog</item>
-        <item quantity="other">%1$d exercises in LiftLog</item>
+        <item quantity="one">%1$,d exercise in LiftLog</item>
+        <item quantity="other">%1$,d exercises in LiftLog</item>
     </plurals>
     <string name="about_visit">Visit %1$s</string>
     <string name="about_icons">Icons</string>

@@ -31,7 +31,9 @@ class ColorContrastTest {
                 "onSurfaceVariant/surfaceVariant" to (onSurfaceVariant to surfaceVariant),
                 "onSurface/surfaceContainerHighest" to (onSurface to surfaceContainerHighest),
                 "onSurfaceVariant/surfaceContainerHigh" to (onSurfaceVariant to surfaceContainerHigh),
+                "onSurfaceVariant/surfaceContainerHighest" to (onSurfaceVariant to surfaceContainerHighest),
                 "primary/surface" to (primary to surface),
+                "primary/surfaceContainerHighest" to (primary to surfaceContainerHighest),
                 "inverseOnSurface/inverseSurface" to (inverseOnSurface to inverseSurface),
             )
         }

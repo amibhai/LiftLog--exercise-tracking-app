@@ -4,8 +4,8 @@
     <string name="exercises_search_hint">Search name or abbreviation</string>
     <string name="exercises_clear_search">Clear search</string>
     <plurals name="exercises_prompt_title">
-        <item quantity="one">Search %1$d exercise</item>
-        <item quantity="other">Search %1$d exercises</item>
+        <item quantity="one">Search %1$,d exercise</item>
+        <item quantity="other">Search %1$,d exercises</item>
     </plurals>
     <string name="exercises_prompt_body">Names, aliases and gym shorthand all work. Try “rdl”, “ohp”, “db bench” or “skullcrusher”.</string>
     <string name="exercises_no_matches_title">Nothing matches “%1$s”</string>

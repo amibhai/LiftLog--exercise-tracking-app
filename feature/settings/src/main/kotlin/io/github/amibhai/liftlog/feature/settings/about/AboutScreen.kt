@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -120,7 +120,7 @@ private fun Heading(text: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun SourceCard(source: LibrarySource, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    ElevatedCard(modifier = modifier.fillMaxWidth()) {
+    Card(modifier = modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(LiftLogDimens.spacingL),
             verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingXs),

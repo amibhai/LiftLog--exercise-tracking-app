@@ -22,6 +22,64 @@
     <string name="ui_field_duration">Time</string>
     <string name="ui_field_distance">Distance</string>
 
+    <!-- Units -->
+    <string name="ui_unit_kg">kg</string>
+    <string name="ui_unit_lb">lb</string>
+
+    <!-- Muscles (SPEC §3 taxonomy) -->
+    <string name="ui_muscle_chest">Chest</string>
+    <string name="ui_muscle_front_delts">Front delts</string>
+    <string name="ui_muscle_side_delts">Side delts</string>
+    <string name="ui_muscle_rear_delts">Rear delts</string>
+    <string name="ui_muscle_biceps">Biceps</string>
+    <string name="ui_muscle_triceps">Triceps</string>
+    <string name="ui_muscle_forearms">Forearms</string>
+    <string name="ui_muscle_lats">Lats</string>
+    <string name="ui_muscle_upper_back">Upper back &amp; traps</string>
+    <string name="ui_muscle_lower_back">Lower back</string>
+    <string name="ui_muscle_abs">Abs</string>
+    <string name="ui_muscle_obliques">Obliques</string>
+    <string name="ui_muscle_glutes">Glutes</string>
+    <string name="ui_muscle_quads">Quads</string>
+    <string name="ui_muscle_hamstrings">Hamstrings</string>
+    <string name="ui_muscle_adductors">Adductors</string>
+    <string name="ui_muscle_abductors">Abductors</string>
+    <string name="ui_muscle_calves">Calves</string>
+    <string name="ui_muscle_neck">Neck</string>
+
+    <!-- Equipment -->
+    <string name="ui_equipment_barbell">Barbell</string>
+    <string name="ui_equipment_dumbbell">Dumbbell</string>
+    <string name="ui_equipment_kettlebell">Kettlebell</string>
+    <string name="ui_equipment_machine">Machine</string>
+    <string name="ui_equipment_cable">Cable</string>
+    <string name="ui_equipment_smith">Smith machine</string>
+    <string name="ui_equipment_bodyweight">Bodyweight</string>
+    <string name="ui_equipment_band">Band</string>
+    <string name="ui_equipment_ez_bar">EZ bar</string>
+    <string name="ui_equipment_trap_bar">Trap bar</string>
+    <string name="ui_equipment_plate">Plate</string>
+    <string name="ui_equipment_other">Other</string>
+
+    <!-- Exercise types -->
+    <string name="ui_type_weight_reps">Weight × reps</string>
+    <string name="ui_type_bodyweight_added">Bodyweight + added weight</string>
+    <string name="ui_type_bodyweight_assisted">Assisted bodyweight</string>
+    <string name="ui_type_reps_only">Reps only</string>
+    <string name="ui_type_duration">Time</string>
+    <string name="ui_type_distance_duration">Distance + time</string>
+    <string name="ui_type_weight_distance">Weight + distance</string>
+
+    <!-- Categories and mechanics -->
+    <string name="ui_category_strength">Strength</string>
+    <string name="ui_category_olympic">Olympic lifting</string>
+    <string name="ui_category_plyometric">Plyometrics</string>
+    <string name="ui_category_strongman">Strongman</string>
+    <string name="ui_category_cardio">Cardio</string>
+    <string name="ui_category_mobility">Mobility</string>
+    <string name="ui_mechanic_compound">Compound</string>
+    <string name="ui_mechanic_isolation">Isolation</string>
+
     <!-- Number pad -->
     <string name="ui_numpad_backspace">Backspace</string>
     <string name="ui_numpad_decimal">Decimal point</string>

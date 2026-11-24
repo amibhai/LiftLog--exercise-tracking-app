@@ -4,6 +4,9 @@ config:
   validation: true
 
 complexity:
+  CyclomaticComplexMethod:
+    # An exhaustive enum -> resource `when` is a lookup table, not complex logic.
+    ignoreSimpleWhenEntries: true
   LongMethod:
     ignoreAnnotated: ['Composable']
   LongParameterList:
@@ -19,6 +22,9 @@ complexity:
 naming:
   FunctionNaming:
     ignoreAnnotated: ['Composable']
+  MatchingDeclarationName:
+    # Feature navigation files hold one @Serializable destination plus its NavGraphBuilder extensions.
+    excludes: ['**/navigation/**']
 
 style:
   MagicNumber:

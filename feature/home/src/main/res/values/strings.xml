@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_title" translatable="false">LiftLog</string>
+    <string name="home_open_settings">Settings</string>
+    <string name="home_start_title">Train</string>
+    <string name="home_start_coming">Workout logging is coming in the next update. The exercise library and the logging controls are ready to try.</string>
+    <string name="home_start_empty">Start empty workout</string>
+    <string name="home_library_title">Exercise library</string>
+    <plurals name="home_library_count">
+        <item quantity="one">%1$d exercise, available offline</item>
+        <item quantity="other">%1$d exercises, available offline</item>
+    </plurals>
+    <string name="home_library_browse">Browse exercises</string>
+</resources>

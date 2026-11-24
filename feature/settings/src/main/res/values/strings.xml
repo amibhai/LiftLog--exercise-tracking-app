@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_dynamic_color">Dynamic color</string>
+    <string name="settings_dynamic_color_body">Use colors from your wallpaper instead of the LiftLog palette</string>
+    <string name="settings_dynamic_color_unavailable">Needs Android 12 or newer</string>
+    <string name="settings_section_units">Units</string>
+    <string name="settings_weight_unit">Weight unit</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_about">About &amp; attributions</string>
+    <string name="settings_section_developer">Developer</string>
+    <string name="settings_gallery">Component gallery</string>
+
+    <string name="about_title">About &amp; attributions</string>
+    <string name="about_app_name" translatable="false">LiftLog</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_exercise_data">Exercise library</string>
+    <string name="about_license">License: %1$s</string>
+    <string name="about_revision">Version used: %1$s</string>
+    <plurals name="about_exercise_count">
+        <item quantity="one">%1$d exercise in LiftLog</item>
+        <item quantity="other">%1$d exercises in LiftLog</item>
+    </plurals>
+    <string name="about_visit">Visit %1$s</string>
+    <string name="about_icons">Icons</string>
+    <string name="about_icons_body">Material Symbols by Google, used under the Apache License 2.0.</string>
+    <string name="about_icons_link">Material Symbols</string>
+    <string name="about_open_source">Open-source software</string>
+    <string name="about_open_source_body">LiftLog is built with Android Jetpack (including Compose and Room), Kotlin, kotlinx.coroutines, kotlinx.serialization and Dagger Hilt, all licensed under the Apache License 2.0.</string>
+
+    <string name="gallery_title">Component gallery</string>
+    <string name="gallery_intro">A practice workout for the logging controls. Tap a value to edit it with the number pad, tap ✓ to complete a set and start the rest timer, tap the set number to change its type. Nothing here is saved.</string>
+    <string name="gallery_unit_hint">Weights are stored in kilograms. Switch to lb and enter 45: it displays back as exactly 45.</string>
+    <string name="gallery_field_with_unit">%1$s (%2$s)</string>
+    <string name="gallery_seconds">seconds</string>
+</resources>

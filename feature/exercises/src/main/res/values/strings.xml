@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="exercises_title">Exercises</string>
+    <string name="exercises_search_hint">Search name or abbreviation</string>
+    <string name="exercises_clear_search">Clear search</string>
+    <plurals name="exercises_prompt_title">
+        <item quantity="one">Search %1$d exercise</item>
+        <item quantity="other">Search %1$d exercises</item>
+    </plurals>
+    <string name="exercises_prompt_body">Names, aliases and gym shorthand all work. Try “rdl”, “ohp”, “db bench” or “skullcrusher”.</string>
+    <string name="exercises_no_matches_title">Nothing matches “%1$s”</string>
+    <string name="exercises_no_matches_body">Check the spelling or try a shorter word. Creating custom exercises arrives with workout logging.</string>
+    <string name="exercises_row_details">%1$s · %2$s</string>
+    <string name="exercises_back">Back</string>
+    <string name="exercises_detail_not_found">Exercise not found</string>
+    <string name="exercises_detail_not_found_body">It may have been removed.</string>
+    <string name="exercises_detail_unilateral">One side at a time</string>
+    <string name="exercises_detail_custom">Custom</string>
+    <string name="exercises_detail_muscles">Muscles</string>
+    <string name="exercises_detail_primary">Primary</string>
+    <string name="exercises_detail_secondary">Secondary</string>
+    <string name="exercises_detail_muscle_line">%1$s: %2$s</string>
+    <string name="exercises_detail_aliases">Also known as</string>
+    <string name="exercises_detail_instructions">How to do it</string>
+    <string name="exercises_detail_no_instructions">No instructions for this exercise yet.</string>
+    <string name="exercises_detail_step">%1$d. %2$s</string>
+    <string name="exercises_detail_source">From %1$s</string>
+    <string name="exercises_detail_license">License: %1$s</string>
+    <string name="exercises_detail_author">By %1$s</string>
+    <string name="exercises_detail_view_license">View license</string>
+</resources>

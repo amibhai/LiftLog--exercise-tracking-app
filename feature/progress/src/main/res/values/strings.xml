@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="progress_title">Progress</string>
+    <string name="progress_empty_title">Progress starts with your first workout</string>
+    <string name="progress_empty_body">Estimated 1RMs, personal records, weekly sets per muscle and your training calendar will appear here.</string>
+</resources>

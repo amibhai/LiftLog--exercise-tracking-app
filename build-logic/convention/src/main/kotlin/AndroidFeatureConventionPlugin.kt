@@ -29,6 +29,10 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 "implementation"(libs.library("kotlinx-serialization-json"))
 
                 "testImplementation"(project(":core:testing"))
+                "testImplementation"(libs.library("androidx-compose-ui-test-junit4"))
+                "testImplementation"(libs.library("androidx-test-core"))
+                "testImplementation"(libs.library("robolectric"))
+                "debugImplementation"(libs.library("androidx-compose-ui-test-manifest"))
             }
 
             enforceFeatureBoundaries()

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
@@ -23,6 +24,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -72,7 +74,11 @@ internal fun ExercisesScreen(
                     body = stringResource(R.string.exercises_no_matches_body),
                 )
 
-                else -> ResultList(results = state.results, onOpenExercise = onOpenExercise)
+                else -> ResultList(
+                    query = state.searchedQuery,
+                    results = state.results,
+                    onOpenExercise = onOpenExercise,
+                )
             }
         }
     }
@@ -118,11 +124,15 @@ private fun SearchPrompt(totalExercises: Int?, modifier: Modifier = Modifier) {
 
 @Composable
 private fun ResultList(
+    query: String,
     results: List<ExerciseSummary>,
     onOpenExercise: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(modifier = modifier.fillMaxSize(), verticalArrangement = Arrangement.Top) {
+    // Each query starts at its best match. With one shared state the list would stay anchored to the
+    // previous first row and hide better matches that now sort above it.
+    val listState = key(query) { rememberLazyListState() }
+    LazyColumn(modifier = modifier.fillMaxSize(), state = listState, verticalArrangement = Arrangement.Top) {
         items(results, key = { it.id.value }) { exercise ->
             ExerciseRow(exercise = exercise, onClick = { onOpenExercise(exercise.id.value) })
         }

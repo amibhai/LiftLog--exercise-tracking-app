@@ -2,11 +2,6 @@ package io.github.amibhai.liftlog.feature.exercises
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import io.github.amibhai.liftlog.core.domain.model.Equipment
-import io.github.amibhai.liftlog.core.domain.model.ExerciseId
-import io.github.amibhai.liftlog.core.domain.model.ExerciseSummary
-import io.github.amibhai.liftlog.core.domain.model.ExerciseType
-import io.github.amibhai.liftlog.core.domain.model.Muscle
 import io.github.amibhai.liftlog.core.testing.FakeExerciseRepository
 import io.github.amibhai.liftlog.core.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,14 +53,4 @@ class ExercisesViewModelTest {
             assertThat(repository.queries.filter { it.isNotEmpty() }).containsExactly("rom")
         }
     }
-
-    private fun summary(name: String) = ExerciseSummary(
-        id = ExerciseId(name),
-        name = name,
-        type = ExerciseType.WEIGHT_REPS,
-        equipment = Equipment.BARBELL,
-        primaryMuscle = Muscle.CHEST,
-        thumbnailUrl = null,
-        isCustom = false,
-    )
 }

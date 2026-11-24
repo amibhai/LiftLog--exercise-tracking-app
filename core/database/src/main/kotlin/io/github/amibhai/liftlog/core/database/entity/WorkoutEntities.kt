@@ -6,6 +6,7 @@ import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
 import io.github.amibhai.liftlog.core.domain.model.SetType
+import kotlinx.serialization.Serializable
 
 /**
  * A logged or in-progress workout (SPEC §5). The in-progress workout is written on every change and
@@ -34,6 +35,7 @@ import io.github.amibhai.liftlog.core.domain.model.SetType
         Index(value = ["program_day_id"]),
     ],
 )
+@Serializable
 data class WorkoutEntity(
     @PrimaryKey val id: String,
     val name: String?,
@@ -75,6 +77,7 @@ data class WorkoutEntity(
         Index(value = ["routine_exercise_id"]),
     ],
 )
+@Serializable
 data class WorkoutExerciseEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "workout_id") val workoutId: String,
@@ -103,6 +106,7 @@ data class WorkoutExerciseEntity(
     ],
     indices = [Index(value = ["workout_exercise_id", "position"]), Index(value = ["completed_at"])],
 )
+@Serializable
 data class WorkoutSetEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "workout_exercise_id") val workoutExerciseId: String,

@@ -6,8 +6,10 @@ import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
 import io.github.amibhai.liftlog.core.domain.model.ProgressionRuleType
+import kotlinx.serialization.Serializable
 
 @Entity(tableName = "routine", indices = [Index(value = ["position"])])
+@Serializable
 data class RoutineEntity(
     @PrimaryKey val id: String,
     val name: String,
@@ -32,6 +34,7 @@ data class RoutineEntity(
     ],
     indices = [Index(value = ["routine_id", "position"]), Index(value = ["exercise_id"])],
 )
+@Serializable
 data class RoutineExerciseEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "routine_id") val routineId: String,
@@ -56,6 +59,7 @@ data class RoutineExerciseEntity(
 
 /** A program is an ordered rotation of routines; Home suggests the next day (SPEC §7). */
 @Entity(tableName = "program")
+@Serializable
 data class ProgramEntity(
     @PrimaryKey val id: String,
     val name: String,
@@ -86,6 +90,7 @@ data class ProgramEntity(
     ],
     indices = [Index(value = ["program_id", "position"]), Index(value = ["routine_id"])],
 )
+@Serializable
 data class ProgramDayEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "program_id") val programId: String,

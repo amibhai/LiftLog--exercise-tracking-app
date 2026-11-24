@@ -6,6 +6,7 @@ import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
 import io.github.amibhai.liftlog.core.domain.model.Muscle
+import kotlinx.serialization.Serializable
 
 @Entity(
     tableName = "exercise_muscle",
@@ -22,6 +23,7 @@ import io.github.amibhai.liftlog.core.domain.model.Muscle
         Index(value = ["muscle", "is_primary"]),
     ],
 )
+@Serializable
 data class ExerciseMuscleEntity(
     @PrimaryKey val id: String,
     @ColumnInfo(name = "exercise_id") val exerciseId: String,

@@ -2,6 +2,7 @@ package io.github.amibhai.liftlog.core.database
 
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
+import io.github.amibhai.liftlog.core.database.dao.BackupDao
 import io.github.amibhai.liftlog.core.database.dao.BodyDao
 import io.github.amibhai.liftlog.core.database.dao.ExerciseDao
 import io.github.amibhai.liftlog.core.database.dao.HistoryDao
@@ -67,6 +68,8 @@ abstract class LiftLogDatabase : RoomDatabase() {
     abstract fun progressDao(): ProgressDao
 
     abstract fun bodyDao(): BodyDao
+
+    abstract fun backupDao(): BackupDao
 
     companion object {
         const val VERSION = 2

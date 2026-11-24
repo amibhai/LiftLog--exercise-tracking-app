@@ -7,7 +7,10 @@ plugins {
 dependencies {
     api(projects.core.domain)
     implementation(projects.core.database)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.coil)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
 

@@ -8,26 +8,12 @@ import io.github.amibhai.liftlog.core.domain.concurrent.AppDispatchers
 import io.github.amibhai.liftlog.core.domain.concurrent.SequentialWork
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
 import io.github.amibhai.liftlog.core.domain.id.RandomUuidGenerator
-import io.github.amibhai.liftlog.core.domain.repository.ExerciseRepository
-import io.github.amibhai.liftlog.core.domain.repository.HistoryRepository
-import io.github.amibhai.liftlog.core.domain.repository.ProgramRepository
-import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
-import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
-import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
-import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
-import io.github.amibhai.liftlog.core.domain.usecase.AddExercises
-import io.github.amibhai.liftlog.core.domain.usecase.CreateProgram
-import io.github.amibhai.liftlog.core.domain.usecase.Insights
-import io.github.amibhai.liftlog.core.domain.usecase.ProgressionAdvisor
-import io.github.amibhai.liftlog.core.domain.usecase.SearchExercises
-import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
-import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.time.Clock
 import javax.inject.Singleton
 
-/** The use cases of core:domain, which knows nothing about dependency injection. */
+/** What core:domain, which knows nothing about dependency injection, works with. */
 @Module
 @InstallIn(SingletonComponent::class)
 object DomainModule {
@@ -44,49 +30,4 @@ object DomainModule {
 
     @Provides
     fun provideIdGenerator(): IdGenerator = RandomUuidGenerator()
-
-    @Provides
-    fun provideWorkoutFactory(ids: IdGenerator) = WorkoutFactory(ids)
-
-    @Provides
-    fun provideStartWorkout(
-        workouts: WorkoutRepository,
-        routines: RoutineRepository,
-        programs: ProgramRepository,
-        history: HistoryRepository,
-        advisor: ProgressionAdvisor,
-        factory: WorkoutFactory,
-        clock: Clock,
-    ) = StartWorkout(workouts, routines, programs, history, advisor, factory, clock)
-
-    @Provides
-    fun provideCreateProgram(
-        programs: ProgramRepository,
-        routines: RoutineRepository,
-        exercises: ExerciseRepository,
-        settings: SettingsRepository,
-        ids: IdGenerator,
-        clock: Clock,
-    ) = CreateProgram(programs, routines, exercises, settings, ids, clock)
-
-    @Provides
-    fun provideInsights(progress: ProgressRepository, settings: SettingsRepository, clock: Clock) =
-        Insights(progress, settings, clock)
-
-    @Provides
-    fun provideProgressionAdvisor(progress: ProgressRepository, settings: SettingsRepository) =
-        ProgressionAdvisor(progress, settings)
-
-    @Provides
-    fun provideAddExercises(
-        workouts: WorkoutRepository,
-        routines: RoutineRepository,
-        exercises: ExerciseRepository,
-        history: HistoryRepository,
-        ids: IdGenerator,
-        clock: Clock,
-    ) = AddExercises(workouts, routines, exercises, history, ids, clock)
-
-    @Provides
-    fun provideSearchExercises(exercises: ExerciseRepository) = SearchExercises(exercises)
 }

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.liftlog.android.library)
     alias(libs.plugins.liftlog.android.room)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -13,6 +14,7 @@ android {
 dependencies {
     implementation(projects.core.domain)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)

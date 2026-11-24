@@ -8,6 +8,7 @@ import io.github.amibhai.liftlog.core.domain.model.Equipment
 import io.github.amibhai.liftlog.core.domain.model.ExerciseCategory
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.Mechanic
+import kotlinx.serialization.Serializable
 
 /**
  * A built-in (from the prepopulated asset) or custom exercise (SPEC §3).
@@ -23,6 +24,7 @@ import io.github.amibhai.liftlog.core.domain.model.Mechanic
         Index(value = ["popularity_rank"]),
     ],
 )
+@Serializable
 data class ExerciseEntity(
     @PrimaryKey val id: String,
     val name: String,

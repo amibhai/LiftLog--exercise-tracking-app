@@ -5,6 +5,7 @@ import androidx.room3.Entity
 import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
+import kotlinx.serialization.Serializable
 
 /** Derived cache of personal records (SPEC §8); can always be rebuilt from workout history. */
 @Entity(
@@ -53,6 +54,7 @@ data class PersonalRecordEntity(
 
 /** Body weight or a measurement (SPEC §8). Canonical units: kg and cm. */
 @Entity(tableName = "body_metric", indices = [Index(value = ["metric_type", "measured_at"])])
+@Serializable
 data class BodyMetricEntity(
     @PrimaryKey val id: String,
     /** BODY_WEIGHT, WAIST, CHEST, ...; stored by name, defined in Phase 2. */

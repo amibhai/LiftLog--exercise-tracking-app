@@ -4,15 +4,19 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.github.amibhai.liftlog.core.data.backup.AndroidBackupRepository
 import io.github.amibhai.liftlog.core.data.body.RoomBodyRepository
 import io.github.amibhai.liftlog.core.data.exercise.RoomExerciseEditor
 import io.github.amibhai.liftlog.core.data.exercise.RoomExerciseRepository
+import io.github.amibhai.liftlog.core.data.images.WorkOfflineImages
 import io.github.amibhai.liftlog.core.data.program.RoomProgramRepository
 import io.github.amibhai.liftlog.core.data.progress.RoomProgressRepository
 import io.github.amibhai.liftlog.core.data.routine.RoomRoutineRepository
 import io.github.amibhai.liftlog.core.data.settings.DataStoreSettingsRepository
 import io.github.amibhai.liftlog.core.data.workout.RoomHistoryRepository
 import io.github.amibhai.liftlog.core.data.workout.RoomWorkoutRepository
+import io.github.amibhai.liftlog.core.domain.images.OfflineImages
+import io.github.amibhai.liftlog.core.domain.repository.BackupRepository
 import io.github.amibhai.liftlog.core.domain.repository.BodyRepository
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseEditor
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseRepository
@@ -53,4 +57,10 @@ internal interface RepositoryModule {
 
     @Binds
     fun body(impl: RoomBodyRepository): BodyRepository
+
+    @Binds
+    fun offlineImages(impl: WorkOfflineImages): OfflineImages
+
+    @Binds
+    fun backups(impl: AndroidBackupRepository): BackupRepository
 }

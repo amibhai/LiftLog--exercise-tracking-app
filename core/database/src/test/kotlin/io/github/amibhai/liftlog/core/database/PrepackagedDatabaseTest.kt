@@ -8,6 +8,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import io.github.amibhai.liftlog.core.database.dao.ExerciseDao
+import io.github.amibhai.liftlog.core.domain.importer.ExerciseMatcher
 import io.github.amibhai.liftlog.core.domain.model.CatalogExercise
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.Muscle
@@ -129,6 +130,40 @@ class PrepackagedDatabaseTest {
                 assertThat(library.getValue(exercise).type.fields).contains(SetField.REPS)
             }
         }
+    }
+
+    @Test
+    fun theNamesOfOtherAppsFindTheRightLift() = runTest {
+        val matcher = ExerciseMatcher(catalog())
+        val expected = mapOf(
+            "Bench Press (Barbell)" to "Barbell Bench Press",
+            "Bench Press (Dumbbell)" to "Dumbbell Bench Press",
+            "Incline Bench Press (Barbell)" to "Barbell Incline Bench Press",
+            "Squat (Barbell)" to "Barbell Back Squat",
+            "Front Squat (Barbell)" to "Barbell Front Squat",
+            "Deadlift (Barbell)" to "Barbell Deadlift",
+            "Romanian Deadlift (Barbell)" to "Romanian Deadlift",
+            "Overhead Press (Barbell)" to "Barbell Overhead Press",
+            "Bent Over Row (Barbell)" to "Bent Over Barbell Row",
+            "Pull Up" to "Pull-Up",
+            "Chin Up" to "Chin-Up",
+            "Lat Pulldown (Cable)" to "Wide-Grip Lat Pulldown",
+            "Bicep Curl (Barbell)" to "Barbell Curl",
+            "Bicep Curl (Dumbbell)" to "Dumbbell Bicep Curl",
+            "Hammer Curl (Dumbbell)" to "Hammer Curl",
+            "Lateral Raise (Dumbbell)" to "Side Lateral Raise",
+            "Leg Press" to "Leg Press",
+            "Leg Extension (Machine)" to "Leg Extension",
+            "Lying Leg Curl (Machine)" to "Lying Leg Curl",
+            "Hip Thrust (Barbell)" to "Barbell Hip Thrust",
+            "Triceps Pushdown (Cable)" to "Triceps Pushdown",
+            "Face Pull (Cable)" to "Face Pull",
+            "Plank" to "Plank",
+            "Push Up" to "Push-Up",
+        )
+
+        val found = expected.mapValues { (name, _) -> matcher.match(name)?.exercise?.name }
+        assertThat(found).isEqualTo(expected)
     }
 
     @Test

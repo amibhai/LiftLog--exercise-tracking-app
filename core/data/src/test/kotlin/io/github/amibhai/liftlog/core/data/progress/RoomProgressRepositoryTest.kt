@@ -137,6 +137,18 @@ class RoomProgressRepositoryTest {
     }
 
     @Test
+    fun importedWorkoutsAreAddedOnceAndCountForRecords() = runTest {
+        db.addExercise("bench", name = "Bench Press")
+
+        assertThat(workouts().addFinished(listOf(first, second))).isEqualTo(2)
+        assertThat(progress().observeRecentRecords(10).first()).hasSize(3)
+
+        workouts().delete(WorkoutId("w1"))
+        assertThat(workouts().addFinished(listOf(first, second))).isEqualTo(0)
+        assertThat(workouts().observeFinishedCount().first()).isEqualTo(1)
+    }
+
+    @Test
     fun statsSumUpEveryFinishedWorkout() = runTest {
         start()
         val warm = set("w", 20.0, 10).copy(type = SetType.WARMUP)

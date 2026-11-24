@@ -17,6 +17,9 @@ interface WorkoutRepository {
 
     suspend fun create(workout: Workout)
 
+    /** Adds finished workouts, except for those that are or were there already; returns how many were added. */
+    suspend fun addFinished(workouts: List<Workout>): Int
+
     /** Applies a pure [change] to the stored workout in one transaction; null when there is no such workout. */
     suspend fun edit(id: WorkoutId, change: (Workout) -> Workout): Workout?
 

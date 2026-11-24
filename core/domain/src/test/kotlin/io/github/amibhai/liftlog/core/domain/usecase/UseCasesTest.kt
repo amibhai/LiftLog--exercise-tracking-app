@@ -278,6 +278,9 @@ class UseCasesTest {
             all.value += workout.id to workout
         }
 
+        override suspend fun addFinished(workouts: List<Workout>): Int =
+            workouts.filter { it.id !in all.value }.onEach { create(it) }.size
+
         override suspend fun edit(id: WorkoutId, change: (Workout) -> Workout): Workout? =
             all.value[id]?.let(change)?.also { create(it) }
 

@@ -36,6 +36,21 @@ internal class RoomWorkoutRepository @Inject constructor(
         records.rebuild(workout.finishedExercises)
     }
 
+    override suspend fun addFinished(workouts: List<Workout>): Int {
+        var added = 0
+        // In parts, so that a long history does not keep the database busy for too long at once.
+        for (part in workouts.chunked(IMPORT_PART)) {
+            database.withWriteTransaction {
+                val known = dao.knownIds(part.map { it.id.value }).toSet()
+                val new = part.filter { it.id.value !in known }
+                new.forEach { write(stored = null, after = it) }
+                added += new.size
+            }
+        }
+        records.rebuild(workouts.flatMapTo(mutableSetOf()) { it.finishedExercises })
+        return added
+    }
+
     override suspend fun edit(id: WorkoutId, change: (Workout) -> Workout): Workout? {
         val edited: Pair<Workout, Workout>? = database.withWriteTransaction {
             dao.load(id.value)?.let { stored ->
@@ -91,5 +106,9 @@ internal class RoomWorkoutRepository @Inject constructor(
             .filter { it.deletedAt == null && it.workoutExerciseId !in goneExercises }
             .map { it.id } - sets.map { it.id }.toSet()
         if (goneSets.isNotEmpty()) dao.softDeleteSets(goneSets, now)
+    }
+
+    private companion object {
+        const val IMPORT_PART = 50
     }
 }

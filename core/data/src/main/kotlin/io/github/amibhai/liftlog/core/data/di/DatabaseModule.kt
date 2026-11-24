@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.amibhai.liftlog.core.database.LiftLogDatabase
 import io.github.amibhai.liftlog.core.database.LiftLogDatabaseFactory
+import io.github.amibhai.liftlog.core.database.dao.BackupDao
 import io.github.amibhai.liftlog.core.database.dao.BodyDao
 import io.github.amibhai.liftlog.core.database.dao.ExerciseDao
 import io.github.amibhai.liftlog.core.database.dao.HistoryDao
@@ -45,4 +46,7 @@ object DatabaseModule {
 
     @Provides
     fun provideBodyDao(database: LiftLogDatabase): BodyDao = database.bodyDao()
+
+    @Provides
+    fun provideBackupDao(database: LiftLogDatabase): BackupDao = database.backupDao()
 }

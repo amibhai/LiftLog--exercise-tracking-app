@@ -33,6 +33,9 @@ class FakeWorkoutRepository(vararg initial: Workout) : WorkoutRepository {
         stored.value += workout.id to workout
     }
 
+    override suspend fun addFinished(workouts: List<Workout>): Int =
+        workouts.filter { it.id !in stored.value }.onEach { create(it) }.size
+
     override suspend fun edit(id: WorkoutId, change: (Workout) -> Workout): Workout? =
         stored.value[id]?.let(change)?.also { create(it) }
 

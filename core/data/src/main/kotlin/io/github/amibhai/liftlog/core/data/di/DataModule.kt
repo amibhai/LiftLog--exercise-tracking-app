@@ -10,6 +10,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.github.amibhai.liftlog.core.data.backup.BackupSettingsJson
+import io.github.amibhai.liftlog.core.data.backup.BackupSettingsSerializer
 import io.github.amibhai.liftlog.core.data.settings.SettingsJson
 import io.github.amibhai.liftlog.core.data.settings.SettingsSerializer
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,6 +26,7 @@ object DataModule {
 
     /** File name inside files/datastore/; referenced by the Auto Backup rules in the app module. */
     private const val SETTINGS_FILE = "settings.json"
+    private const val BACKUP_FILE = "backup.json"
 
     @Provides
     @Singleton
@@ -36,6 +39,19 @@ object DataModule {
         corruptionHandler = ReplaceFileCorruptionHandler { SettingsJson() },
         scope = CoroutineScope(scope.coroutineContext + io),
         produceFile = { context.dataStoreFile(SETTINGS_FILE) },
+    )
+
+    @Provides
+    @Singleton
+    internal fun provideBackupDataStore(
+        @ApplicationContext context: Context,
+        @ApplicationScope scope: CoroutineScope,
+        @IoDispatcher io: CoroutineDispatcher,
+    ): DataStore<BackupSettingsJson> = DataStoreFactory.create(
+        serializer = BackupSettingsSerializer,
+        corruptionHandler = ReplaceFileCorruptionHandler { BackupSettingsJson() },
+        scope = CoroutineScope(scope.coroutineContext + io),
+        produceFile = { context.dataStoreFile(BACKUP_FILE) },
     )
 
     @Provides

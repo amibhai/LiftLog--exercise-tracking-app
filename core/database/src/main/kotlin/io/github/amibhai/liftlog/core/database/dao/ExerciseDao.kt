@@ -100,6 +100,15 @@ interface ExerciseDao {
     @Upsert
     suspend fun upsertMuscles(muscles: List<ExerciseMuscleEntity>)
 
+    /** Every picture and every thumbnail. */
+    @Query(
+        """
+        SELECT url FROM exercise_image WHERE deleted_at IS NULL
+        UNION SELECT thumbnail_url FROM exercise_image WHERE deleted_at IS NULL AND thumbnail_url IS NOT NULL
+        """,
+    )
+    suspend fun imageUrls(): List<String>
+
     @Insert
     suspend fun insertImages(images: List<ExerciseImageEntity>)
 

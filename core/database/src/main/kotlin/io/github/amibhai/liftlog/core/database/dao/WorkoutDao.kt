@@ -42,6 +42,10 @@ interface WorkoutDao {
     @Query("SELECT COUNT(*) FROM workout WHERE is_in_progress = 0 AND deleted_at IS NULL")
     fun observeFinishedCount(): Flow<Int>
 
+    /** Including deleted ones. */
+    @Query("SELECT id FROM workout WHERE id IN (:ids)")
+    suspend fun knownIds(ids: List<String>): List<String>
+
     @Upsert
     suspend fun upsertWorkout(workout: WorkoutEntity)
 

@@ -11,11 +11,24 @@ data class RoutineExercise(
     val targetRpe: Double? = null,
     val targetRir: Int? = null,
     val restSeconds: Int? = null,
-    val progressionRule: ProgressionRuleType = ProgressionRuleType.DOUBLE_PROGRESSION,
+    val progression: ProgressionRule = ProgressionRule.DoubleProgression,
     val notes: String? = null,
 ) {
     companion object {
         const val DEFAULT_SETS = 3
+        private const val DEFAULT_REP_MIN = 8
+        private const val DEFAULT_REP_MAX = 12
+
+        /** An exercise added by hand: with a rep range, so that its progression can start. */
+        fun new(id: RoutineExerciseId, exercise: ExerciseInfo): RoutineExercise {
+            val hasReps = SetField.REPS in exercise.type.fields
+            return RoutineExercise(
+                id = id,
+                exercise = exercise,
+                repMin = DEFAULT_REP_MIN.takeIf { hasReps },
+                repMax = DEFAULT_REP_MAX.takeIf { hasReps },
+            )
+        }
     }
 }
 

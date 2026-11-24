@@ -9,6 +9,7 @@ import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
 import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
+import io.github.amibhai.liftlog.core.domain.progression.PlannedSession
 import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,15 @@ internal class RoomProgressRepository @Inject constructor(
             dao.setsBefore(ids.map { it.value }, before)
                 .groupBy { ExerciseId(it.exerciseId) }
                 .mapValues { (_, rows) -> rows.toSessions() }
+        }
+
+    override suspend fun plannedSessions(before: Long, ids: Set<ExerciseId>): Map<ExerciseId, List<PlannedSession>> =
+        if (ids.isEmpty()) {
+            emptyMap()
+        } else {
+            dao.plannedSetsBefore(ids.map { it.value }, before)
+                .groupBy { ExerciseId(it.set.exerciseId) }
+                .mapValues { (_, rows) -> rows.toPlannedSessions() }
         }
 
     override fun observeWorkoutStats(): Flow<List<WorkoutStats>> = dao.observeWorkoutStats().map { rows ->

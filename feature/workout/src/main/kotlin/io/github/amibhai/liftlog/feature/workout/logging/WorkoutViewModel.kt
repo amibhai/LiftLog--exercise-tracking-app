@@ -5,27 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.amibhai.liftlog.core.domain.model.ExerciseId
-import io.github.amibhai.liftlog.core.domain.model.LoggedSet
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
-import io.github.amibhai.liftlog.core.domain.progress.Bests
-import io.github.amibhai.liftlog.core.domain.progress.bestsOf
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseEditor
-import io.github.amibhai.liftlog.core.domain.repository.HistoryRepository
-import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.feature.workout.navigation.WorkoutDestination
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,9 +28,8 @@ import javax.inject.Inject
 class WorkoutViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val editor: WorkoutEditor,
-    private val history: HistoryRepository,
+    pastSessions: PastSessions,
     settings: SettingsRepository,
-    private val progress: ProgressRepository,
     exerciseEditor: ExerciseEditor,
 ) : ViewModel() {
 
@@ -51,20 +40,21 @@ class WorkoutViewModel @Inject constructor(
     private val stored: StateFlow<Stored?> = editor.observe(id).map(::Stored)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val previous: StateFlow<Map<ExerciseId, List<LoggedSet>>> = previousSets()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
-
     private val userSettings: StateFlow<UserSettings> = settings.settings
         .stateIn(viewModelScope, SharingStarted.Eagerly, UserSettings())
 
-    private val bests: StateFlow<Map<ExerciseId, Bests>> = recordBests()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+    private val past: StateFlow<Past> = pastSessions
+        .observe(
+            workout = stored.map { it?.workout }.filterNotNull(),
+            formula = userSettings.map { it.e1rmFormula },
+        )
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Past())
 
     private val session = WorkoutSession(
         id = id,
         editor = editor,
         workout = stored.map { it?.workout }.stateIn(viewModelScope, SharingStarted.Eagerly, null),
-        previousSets = previous,
+        past = past,
         userSettings = userSettings,
     )
     private val sets = SetHandler(session)
@@ -75,11 +65,11 @@ class WorkoutViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<WorkoutUiState> =
-        combine(stored, previous, userSettings, session.local, bests) { stored, previous, settings, local, bests ->
+        combine(stored, past, userSettings, session.local) { stored, past, settings, local ->
             when {
                 stored == null -> WorkoutUiState.Loading
                 stored.workout == null -> WorkoutUiState.Gone
-                else -> WorkoutUiMapper(settings, previous, local, bests).state(stored.workout)
+                else -> WorkoutUiMapper(settings, past, local).state(stored.workout)
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), WorkoutUiState.Loading)
 
@@ -102,32 +92,6 @@ class WorkoutViewModel @Inject constructor(
             WorkoutAction.DismissMessage -> session.updateLocal { it.copy(message = null) }
         }
     }
-
-    /** Loaded once per set of exercises: what came before this workout does not change while it is logged. */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun previousSets(): Flow<Map<ExerciseId, List<LoggedSet>>> = stored.map { it?.workout }
-        .filterNotNull()
-        .map { workout ->
-            workout.exercises.map { it.exercise.id }.toSet() to workout.startedAt.takeUnless { workout.isInProgress }
-        }
-        .distinctUntilChanged()
-        .mapLatest { (ids, before) ->
-            history.latestSessions(before ?: editor.now(), ids).mapValues { it.value.sets }
-        }
-
-    /** What each exercise was best at before this workout, or before its start when an earlier one is edited. */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun recordBests(): Flow<Map<ExerciseId, Bests>> = combine(
-        stored.map { it?.workout }.filterNotNull().map { workout ->
-            val types = workout.exercises.associate { it.exercise.id to it.exercise.type }
-            types to workout.startedAt.takeUnless { workout.isInProgress }
-        }.distinctUntilChanged(),
-        userSettings.map { it.e1rmFormula }.distinctUntilChanged(),
-    ) { (types, before), formula -> Triple(types, before, formula) }
-        .mapLatest { (types, before, formula) ->
-            progress.sessionsBefore(before ?: editor.now(), types.keys)
-                .mapValues { (id, sessions) -> bestsOf(types.getValue(id), sessions, formula) }
-        }
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L

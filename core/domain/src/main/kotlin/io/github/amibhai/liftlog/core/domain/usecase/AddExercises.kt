@@ -41,7 +41,7 @@ class AddExercises(
     }
 
     suspend fun toRoutine(routine: RoutineId, selection: List<ExerciseId>, asSuperset: Boolean) {
-        val added = exercises.infos(selection).map { RoutineExercise(RoutineExerciseId(ids.newId()), it) }
+        val added = exercises.infos(selection).map { RoutineExercise.new(RoutineExerciseId(ids.newId()), it) }
         routines.edit(routine) { it.addExercises(added, asSuperset && added.size > 1) }
     }
 

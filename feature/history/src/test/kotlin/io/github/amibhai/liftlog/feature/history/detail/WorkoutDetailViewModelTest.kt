@@ -15,6 +15,7 @@ import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
+import io.github.amibhai.liftlog.core.domain.usecase.ProgressionAdvisor
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
 import io.github.amibhai.liftlog.core.testing.FakeHistoryRepository
@@ -164,7 +165,14 @@ class WorkoutDetailViewModelTest {
             workouts = workouts,
             routines = routines,
             progress = progress,
-            startWorkout = StartWorkout(workouts, routines, history, WorkoutFactory(ids), testClock),
+            startWorkout = StartWorkout(
+                workouts = workouts,
+                routines = routines,
+                history = history,
+                advisor = ProgressionAdvisor(progress, FakeSettingsRepository()),
+                factory = WorkoutFactory(ids),
+                clock = testClock,
+            ),
             ids = ids,
             work = SequentialWork(CoroutineScope(backgroundScope.coroutineContext + mainDispatcherRule.dispatcher)),
             settings = FakeSettingsRepository(),

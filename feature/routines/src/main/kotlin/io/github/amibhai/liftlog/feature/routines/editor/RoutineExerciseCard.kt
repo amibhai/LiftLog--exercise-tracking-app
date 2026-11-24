@@ -32,6 +32,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import io.github.amibhai.liftlog.core.domain.model.EffortMode
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRule
+import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
 import io.github.amibhai.liftlog.core.ui.component.NumberStepper
 import io.github.amibhai.liftlog.core.ui.component.effortText
@@ -48,6 +50,7 @@ internal const val MAX_PLANNED_SETS = 20
 internal fun RoutineExerciseCard(
     exercise: RoutineExerciseUiModel,
     effortMode: EffortMode,
+    unit: WeightUnit,
     onAction: (RoutineEditorAction) -> Unit,
     onOpenDialog: (RoutineDialog) -> Unit,
     onOpenExercise: () -> Unit,
@@ -81,17 +84,30 @@ internal fun RoutineExerciseCard(
             horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
             itemVerticalAlignment = Alignment.CenterVertically,
         ) {
-            NumberStepper(
-                value = exercise.targetSets,
-                range = 1..MAX_PLANNED_SETS,
-                onChange = { onAction(RoutineEditorAction.SetSets(exercise.id, it)) },
-                fewer = stringResource(R.string.routine_fewer_sets),
-                more = stringResource(R.string.routine_more_sets),
-                text = pluralStringResource(R.plurals.routine_sets, exercise.targetSets, exercise.targetSets),
-            )
+            if (!exercise.progression.decidesSets) {
+                NumberStepper(
+                    value = exercise.targetSets,
+                    range = 1..MAX_PLANNED_SETS,
+                    onChange = { onAction(RoutineEditorAction.SetSets(exercise.id, it)) },
+                    fewer = stringResource(R.string.routine_fewer_sets),
+                    more = stringResource(R.string.routine_more_sets),
+                    text = pluralStringResource(R.plurals.routine_sets, exercise.targetSets, exercise.targetSets),
+                )
+                AssistChip(
+                    onClick = { onOpenDialog(RoutineDialog.Reps(exercise)) },
+                    label = { Text(repsLabel(exercise.repMin, exercise.repMax)) },
+                )
+            }
             AssistChip(
-                onClick = { onOpenDialog(RoutineDialog.Reps(exercise)) },
-                label = { Text(repsLabel(exercise.repMin, exercise.repMax)) },
+                onClick = { onOpenDialog(RoutineDialog.Progression(exercise)) },
+                label = { Text(progressionLabel(exercise.progression, unit)) },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(LiftLogIcons.Progress),
+                        contentDescription = null,
+                        modifier = Modifier.size(AssistChipDefaults.IconSize),
+                    )
+                },
             )
             AssistChip(
                 onClick = { onOpenDialog(RoutineDialog.Rest(exercise)) },
@@ -123,6 +139,10 @@ internal fun RoutineExerciseCard(
         }
     }
 }
+
+/** Whether sets and reps come from the rule instead of the targets. */
+private val ProgressionRule.decidesSets: Boolean
+    get() = this is ProgressionRule.Stages || this is ProgressionRule.FiveThreeOne
 
 @Composable
 private fun ExerciseMenu(

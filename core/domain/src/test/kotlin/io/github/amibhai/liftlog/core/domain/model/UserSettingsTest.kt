@@ -32,9 +32,12 @@ class UserSettingsTest {
     }
 
     @Test
-    fun `default bar weight is 20 kg or 45 lb for barbells only`() {
+    fun `default bar weight is 20 kg or 45 lb, and other bars have their own`() {
         assertThat(defaults.barWeight(Equipment.BARBELL, WeightUnit.KG)).isEqualTo(Weight.of(20.0, WeightUnit.KG))
         assertThat(defaults.barWeight(Equipment.BARBELL, WeightUnit.LB)).isEqualTo(Weight.of(45.0, WeightUnit.LB))
+        assertThat(defaults.barWeight(Equipment.EZ_BAR, WeightUnit.KG)).isEqualTo(Weight(10.0))
+        assertThat(defaults.barWeight(Equipment.TRAP_BAR, WeightUnit.LB)).isEqualTo(Weight.of(55.0, WeightUnit.LB))
+        assertThat(defaults.barWeight(Equipment.SMITH, WeightUnit.KG)).isEqualTo(Weight(20.0))
         assertThat(defaults.barWeight(Equipment.DUMBBELL, WeightUnit.KG)).isNull()
     }
 

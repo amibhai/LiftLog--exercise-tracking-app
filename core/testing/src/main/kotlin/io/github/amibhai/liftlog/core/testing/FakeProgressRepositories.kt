@@ -11,6 +11,7 @@ import io.github.amibhai.liftlog.core.domain.progress.BodyMetricType
 import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
 import io.github.amibhai.liftlog.core.domain.progress.ProgressPhoto
 import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
+import io.github.amibhai.liftlog.core.domain.progression.PlannedSession
 import io.github.amibhai.liftlog.core.domain.repository.BodyRepository
 import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.update
 
 class FakeProgressRepository : ProgressRepository {
     val sessions = MutableStateFlow(emptyMap<ExerciseId, List<ExerciseSession>>())
+    val planned = MutableStateFlow(emptyMap<ExerciseId, List<PlannedSession>>())
     val stats = MutableStateFlow(emptyList<WorkoutStats>())
 
     /** The same for every time span. */
@@ -36,6 +38,9 @@ class FakeProgressRepository : ProgressRepository {
         sessions.value
             .filterKeys { it in ids }
             .mapValues { (_, list) -> list.filter { it.at < before } }
+
+    override suspend fun plannedSessions(before: Long, ids: Set<ExerciseId>): Map<ExerciseId, List<PlannedSession>> =
+        planned.value.filterKeys { it in ids }.mapValues { (_, list) -> list.filter { it.at < before } }
 
     override fun observeWorkoutStats(): Flow<List<WorkoutStats>> = stats
 

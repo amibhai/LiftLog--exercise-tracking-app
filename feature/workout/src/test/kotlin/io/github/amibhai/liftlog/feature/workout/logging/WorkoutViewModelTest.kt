@@ -6,15 +6,23 @@ import io.github.amibhai.liftlog.core.domain.concurrent.SequentialWork
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
 import io.github.amibhai.liftlog.core.domain.model.ExerciseSession
 import io.github.amibhai.liftlog.core.domain.model.LoggedSet
+import io.github.amibhai.liftlog.core.domain.model.Routine
+import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
+import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
+import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.SetField
 import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
+import io.github.amibhai.liftlog.core.domain.progression.PlannedSession
+import io.github.amibhai.liftlog.core.domain.progression.SuggestionReason
 import io.github.amibhai.liftlog.core.domain.units.Weight
+import io.github.amibhai.liftlog.core.domain.usecase.ProgressionAdvisor
 import io.github.amibhai.liftlog.core.testing.FakeExerciseEditor
 import io.github.amibhai.liftlog.core.testing.FakeHistoryRepository
 import io.github.amibhai.liftlog.core.testing.FakeProgressRepository
+import io.github.amibhai.liftlog.core.testing.FakeRoutineRepository
 import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
 import io.github.amibhai.liftlog.core.testing.FakeWorkoutRepository
 import io.github.amibhai.liftlog.core.testing.MainDispatcherRule
@@ -49,6 +57,8 @@ class WorkoutViewModelTest {
     )
     private val id = WorkoutId("w")
     private val progress = FakeProgressRepository()
+    private val settings = FakeSettingsRepository()
+    private val routines = FakeRoutineRepository()
     private val stored: Workout get() = workouts[id]!!
 
     @Test
@@ -101,6 +111,22 @@ class WorkoutViewModelTest {
         val rows = ready(viewModel).items.filterIsInstance<WorkoutItem.Set>().map { it.row }
         assertThat(rows[0].isRecord).isTrue()
         assertThat(rows[1].isRecord).isFalse()
+    }
+
+    @Test
+    fun theProgressionExplainsTheWorkoutOfARoutine() = runTest {
+        val slot = RoutineExercise(RoutineExerciseId("slot"), bench, targetSets = 1, repMin = 6, repMax = 8)
+        routines.create(Routine(RoutineId("r"), "Push", exercises = listOf(slot)))
+        progress.planned.value = mapOf(
+            bench.id to listOf(
+                PlannedSession(NOW - DAY, listOf(LoggedSet(SetType.WORKING, values(80.0, 8))), slot = slot.id),
+            ),
+        )
+        val planned = exercise("e", bench, set("1", target = values(82.5, 6))).copy(routineExerciseId = slot.id)
+        val viewModel = viewModel(FakeWorkoutRepository(workout(planned).copy(routineId = RoutineId("r"))))
+
+        assertThat(ready(viewModel).items.filterIsInstance<WorkoutItem.Header>().single().reason)
+            .isEqualTo(SuggestionReason.HeavierAfter(8))
     }
 
     @Test
@@ -207,9 +233,14 @@ class WorkoutViewModelTest {
         val viewModel = WorkoutViewModel(
             savedStateHandle = SavedStateHandle(mapOf("workoutId" to "w")),
             editor = WorkoutEditor(repository, work, IdGenerator { "new${nextId++}" }, testClock),
-            history = FakeHistoryRepository(),
-            settings = FakeSettingsRepository(),
-            progress = progress,
+            pastSessions = PastSessions(
+                history = FakeHistoryRepository(),
+                progress = progress,
+                routines = routines,
+                advisor = ProgressionAdvisor(progress, settings),
+                clock = testClock,
+            ),
+            settings = settings,
             exerciseEditor = FakeExerciseEditor(),
         )
         backgroundScope.launch(mainDispatcherRule.dispatcher) { viewModel.uiState.collect {} }
@@ -217,4 +248,8 @@ class WorkoutViewModelTest {
     }
 
     private fun ready(viewModel: WorkoutViewModel) = viewModel.uiState.value as WorkoutUiState.Ready
+
+    private companion object {
+        const val DAY = 24 * 3_600_000L
+    }
 }

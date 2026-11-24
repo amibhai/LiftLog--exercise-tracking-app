@@ -23,6 +23,7 @@ import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
 import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
 import io.github.amibhai.liftlog.core.domain.units.Weight
+import io.github.amibhai.liftlog.core.domain.usecase.ProgressionAdvisor
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
 import io.github.amibhai.liftlog.core.testing.FakeExerciseRepository
@@ -177,13 +178,16 @@ class HomeViewModelTest {
         var next = 0
         val ids = IdGenerator { "id${next++}" }
         val clock = Clock.fixed(Instant.ofEpochMilli(now), ZoneOffset.UTC)
+        val settings = FakeSettingsRepository()
+        val advisor = ProgressionAdvisor(progress, settings)
+        val factory = WorkoutFactory(ids)
         val viewModel = HomeViewModel(
             exercises = FakeExerciseRepository(),
             workouts = workouts,
             routines = routines,
-            startWorkout = StartWorkout(workouts, routines, FakeHistoryRepository(), WorkoutFactory(ids), clock),
+            startWorkout = StartWorkout(workouts, routines, FakeHistoryRepository(), advisor, factory, clock),
             progress = progress,
-            settings = FakeSettingsRepository(),
+            settings = settings,
             ids = ids,
             work = SequentialWork(CoroutineScope(backgroundScope.coroutineContext + mainDispatcherRule.dispatcher)),
             clock = clock,

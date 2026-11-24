@@ -33,6 +33,35 @@
     </plurals>
     <string name="routine_rest">Rest %1$s</string>
     <string name="routine_no_rest">No rest</string>
+    <!-- Progression -->
+    <string name="routine_progression">Progression</string>
+    <string name="routine_progression_increment">%1$s, +%2$s</string>
+    <string name="routine_progression_max">%1$s, training max %2$s</string>
+    <string name="routine_progression_no_max">%1$s: set a training max</string>
+    <string name="routine_rule_double">Double progression</string>
+    <string name="routine_rule_double_body">More reps until every set reaches the top of the rep range, then more weight.</string>
+    <string name="routine_rule_linear">Linear</string>
+    <string name="routine_rule_linear_body">More weight after every session that made all its reps. A deload after missed sessions.</string>
+    <string name="routine_rule_stages">Stages</string>
+    <string name="routine_rule_stages_body">More weight each session. A missed session moves on to fewer reps and more sets.</string>
+    <string name="routine_rule_531" translatable="false">5/3/1</string>
+    <string name="routine_rule_531_body">Four-week rounds at percentages of a training max.</string>
+    <string name="routine_rule_none">No progression</string>
+    <string name="routine_rule_none_body">Repeats what you did last time.</string>
+    <string name="routine_rule_increment">Add after each good session</string>
+    <string name="routine_rule_default_step">Weight step</string>
+    <string name="routine_rule_misses">Missed sessions before a deload</string>
+    <string name="routine_rule_fewer_misses">Fewer missed sessions</string>
+    <string name="routine_rule_more_misses">More missed sessions</string>
+    <string name="routine_rule_deload">Deload by</string>
+    <string name="routine_rule_percent">%1$d%%</string>
+    <string name="routine_rule_stages_label">Sets × reps of the stages</string>
+    <string name="routine_rule_reset">Start over lighter by</string>
+    <string name="routine_rule_training_max">Training max (%1$s)</string>
+    <string name="routine_rule_training_max_hint">About 90% of your one-rep max</string>
+    <string name="routine_rule_round_increment">Add after each round</string>
+    <string name="routine_stage">%1$d × %2$d</string>
+
     <string name="routine_effort_title">Effort target</string>
     <string name="routine_effort_none">No %1$s target</string>
 </resources>

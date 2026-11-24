@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.data.NOW
 import io.github.amibhai.liftlog.core.data.TestClock
 import io.github.amibhai.liftlog.core.data.TestDatabase
+import io.github.amibhai.liftlog.core.data.routine.RoomRoutineRepository
 import io.github.amibhai.liftlog.core.data.workout.RoomWorkoutRepository
 import io.github.amibhai.liftlog.core.database.entity.ExerciseMuscleEntity
 import io.github.amibhai.liftlog.core.domain.model.Equipment
@@ -12,7 +13,12 @@ import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRuleType
 import io.github.amibhai.liftlog.core.domain.model.RecordType
+import io.github.amibhai.liftlog.core.domain.model.Routine
+import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
+import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
+import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.SetValues
 import io.github.amibhai.liftlog.core.domain.model.Workout
@@ -23,6 +29,7 @@ import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
 import io.github.amibhai.liftlog.core.domain.progress.E1rmFormula
 import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
+import io.github.amibhai.liftlog.core.domain.progression.SessionPlan
 import io.github.amibhai.liftlog.core.domain.units.Weight
 import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
 import kotlinx.coroutines.flow.first
@@ -40,6 +47,7 @@ class RoomProgressRepositoryTest {
     private val clock = TestClock()
     private val settings = FakeSettingsRepository()
     private val bench = ExerciseId("bench")
+    private val info = ExerciseInfo(bench, "Bench Press", ExerciseType.WEIGHT_REPS, Equipment.BARBELL)
     private val first = workout("w1", at = NOW, set("a", 60.0, 5), set("b", 60.0, 5))
     private val second = workout("w2", at = NOW + DAY, set("c", 62.5, 5))
 
@@ -60,6 +68,26 @@ class RoomProgressRepositoryTest {
         assertThat(heaviest.record.workoutId).isEqualTo(WorkoutId("w2"))
         assertThat(heaviest.record.setId).isEqualTo(WorkoutSetId("c"))
         assertThat(progress().observeRecordsOf(WorkoutId("w1")).first()).isEmpty()
+    }
+
+    @Test
+    fun sessionsKnowTheRoutineSlotThatPlannedThem() = runTest {
+        start()
+        val slot = RoutineExercise(RoutineExerciseId("slot"), info, repMin = 5, repMax = 8)
+        RoomRoutineRepository(db.database, db.database.routineDao(), db.database.historyDao(), clock)
+            .create(Routine(RoutineId("r"), "Push", exercises = listOf(slot)))
+        workouts().edit(WorkoutId("w2")) { workout ->
+            workout.copy(exercises = workout.exercises.map { it.copy(routineExerciseId = slot.id) })
+        }
+
+        val sessions = progress().plannedSessions(before = NOW + 2 * DAY, ids = setOf(bench)).getValue(bench)
+
+        assertThat(sessions.map { it.at }).containsExactly(NOW, NOW + DAY).inOrder()
+        assertThat(sessions.first().slot).isNull()
+        assertThat(sessions.first().plan).isNull()
+        assertThat(sessions.last().slot).isEqualTo(slot.id)
+        assertThat(sessions.last().plan).isEqualTo(SessionPlan(5, 8, ProgressionRuleType.DOUBLE_PROGRESSION))
+        assertThat(progress().plannedSessions(before = NOW + DAY, ids = setOf(bench)).getValue(bench)).hasSize(1)
     }
 
     @Test
@@ -174,7 +202,7 @@ class RoomProgressRepositoryTest {
         exercises = listOf(
             WorkoutExercise(
                 id = WorkoutExerciseId("$id-bench"),
-                exercise = ExerciseInfo(bench, "Bench Press", ExerciseType.WEIGHT_REPS, Equipment.BARBELL),
+                exercise = info,
                 sets = sets.toList(),
             ),
         ),

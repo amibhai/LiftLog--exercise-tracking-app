@@ -15,6 +15,9 @@ enum class EffortMode { RPE, RIR, OFF }
 /** A plate size in the inventory's unit; [pairs] is null when the supply is unlimited. */
 data class Plate(val weight: Double, val pairs: Int? = null)
 
+/** One warm-up set: a part of the working weight, or the empty bar at 0 percent (SPEC §5). */
+data class WarmupStep(val percent: Int, val reps: Int)
+
 /** Default weight-step sizes in one unit system. */
 data class WeightSteps(val standard: Double, val dumbbell: Double)
 
@@ -45,6 +48,7 @@ data class UserSettings(
     val weeklySetTargetMax: Int = DEFAULT_TARGET_MAX,
     /** Null follows the phone's language. */
     val firstDayOfWeek: DayOfWeek? = null,
+    val warmupSteps: List<WarmupStep> = DEFAULT_WARMUP,
 ) {
     val weeklySetTarget: IntRange get() = weeklySetTargetMin..weeklySetTargetMax
 
@@ -57,11 +61,16 @@ data class UserSettings(
         return if (equipment == Equipment.DUMBBELL) steps.dumbbell else steps.standard
     }
 
-    /** Default bar weight for barbell exercises in the unit system's usual bar; null without a bar. */
+    /** The bar weight of exercises without their own, in the usual sizes of [unit]; null without a bar. */
     fun barWeight(equipment: Equipment, unit: WeightUnit): Weight? {
-        if (equipment != Equipment.BARBELL) return null
-        val bar = if (unit == WeightUnit.KG) barWeightKg else barWeightLb
-        return Weight.of(bar, unit)
+        val isKg = unit == WeightUnit.KG
+        val bar = when (equipment) {
+            Equipment.BARBELL, Equipment.SMITH -> if (isKg) barWeightKg else barWeightLb
+            Equipment.EZ_BAR -> if (isKg) EZ_BAR_KG else EZ_BAR_LB
+            Equipment.TRAP_BAR -> if (isKg) TRAP_BAR_KG else TRAP_BAR_LB
+            else -> null
+        }
+        return bar?.let { Weight.of(it, unit) }
     }
 
     fun plates(unit: WeightUnit): List<Plate> = if (unit == WeightUnit.KG) platesKg else platesLb
@@ -72,11 +81,21 @@ data class UserSettings(
         const val DEFAULT_STEP_LB = 5.0
         const val DEFAULT_BAR_KG = 20.0
         const val DEFAULT_BAR_LB = 45.0
+        const val EZ_BAR_KG = 10.0
+        const val EZ_BAR_LB = 25.0
+        const val TRAP_BAR_KG = 25.0
+        const val TRAP_BAR_LB = 55.0
         const val DEFAULT_REST_SECONDS = 120
         const val DEFAULT_SECONDARY_SETS = 0.5
         const val DEFAULT_TARGET_MIN = 10
         const val DEFAULT_TARGET_MAX = 20
         val DEFAULT_PLATES_KG = listOf(25.0, 20.0, 15.0, 10.0, 5.0, 2.5, 1.25)
         val DEFAULT_PLATES_LB = listOf(45.0, 35.0, 25.0, 10.0, 5.0, 2.5)
+        val DEFAULT_WARMUP = listOf(
+            WarmupStep(percent = 0, reps = 10),
+            WarmupStep(percent = 40, reps = 5),
+            WarmupStep(percent = 60, reps = 3),
+            WarmupStep(percent = 80, reps = 1),
+        )
     }
 }

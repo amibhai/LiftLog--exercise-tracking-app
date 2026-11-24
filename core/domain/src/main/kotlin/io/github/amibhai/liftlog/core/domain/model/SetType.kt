@@ -6,4 +6,8 @@ enum class SetType(val countsTowardRecords: Boolean) {
     WORKING(countsTowardRecords = true),
     DROP(countsTowardRecords = true),
     FAILURE(countsTowardRecords = true),
+    ;
+
+    /** The sets a plan is about: neither warm-ups nor drop sets. */
+    val isMain: Boolean get() = this == WORKING || this == FAILURE
 }

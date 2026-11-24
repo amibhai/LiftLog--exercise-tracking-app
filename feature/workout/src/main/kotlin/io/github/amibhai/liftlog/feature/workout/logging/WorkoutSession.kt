@@ -16,7 +16,7 @@ internal class WorkoutSession(
     val id: WorkoutId,
     val editor: WorkoutEditor,
     private val workout: StateFlow<Workout?>,
-    private val previousSets: StateFlow<Map<ExerciseId, List<LoggedSet>>>,
+    private val past: StateFlow<Past>,
     private val userSettings: StateFlow<UserSettings>,
 ) {
     val local = MutableStateFlow(WorkoutLocalState())
@@ -26,7 +26,7 @@ internal class WorkoutSession(
 
     val current: Workout? get() = workout.value
 
-    val previous: Map<ExerciseId, List<LoggedSet>> get() = previousSets.value
+    val previous: Map<ExerciseId, List<LoggedSet>> get() = past.value.previous
 
     val settings: UserSettings get() = userSettings.value
 

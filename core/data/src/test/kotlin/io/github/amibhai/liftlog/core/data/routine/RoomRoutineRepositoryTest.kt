@@ -10,12 +10,16 @@ import io.github.amibhai.liftlog.core.domain.model.Equipment
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRule
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRuleType
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
+import io.github.amibhai.liftlog.core.domain.model.Stage
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.workout.editExercise
 import io.github.amibhai.liftlog.core.domain.workout.moveExercise
 import io.github.amibhai.liftlog.core.domain.workout.removeExercise
 import kotlinx.coroutines.flow.first
@@ -48,6 +52,34 @@ class RoomRoutineRepositoryTest {
 
         assertThat(repository().get(push.id)).isEqualTo(push)
         assertThat(repository().observe(push.id).first()).isEqualTo(push)
+    }
+
+    @Test
+    fun everyProgressionRuleIsStoredWithItsSettings() = runTest {
+        create()
+        val rules = listOf(
+            ProgressionRule.DoubleProgression,
+            ProgressionRule.Linear(),
+            ProgressionRule.Linear(incrementKg = 1.25, missesBeforeDeload = 2, deloadPercent = 15),
+            ProgressionRule.Stages(listOf(Stage(5, 3), Stage(6, 2)), incrementKg = 5.0, resetPercent = 20),
+            ProgressionRule.FiveThreeOne(trainingMaxKg = 97.5, incrementKg = 5.0, since = NOW),
+            ProgressionRule.FiveThreeOne(),
+            ProgressionRule.None,
+        )
+
+        for (rule in rules) {
+            repository().edit(
+                push.id,
+            ) { it.editExercise(RoutineExerciseId("bench")) { slot -> slot.copy(progression = rule) } }
+            assertThat(repository().get(push.id)!!.exercises.first().progression).isEqualTo(rule)
+        }
+    }
+
+    @Test
+    fun unreadableRuleSettingsFallBackToTheDefaults() {
+        assertThat(progressionRule(ProgressionRuleType.LINEAR, "not json")).isEqualTo(ProgressionRule.Linear())
+        assertThat(progressionRule(ProgressionRuleType.LINEAR, """{"incrementKg":5.0,"fromTheFuture":1}"""))
+            .isEqualTo(ProgressionRule.Linear(incrementKg = 5.0))
     }
 
     @Test

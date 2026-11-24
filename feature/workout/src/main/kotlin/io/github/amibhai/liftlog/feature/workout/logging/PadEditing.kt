@@ -14,6 +14,7 @@ import io.github.amibhai.liftlog.core.domain.units.Weight
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.domain.units.shown
 import io.github.amibhai.liftlog.core.domain.workout.matchPrevious
+import io.github.amibhai.liftlog.core.domain.workout.weightStep
 import io.github.amibhai.liftlog.core.ui.component.DurationInputState
 import io.github.amibhai.liftlog.core.ui.component.NumberInputState
 import io.github.amibhai.liftlog.core.ui.component.PadInput
@@ -33,18 +34,10 @@ internal data class PadEditing(val setId: WorkoutSetId, val field: SetField, val
 
     /** What −/+ add: the exercise's own weight step, or the default one (SPEC §2). */
     fun step(exercise: ExerciseInfo, settings: UserSettings): BigDecimal = when (field) {
-        SetField.WEIGHT -> BigDecimal.valueOf(weightStep(exercise, settings))
+        SetField.WEIGHT -> BigDecimal.valueOf(exercise.weightStep(settings))
         SetField.REPS -> BigDecimal.ONE
         SetField.DURATION -> DurationStep
         SetField.DISTANCE -> if (exercise.type == ExerciseType.WEIGHT_DISTANCE) CarryStep else CardioStep
-    }
-
-    private fun weightStep(exercise: ExerciseInfo, settings: UserSettings): Double {
-        val own = when (settings.weightUnit) {
-            WeightUnit.KG -> exercise.defaults.weightStepKg
-            WeightUnit.LB -> exercise.defaults.weightStepLb
-        }
-        return own ?: settings.weightStep(exercise.equipment, settings.weightUnit)
     }
 
     companion object {

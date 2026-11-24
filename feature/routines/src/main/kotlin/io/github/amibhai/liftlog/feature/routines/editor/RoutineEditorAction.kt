@@ -1,5 +1,6 @@
 package io.github.amibhai.liftlog.feature.routines.editor
 
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRule
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 
 /** Everything the routine editor can ask for. */
@@ -19,6 +20,8 @@ sealed interface RoutineEditorAction {
 
     /** RPE or RIR, as the settings choose; null for none. */
     data class SetEffort(override val id: RoutineExerciseId, val value: Double?) : OnExercise
+
+    data class SetProgression(override val id: RoutineExerciseId, val rule: ProgressionRule) : OnExercise
 
     data class SetNotes(override val id: RoutineExerciseId, val notes: String) : OnExercise
 

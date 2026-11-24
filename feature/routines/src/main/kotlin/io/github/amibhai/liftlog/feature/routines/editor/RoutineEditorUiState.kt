@@ -4,8 +4,10 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import io.github.amibhai.liftlog.core.domain.model.EffortMode
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRule
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
+import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 
 sealed interface RoutineEditorUiState {
     data object Loading : RoutineEditorUiState
@@ -20,6 +22,7 @@ sealed interface RoutineEditorUiState {
         val name: String,
         val exercises: List<RoutineExerciseUiModel>,
         val effortMode: EffortMode,
+        val unit: WeightUnit,
         val message: RoutineEditorMessage? = null,
     ) : RoutineEditorUiState
 }
@@ -40,6 +43,7 @@ data class RoutineExerciseUiModel(
     /** RPE or RIR, as the settings choose. */
     val effortTarget: Double?,
     val notes: String?,
+    val progression: ProgressionRule,
 )
 
 /** Something that can be undone. */

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.Button
@@ -34,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import io.github.amibhai.liftlog.core.domain.model.SetField
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.ui.component.EffortChips
@@ -47,6 +49,8 @@ import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.label.labelRes
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 import io.github.amibhai.liftlog.feature.workout.R
+
+private val HintIconSize = 18.dp
 
 @Composable
 internal fun LazyItemScope.WorkoutListItem(
@@ -131,12 +135,33 @@ private fun ExerciseHeader(
             NoteText(note, onClick = { onOpenDialog(WorkoutDialog.StickyNote(header)) }, icon = LiftLogIcons.Pin)
         }
         header.notes?.let { NoteText(it, onClick = { onOpenDialog(WorkoutDialog.ExerciseNotes(header)) }) }
+        header.reason?.let { suggestionText(it, header.unit) }?.let { HintText(it) }
         SetRowHeader(
             setTitle = stringResource(R.string.workout_column_set),
             previousTitle = stringResource(R.string.workout_column_previous),
             fieldTitles = header.columns.map { columnTitle(it) },
             modifier = Modifier.padding(horizontal = LiftLogDimens.spacingS),
         )
+    }
+}
+
+/** Why the sets below are planned as they are. */
+@Composable
+private fun HintText(text: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = LiftLogDimens.screenGutter, vertical = LiftLogDimens.spacingXs),
+        horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(LiftLogIcons.Progress),
+            contentDescription = null,
+            modifier = Modifier.size(HintIconSize),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Text(text = text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
     }
 }
 

@@ -10,9 +10,12 @@ import io.github.amibhai.liftlog.core.domain.id.IdGenerator
 import io.github.amibhai.liftlog.core.domain.id.RandomUuidGenerator
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseRepository
 import io.github.amibhai.liftlog.core.domain.repository.HistoryRepository
+import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
+import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.usecase.AddExercises
+import io.github.amibhai.liftlog.core.domain.usecase.ProgressionAdvisor
 import io.github.amibhai.liftlog.core.domain.usecase.SearchExercises
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
@@ -47,9 +50,14 @@ object DomainModule {
         workouts: WorkoutRepository,
         routines: RoutineRepository,
         history: HistoryRepository,
+        advisor: ProgressionAdvisor,
         factory: WorkoutFactory,
         clock: Clock,
-    ) = StartWorkout(workouts, routines, history, factory, clock)
+    ) = StartWorkout(workouts, routines, history, advisor, factory, clock)
+
+    @Provides
+    fun provideProgressionAdvisor(progress: ProgressRepository, settings: SettingsRepository) =
+        ProgressionAdvisor(progress, settings)
 
     @Provides
     fun provideAddExercises(

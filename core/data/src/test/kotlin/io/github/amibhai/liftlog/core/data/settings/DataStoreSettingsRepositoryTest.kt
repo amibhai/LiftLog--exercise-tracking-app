@@ -7,6 +7,7 @@ import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.domain.model.Plate
 import io.github.amibhai.liftlog.core.domain.model.ThemeMode
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
+import io.github.amibhai.liftlog.core.domain.model.WarmupStep
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -35,7 +36,12 @@ class DataStoreSettingsRepositoryTest {
         val repository = repository(file, backgroundScope)
 
         repository.update {
-            it.copy(weightUnit = WeightUnit.LB, themeMode = ThemeMode.LIGHT, platesLb = listOf(Plate(45.0, 4)))
+            it.copy(
+                weightUnit = WeightUnit.LB,
+                themeMode = ThemeMode.LIGHT,
+                platesLb = listOf(Plate(45.0, 4)),
+                warmupSteps = listOf(WarmupStep(50, 5)),
+            )
         }
 
         val copy = folder.root.resolve("copy.json").also { file.copyTo(it) }
@@ -43,6 +49,7 @@ class DataStoreSettingsRepositoryTest {
         assertThat(reloaded.weightUnit).isEqualTo(WeightUnit.LB)
         assertThat(reloaded.themeMode).isEqualTo(ThemeMode.LIGHT)
         assertThat(reloaded.platesLb).containsExactly(Plate(45.0, 4))
+        assertThat(reloaded.warmupSteps).containsExactly(WarmupStep(50, 5))
     }
 
     @Test

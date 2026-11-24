@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.amibhai.liftlog.core.domain.concurrent.SequentialWork
 import io.github.amibhai.liftlog.core.domain.model.EffortMode
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRule
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.Clock
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -36,6 +38,7 @@ class RoutineEditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val routines: RoutineRepository,
     private val work: SequentialWork,
+    private val clock: Clock,
     settings: SettingsRepository,
 ) : ViewModel() {
 
@@ -84,6 +87,11 @@ class RoutineEditorViewModel @Inject constructor(
             is RoutineEditorAction.Superset -> edit { it.supersetWith(action.id, action.others) }
 
             is RoutineEditorAction.LeaveSuperset -> edit { it.leaveSuperset(action.id) }
+
+            is RoutineEditorAction.SetProgression -> {
+                val now = clock.millis()
+                edit { routine -> routine.editExercise(action.id) { it.progressingBy(action.rule, now) } }
+            }
 
             else -> {
                 val mode = userSettings.value.effortMode
@@ -135,9 +143,11 @@ class RoutineEditorViewModel @Inject constructor(
                         EffortMode.OFF -> null
                     },
                     notes = exercise.notes,
+                    progression = exercise.progression,
                 )
             },
             effortMode = settings.effortMode,
+            unit = settings.weightUnit,
             message = message,
         )
 
@@ -147,6 +157,13 @@ class RoutineEditorViewModel @Inject constructor(
 }
 
 private const val MAX_SETS = 20
+
+/** A new training max starts its first week now. */
+private fun RoutineExercise.progressingBy(rule: ProgressionRule, now: Long): RoutineExercise {
+    val old = (progression as? ProgressionRule.FiveThreeOne)?.trainingMaxKg
+    val isNewMax = rule is ProgressionRule.FiveThreeOne && rule.trainingMaxKg != old
+    return copy(progression = if (isNewMax) rule.copy(since = now) else rule)
+}
 
 private fun RoutineExercise.changedBy(action: RoutineEditorAction.OnExercise, mode: EffortMode) = when (action) {
     is RoutineEditorAction.SetSets -> copy(targetSets = action.sets.coerceIn(1, MAX_SETS))

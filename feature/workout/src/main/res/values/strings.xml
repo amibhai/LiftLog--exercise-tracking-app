@@ -23,6 +23,23 @@
     <string name="workout_column_set">Set</string>
     <string name="workout_column_previous">Previous</string>
 
+    <!-- Why an exercise is planned as it is -->
+    <plurals name="workout_hint_heavier">
+        <item quantity="one">Every set made %1$d rep: time for more weight</item>
+        <item quantity="other">Every set made %1$d reps: time for more weight</item>
+    </plurals>
+    <string name="workout_hint_retry">Reps were missed: the same weight again (%1$d of %2$d)</string>
+    <plurals name="workout_hint_deload">
+        <item quantity="one">Deload after %1$d missed session: %2$d%% lighter</item>
+        <item quantity="other">Deload after %1$d missed sessions: %2$d%% lighter</item>
+    </plurals>
+    <string name="workout_hint_stage">Stage %1$d of %2$d</string>
+    <string name="workout_hint_stage_heavier">Stage %1$d of %2$d, with more weight</string>
+    <string name="workout_hint_stage_next">Reps were missed: stage %1$d of %2$d, same weight</string>
+    <string name="workout_hint_stage_again">Last stage missed: back to stage %1$d of %2$d, lighter</string>
+    <string name="workout_hint_week">5/3/1 week %1$d, training max %2$s. Last set: as many reps as you can.</string>
+    <string name="workout_hint_week_deload">5/3/1 week %1$d, a deload. Training max %2$s</string>
+
     <string name="workout_exercise_options">Options for %1$s</string>
     <string name="workout_exercise_note">Note for this workout</string>
     <string name="workout_exercise_pinned_note">Pinned note</string>

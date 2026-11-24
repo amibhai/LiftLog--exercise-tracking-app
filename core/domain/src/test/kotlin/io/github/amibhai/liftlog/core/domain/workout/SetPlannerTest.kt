@@ -5,6 +5,8 @@ import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.SetValues
+import io.github.amibhai.liftlog.core.domain.progression.Suggestion
+import io.github.amibhai.liftlog.core.domain.progression.SuggestionReason
 import org.junit.jupiter.api.Test
 
 class SetPlannerTest {
@@ -71,6 +73,25 @@ class SetPlannerTest {
     fun `a routine without history or rep range has empty goals`() {
         assertThat(SetPlanner.forRoutine(routineExercise(targetSets = 1), emptyList()).single().target)
             .isEqualTo(SetValues.EMPTY)
+    }
+
+    @Test
+    fun `a suggestion decides over the working sets and leaves warm-ups alone`() {
+        val suggestion = Suggestion(listOf(values(82.5, 8), values(82.5, 8)), SuggestionReason.HeavierAfter(8))
+
+        val plan = SetPlanner.forRoutine(routineExercise(targetSets = 3), lastTime, suggestion)
+
+        assertThat(plan.map { it.target })
+            .containsExactly(values(40.0, 10), values(82.5, 8), values(82.5, 8)).inOrder()
+    }
+
+    @Test
+    fun `numbers that are not suggested stay as they were`() {
+        val suggestion = Suggestion(listOf(values(reps = 5)), SuggestionReason.MoreReps)
+
+        val plan = SetPlanner.forRoutine(routineExercise(targetSets = 1), listOf(logged(80.0, 8)), suggestion)
+
+        assertThat(plan.single().target).isEqualTo(values(80.0, 5))
     }
 
     private fun routineExercise(targetSets: Int, repMin: Int? = null, repMax: Int? = null) = RoutineExercise(

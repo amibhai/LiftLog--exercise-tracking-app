@@ -6,6 +6,7 @@ import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
 import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
+import io.github.amibhai.liftlog.core.domain.progression.PlannedSession
 import kotlinx.coroutines.flow.Flow
 
 /** What finished workouts add up to (SPEC §8). Warm-ups and the workout in progress never count. */
@@ -15,6 +16,9 @@ interface ProgressRepository {
 
     /** The sessions of a few exercises before [before]: what records of the current workout are compared with. */
     suspend fun sessionsBefore(before: Long, ids: Set<ExerciseId>): Map<ExerciseId, List<ExerciseSession>>
+
+    /** The same with the routine slot each session was planned by: what progression rules build on. */
+    suspend fun plannedSessions(before: Long, ids: Set<ExerciseId>): Map<ExerciseId, List<PlannedSession>>
 
     /** Every finished workout, summed up, oldest first. */
     fun observeWorkoutStats(): Flow<List<WorkoutStats>>

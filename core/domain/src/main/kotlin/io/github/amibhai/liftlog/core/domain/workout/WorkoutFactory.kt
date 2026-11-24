@@ -5,23 +5,32 @@ import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
 import io.github.amibhai.liftlog.core.domain.model.LoggedSet
 import io.github.amibhai.liftlog.core.domain.model.Routine
+import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExercise
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExerciseId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
+import io.github.amibhai.liftlog.core.domain.progression.Advice
 
 /** Creates workouts with their sets pre-filled from history (SPEC §5 start options). */
 class WorkoutFactory(private val ids: IdGenerator) {
 
     fun empty(now: Long) = Workout(id = WorkoutId(ids.newId()), startedAt = now)
 
-    fun fromRoutine(routine: Routine, history: Map<ExerciseId, List<LoggedSet>>, now: Long): Workout = empty(now).copy(
+    /** The sets follow the [advice] for each exercise, and where there is none, the last time it was done. */
+    fun fromRoutine(
+        routine: Routine,
+        history: Map<ExerciseId, List<LoggedSet>>,
+        advice: Map<RoutineExerciseId, Advice>,
+        now: Long,
+    ): Workout = empty(now).copy(
         name = routine.name,
         routineId = routine.id,
         exercises = routine.exercises.map { slot ->
-            val sets = SetPlanner.forRoutine(slot, history[slot.exercise.id].orEmpty())
+            val basis = advice[slot.id]?.basis.orEmpty().ifEmpty { history[slot.exercise.id].orEmpty() }
+            val sets = SetPlanner.forRoutine(slot, basis, advice[slot.id]?.suggestion)
             newExercise(slot.exercise, sets).copy(
                 supersetGroup = slot.supersetGroup,
                 notes = slot.notes,

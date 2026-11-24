@@ -12,17 +12,24 @@ import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.ExerciseUsage
 import io.github.amibhai.liftlog.core.domain.model.LibrarySource
 import io.github.amibhai.liftlog.core.domain.model.LibraryStats
+import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.RoutineSummary
+import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExerciseId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
+import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
+import io.github.amibhai.liftlog.core.domain.progression.PlannedSession
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseRepository
 import io.github.amibhai.liftlog.core.domain.repository.HistoryRepository
+import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
+import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.search.SearchIndex
 import io.github.amibhai.liftlog.core.domain.workout.NOW
@@ -56,7 +63,9 @@ class UseCasesTest {
     )
     private val library = FixedLibrary(listOf(info("bench"), info("row"), info("curl")))
 
-    private val start = StartWorkout(workouts, routines, history, WorkoutFactory(ids), clock)
+    private val progress = FixedProgress()
+    private val advisor = ProgressionAdvisor(progress, FixedSettings())
+    private val start = StartWorkout(workouts, routines, history, advisor, WorkoutFactory(ids), clock)
     private val add = AddExercises(workouts, routines, library, history, ids, clock)
 
     @Test
@@ -83,6 +92,19 @@ class UseCasesTest {
         assertThat(workouts.active()!!.name).isEqualTo("Push")
         assertThat(workouts.active()!!.exercises.single().sets.single().target).isEqualTo(values(80.0, 8))
         assertThat(start.fromRoutine(RoutineId("missing"))).isNull()
+    }
+
+    @Test
+    fun `a routine starts with what its progression suggests`() = runTest {
+        val slot = RoutineExercise(RoutineExerciseId("s"), info("bench"), targetSets = 1, repMin = 5, repMax = 8)
+        routines.create(Routine(RoutineId("r"), "Push", exercises = listOf(slot)))
+        progress.sessions = mapOf(
+            ExerciseId("bench") to listOf(PlannedSession(NOW - 1, listOf(logged(80.0, 8)), slot = slot.id)),
+        )
+
+        start.fromRoutine(RoutineId("r"))
+
+        assertThat(workouts.active()!!.exercises.single().sets.single().target).isEqualTo(values(82.5, 5))
     }
 
     @Test
@@ -141,6 +163,7 @@ class UseCasesTest {
         val exercises = routines.get(RoutineId("r"))!!.exercises
         assertThat(exercises.map { it.exercise.name }).containsExactly("bench", "curl").inOrder()
         assertThat(exercises.map { it.targetSets }).containsExactly(3, 3)
+        assertThat(exercises.map { it.repMin to it.repMax }).containsExactly(8 to 12, 8 to 12)
     }
 
     @Test
@@ -216,6 +239,40 @@ class UseCasesTest {
         override suspend fun restore(id: RoutineId) = Unit
 
         override suspend fun reorder(ids: List<RoutineId>) = Unit
+    }
+
+    private class FixedProgress : ProgressRepository {
+        var sessions: Map<ExerciseId, List<PlannedSession>> = emptyMap()
+
+        override suspend fun plannedSessions(
+            before: Long,
+            ids: Set<ExerciseId>,
+        ): Map<ExerciseId, List<PlannedSession>> = sessions.filterKeys { it in ids }
+
+        override fun observeSessions(id: ExerciseId): Flow<List<ExerciseSession>> = flowOf(emptyList())
+
+        override suspend fun sessionsBefore(
+            before: Long,
+            ids: Set<ExerciseId>,
+        ): Map<ExerciseId, List<ExerciseSession>> = emptyMap()
+
+        override fun observeWorkoutStats(): Flow<List<WorkoutStats>> = flowOf(emptyList())
+
+        override fun observeMuscleWork(from: Long, to: Long): Flow<List<MuscleWork>> = flowOf(emptyList())
+
+        override fun observeMuscleWork(workout: WorkoutId): Flow<List<MuscleWork>> = flowOf(emptyList())
+
+        override fun observeRecentRecords(limit: Int): Flow<List<RecordEntry>> = flowOf(emptyList())
+
+        override fun observeRecordsOf(workout: WorkoutId): Flow<List<RecordEntry>> = flowOf(emptyList())
+
+        override suspend fun rebuildRecords() = Unit
+    }
+
+    private class FixedSettings : SettingsRepository {
+        override val settings: Flow<UserSettings> = flowOf(UserSettings())
+
+        override suspend fun update(transform: (UserSettings) -> UserSettings) = Unit
     }
 
     private class FixedHistory(sessions: Map<String, ExerciseSession>) : HistoryRepository {

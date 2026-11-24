@@ -109,11 +109,10 @@ private fun RoutineExerciseGraph.toDomain() = RoutineExercise(
     targetRpe = routineExercise.targetRpe,
     targetRir = routineExercise.targetRir,
     restSeconds = routineExercise.restSeconds,
-    progressionRule = routineExercise.progressionRule,
+    progression = progressionRule(routineExercise.progressionRule, routineExercise.ruleParams),
     notes = routineExercise.notes,
 )
 
-/** The row for this exercise; what the domain does not model yet is kept from [stored]. */
 private fun RoutineExercise.toEntity(routineId: RoutineId, position: Int, stored: RoutineExerciseEntity?, now: Long) =
     RoutineExerciseEntity(
         id = id.value,
@@ -127,8 +126,8 @@ private fun RoutineExercise.toEntity(routineId: RoutineId, position: Int, stored
         targetRpe = targetRpe,
         targetRir = targetRir,
         restSeconds = restSeconds,
-        progressionRule = progressionRule,
-        ruleParams = stored?.ruleParams,
+        progressionRule = progression.type,
+        ruleParams = progression.toParams(),
         notes = notes,
         createdAt = stored?.createdAt ?: now,
         updatedAt = now,

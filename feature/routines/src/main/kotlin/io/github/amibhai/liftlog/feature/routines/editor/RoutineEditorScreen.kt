@@ -117,6 +117,7 @@ internal fun RoutineEditorScreen(
                 RoutineExerciseCard(
                     exercise = exercise,
                     effortMode = state.effortMode,
+                    unit = state.unit,
                     onAction = onAction,
                     onOpenDialog = { dialog = it },
                     onOpenExercise = { navigation.onOpenExercise(exercise.exerciseId) },

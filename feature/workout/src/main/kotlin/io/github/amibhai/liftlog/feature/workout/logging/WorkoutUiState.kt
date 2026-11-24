@@ -7,6 +7,8 @@ import io.github.amibhai.liftlog.core.domain.model.SetField
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExerciseId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
+import io.github.amibhai.liftlog.core.domain.progression.SuggestionReason
+import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.ui.component.RestTimerUiState
 import io.github.amibhai.liftlog.core.ui.component.SetRowUiModel
 import io.github.amibhai.liftlog.core.ui.format.WorkoutTitle
@@ -64,6 +66,9 @@ sealed interface WorkoutItem {
         /** The exercise's own rest time, or the one in the settings. */
         val defaultRestSeconds: Int,
         val columns: List<ColumnUiModel>,
+        /** Why the sets are planned as they are. */
+        val reason: SuggestionReason? = null,
+        val unit: WeightUnit = WeightUnit.KG,
     ) : WorkoutItem {
         override val key: String get() = "header-${id.value}"
     }

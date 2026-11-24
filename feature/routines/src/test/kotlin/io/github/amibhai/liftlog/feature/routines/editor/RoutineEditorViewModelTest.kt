@@ -11,6 +11,7 @@ import io.github.amibhai.liftlog.core.domain.model.Equipment
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRule
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
@@ -26,6 +27,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 @RunWith(RobolectricTestRunner::class)
 class RoutineEditorViewModelTest {
@@ -62,6 +66,22 @@ class RoutineEditorViewModelTest {
         assertThat(exercise.targetRpe).isEqualTo(8.5)
         assertThat(exercise.restSeconds).isEqualTo(90)
         assertThat(stored.name).isEqualTo("Push A")
+    }
+
+    @Test
+    fun aNewTrainingMaxStartsItsFirstWeekNow() = runTest {
+        val viewModel = viewModel()
+        val rule = ProgressionRule.FiveThreeOne(trainingMaxKg = 100.0)
+
+        viewModel.onAction(RoutineEditorAction.SetProgression(first, rule))
+        assertThat(stored.exercises.first().progression).isEqualTo(rule.copy(since = NOW))
+
+        val other = rule.copy(incrementKg = 5.0, since = 7)
+        viewModel.onAction(RoutineEditorAction.SetProgression(first, other))
+        assertThat(stored.exercises.first().progression).isEqualTo(other)
+
+        viewModel.onAction(RoutineEditorAction.SetProgression(first, ProgressionRule.Linear(incrementKg = 5.0)))
+        assertThat(stored.exercises.first().progression).isEqualTo(ProgressionRule.Linear(incrementKg = 5.0))
     }
 
     @Test
@@ -119,6 +139,7 @@ class RoutineEditorViewModelTest {
                     savedStateHandle = SavedStateHandle(mapOf("routineId" to id.value)),
                     routines = routines,
                     work = work,
+                    clock = Clock.fixed(Instant.ofEpochMilli(NOW), ZoneOffset.UTC),
                     settings = FakeSettingsRepository(),
                 )
             }
@@ -126,5 +147,9 @@ class RoutineEditorViewModelTest {
         val viewModel = ViewModelProvider.create(store, factory)[RoutineEditorViewModel::class]
         backgroundScope.launch(mainDispatcherRule.dispatcher) { viewModel.uiState.collect {} }
         return viewModel
+    }
+
+    private companion object {
+        const val NOW = 1_700_000_000_000L
     }
 }

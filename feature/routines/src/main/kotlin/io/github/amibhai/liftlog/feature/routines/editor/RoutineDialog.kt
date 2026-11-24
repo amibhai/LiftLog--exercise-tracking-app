@@ -25,6 +25,8 @@ internal sealed interface RoutineDialog {
 
     data class Effort(val exercise: RoutineExerciseUiModel) : RoutineDialog
 
+    data class Progression(val exercise: RoutineExerciseUiModel) : RoutineDialog
+
     data class Notes(val exercise: RoutineExerciseUiModel) : RoutineDialog
 
     data class Superset(val exercise: RoutineExerciseUiModel) : RoutineDialog
@@ -78,6 +80,13 @@ internal fun RoutineDialogs(
             selected = dialog.exercise.effortTarget,
             label = { effortLabel(state.effortMode, it) },
             onSelect = { act(RoutineEditorAction.SetEffort(dialog.exercise.id, it)) },
+            onDismiss = onDismiss,
+        )
+
+        is RoutineDialog.Progression -> ProgressionDialog(
+            current = dialog.exercise.progression,
+            unit = state.unit,
+            onSave = { act(RoutineEditorAction.SetProgression(dialog.exercise.id, it)) },
             onDismiss = onDismiss,
         )
 

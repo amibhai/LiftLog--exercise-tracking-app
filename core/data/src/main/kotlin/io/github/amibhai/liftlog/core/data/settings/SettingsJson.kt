@@ -4,6 +4,7 @@ import io.github.amibhai.liftlog.core.domain.model.EffortMode
 import io.github.amibhai.liftlog.core.domain.model.Plate
 import io.github.amibhai.liftlog.core.domain.model.ThemeMode
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
+import io.github.amibhai.liftlog.core.domain.model.WarmupStep
 import io.github.amibhai.liftlog.core.domain.model.WeightSteps
 import io.github.amibhai.liftlog.core.domain.progress.E1rmFormula
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
@@ -42,6 +43,7 @@ internal data class SettingsJson(
     val weeklySetTargetMax: Int = DEFAULTS.weeklySetTargetMax,
     /** The name of a [DayOfWeek]; null follows the phone's language. */
     val firstDayOfWeek: String? = null,
+    val warmupSteps: List<WarmupStepJson> = DEFAULTS.warmupSteps.map { it.toJson() },
 )
 
 @Serializable
@@ -49,6 +51,11 @@ internal data class WeightStepsJson(val standard: Double, val dumbbell: Double)
 
 @Serializable
 internal data class PlateJson(val weight: Double, val pairs: Int? = null)
+
+@Serializable
+internal data class WarmupStepJson(val percent: Int, val reps: Int)
+
+private fun WarmupStep.toJson() = WarmupStepJson(percent, reps)
 
 private fun WeightSteps.toJson() = WeightStepsJson(standard, dumbbell)
 
@@ -75,6 +82,7 @@ internal fun SettingsJson.toDomain() = UserSettings(
     weeklySetTargetMin = weeklySetTargetMin,
     weeklySetTargetMax = weeklySetTargetMax,
     firstDayOfWeek = DayOfWeek.entries.firstOrNull { it.name == firstDayOfWeek },
+    warmupSteps = warmupSteps.map { WarmupStep(it.percent, it.reps) },
 )
 
 internal fun UserSettings.toJson() = SettingsJson(
@@ -98,4 +106,5 @@ internal fun UserSettings.toJson() = SettingsJson(
     weeklySetTargetMin = weeklySetTargetMin,
     weeklySetTargetMax = weeklySetTargetMax,
     firstDayOfWeek = firstDayOfWeek?.name,
+    warmupSteps = warmupSteps.map { it.toJson() },
 )

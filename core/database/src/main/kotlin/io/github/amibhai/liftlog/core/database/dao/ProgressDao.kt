@@ -8,16 +8,20 @@ import androidx.room3.Query
 import io.github.amibhai.liftlog.core.database.entity.PersonalRecordEntity
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRuleType
 import io.github.amibhai.liftlog.core.domain.model.SetType
 import kotlinx.coroutines.flow.Flow
 
-/** The completed sets of finished workouts. */
-private const val FINISHED_SETS = """
+private const val COMPLETED_SETS = """
     FROM workout w
     JOIN workout_exercise we ON we.workout_id = w.id AND we.deleted_at IS NULL
     JOIN workout_set s ON s.workout_exercise_id = we.id AND s.is_completed = 1 AND s.deleted_at IS NULL
-    WHERE w.is_in_progress = 0 AND w.deleted_at IS NULL
 """
+
+private const val FINISHED = "WHERE w.is_in_progress = 0 AND w.deleted_at IS NULL"
+
+/** The completed sets of finished workouts. */
+private const val FINISHED_SETS = "$COMPLETED_SETS $FINISHED"
 
 private const val PROGRESS_SET_COLUMNS =
     "s.id AS set_id, we.exercise_id, we.workout_id, w.started_at AS at, " +
@@ -36,6 +40,15 @@ interface ProgressDao {
         "SELECT $PROGRESS_SET_COLUMNS $FINISHED_SETS AND we.exercise_id IN (:ids) AND w.started_at < :before $IN_ORDER",
     )
     suspend fun setsBefore(ids: List<String>, before: Long): List<ProgressSetRow>
+
+    /** With the plan of the routine slot they belong to, even when that slot was deleted since. */
+    @Query(
+        "SELECT $PROGRESS_SET_COLUMNS, we.id AS workout_exercise_id, we.routine_exercise_id, " +
+            "re.rep_min, re.rep_max, re.progression_rule $COMPLETED_SETS " +
+            "LEFT JOIN routine_exercise re ON re.id = we.routine_exercise_id " +
+            "$FINISHED AND we.exercise_id IN (:ids) AND w.started_at < :before $IN_ORDER",
+    )
+    suspend fun plannedSetsBefore(ids: List<String>, before: Long): List<PlannedSetRow>
 
     @Query("SELECT $PROGRESS_SET_COLUMNS $FINISHED_SETS AND we.exercise_id IN (:ids) $IN_ORDER")
     suspend fun setsOf(ids: List<String>): List<ProgressSetRow>
@@ -121,6 +134,16 @@ data class ProgressSetRow(
     @ColumnInfo(name = "distance_m") val distanceMeters: Double?,
     val rpe: Double?,
     val rir: Int?,
+)
+
+/** A completed set and what its routine slot asked for; all null without a routine. */
+data class PlannedSetRow(
+    @Embedded val set: ProgressSetRow,
+    @ColumnInfo(name = "workout_exercise_id") val workoutExerciseId: String,
+    @ColumnInfo(name = "routine_exercise_id") val routineExerciseId: String?,
+    @ColumnInfo(name = "rep_min") val repMin: Int?,
+    @ColumnInfo(name = "rep_max") val repMax: Int?,
+    @ColumnInfo(name = "progression_rule") val progressionRule: ProgressionRuleType?,
 )
 
 data class WorkoutStatsRow(

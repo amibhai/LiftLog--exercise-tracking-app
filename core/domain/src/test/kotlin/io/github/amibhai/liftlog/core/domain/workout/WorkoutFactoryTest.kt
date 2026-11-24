@@ -9,6 +9,9 @@ import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.SetType
+import io.github.amibhai.liftlog.core.domain.progression.Advice
+import io.github.amibhai.liftlog.core.domain.progression.Suggestion
+import io.github.amibhai.liftlog.core.domain.progression.SuggestionReason
 import org.junit.jupiter.api.Test
 
 class WorkoutFactoryTest {
@@ -39,7 +42,7 @@ class WorkoutFactoryTest {
             ),
         )
 
-        val workout = factory.fromRoutine(routine, history, NOW)
+        val workout = factory.fromRoutine(routine, history, emptyMap(), NOW)
 
         assertThat(workout.name).isEqualTo("Push")
         assertThat(workout.routineId).isEqualTo(RoutineId("r"))
@@ -54,10 +57,22 @@ class WorkoutFactoryTest {
     }
 
     @Test
+    fun `advice comes before the last time the exercise was done`() {
+        val routine = Routine(RoutineId("r"), "Push", exercises = listOf(planned("bench", targetSets = 1)))
+        val suggestion = Suggestion(listOf(values(62.5, 8)), SuggestionReason.HeavierAfter(12))
+        val advice = Advice(basis = listOf(logged(60.0, 12)), suggestion = suggestion)
+
+        val workout = factory.fromRoutine(routine, history, mapOf(RoutineExerciseId("r-bench") to advice), NOW)
+
+        assertThat(workout.exercises.single().sets.map { it.target }).containsExactly(values(62.5, 8))
+    }
+
+    @Test
     fun `every row gets its own id`() {
         val workout = factory.fromRoutine(
             Routine(RoutineId("r"), "Push", exercises = listOf(planned("bench", 3), planned("row", 3))),
             history,
+            emptyMap(),
             NOW,
         )
 

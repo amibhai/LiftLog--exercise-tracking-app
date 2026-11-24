@@ -5,7 +5,6 @@ import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
-import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExercise
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
@@ -52,8 +51,6 @@ private fun WorkoutExercise.toRoutineExercise(ids: IdGenerator): RoutineExercise
     )
 }
 
-/** The sets a routine plans: neither warm-ups nor drops. */
-private val WorkoutExercise.mainSets: List<WorkoutSet>
-    get() = sets.filter { it.type != SetType.WARMUP && it.type != SetType.DROP }
+private val WorkoutExercise.mainSets: List<WorkoutSet> get() = sets.filter { it.type.isMain }
 
 private val WorkoutExercise.plannedSets: Int get() = mainSets.size.coerceAtLeast(1)

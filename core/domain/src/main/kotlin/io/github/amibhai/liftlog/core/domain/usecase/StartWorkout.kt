@@ -20,6 +20,7 @@ class StartWorkout(
     private val workouts: WorkoutRepository,
     private val routines: RoutineRepository,
     private val history: HistoryRepository,
+    private val advisor: ProgressionAdvisor,
     private val factory: WorkoutFactory,
     private val clock: Clock,
 ) {
@@ -29,7 +30,10 @@ class StartWorkout(
     /** Null when the routine no longer exists. */
     suspend fun fromRoutine(id: RoutineId): WorkoutId? {
         val routine = routines.get(id) ?: return null
-        return start { now -> factory.fromRoutine(routine, latest(routine.exercises.map { it.exercise.id }, now), now) }
+        return start { now ->
+            val latest = latest(routine.exercises.map { it.exercise.id }, now)
+            factory.fromRoutine(routine, latest, advisor.advise(routine.exercises, now), now)
+        }
     }
 
     /** The same exercises as an earlier workout; null when it no longer exists. */

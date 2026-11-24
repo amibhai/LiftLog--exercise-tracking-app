@@ -82,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
 
     OUT_DIR.mkdir(exist_ok=True)
     outputs.write_json(OUT_DIR / "exercises.json", result.exercises, source_list, config["libraryVersion"])
-    (OUT_DIR / "report.md").write_text(report.render(result, source_list, config), encoding="utf-8")
+    (OUT_DIR / "report.md").write_text(report.render(result, source_list, config), encoding="utf-8", newline="\n")
 
     if result.errors:
         print(f"Validation FAILED with {len(result.errors)} problems (see out/report.md):", file=sys.stderr)

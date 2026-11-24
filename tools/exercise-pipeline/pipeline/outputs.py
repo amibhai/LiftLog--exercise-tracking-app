@@ -50,7 +50,8 @@ def write_json(path: Path, exercises: list[Exercise], sources: list[dict], libra
         "exercises": [exercise_json(e) for e in sorted(exercises, key=lambda e: (e.name.lower(), e.id))],
     }
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    # Always LF so the output is identical on every OS (Python would write CRLF on Windows).
+    path.write_text(json.dumps(payload, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
 
 def write_database(

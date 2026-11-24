@@ -61,7 +61,11 @@ def refresh_wger_snapshot(api_base: str, snapshot_path: Path) -> None:
         "exercises": exercises,
     }
     snapshot_path.parent.mkdir(parents=True, exist_ok=True)
-    snapshot_path.write_text(json.dumps(snapshot, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    snapshot_path.write_text(
+        json.dumps(snapshot, indent=1, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def load_wger_snapshot(snapshot_path: Path) -> dict:

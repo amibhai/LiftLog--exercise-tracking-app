@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -69,6 +70,8 @@ internal class SettingsActions(
 /** Where the settings lead. */
 internal class SettingsNavigation(
     val onBack: () -> Unit,
+    val canAddWidget: () -> Boolean,
+    val onAddWidget: () -> Unit,
     val onOpenPlates: () -> Unit,
     val onOpenWarmup: () -> Unit,
     val onOpenData: () -> Unit,
@@ -99,6 +102,7 @@ internal fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
         ) {
             AppearanceSection(settings, actions, dynamicColorAvailable)
+            WidgetRow(navigation)
             SectionHeader(stringResource(R.string.settings_section_units))
             ChoiceRow(
                 title = stringResource(R.string.settings_weight_unit),
@@ -170,6 +174,19 @@ private fun AppearanceSection(
             supportingText = stringResource(dynamicColorHint),
             enabled = dynamicColorAvailable,
         )
+    }
+}
+
+/** Launchers that cannot place widgets by themselves have them in their own menu. */
+@Composable
+private fun WidgetRow(navigation: SettingsNavigation, modifier: Modifier = Modifier) {
+    val canAdd = remember(navigation) { navigation.canAddWidget() }
+    if (canAdd) {
+        ListItem(
+            onClick = navigation.onAddWidget,
+            modifier = modifier,
+            supportingContent = { Text(stringResource(R.string.settings_widget_body)) },
+        ) { Text(stringResource(R.string.settings_widget)) }
     }
 }
 

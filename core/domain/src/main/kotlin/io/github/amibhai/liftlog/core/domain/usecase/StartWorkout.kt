@@ -6,6 +6,7 @@ import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.program.dayOf
+import io.github.amibhai.liftlog.core.domain.program.nextDay
 import io.github.amibhai.liftlog.core.domain.repository.HistoryRepository
 import io.github.amibhai.liftlog.core.domain.repository.ProgramRepository
 import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
@@ -44,6 +45,18 @@ class StartWorkout(
     suspend fun repeat(id: WorkoutId): WorkoutId? {
         val old = workouts.observe(id).first() ?: return null
         return start { now -> factory.repeat(old, latest(old.exercises.map { it.exercise.id }, now), now) }
+    }
+
+    /** "Repeat last Push" (SPEC §5): the routine of the last workout, or that workout when it has none. */
+    suspend fun repeatLast(): WorkoutId? {
+        val last = workouts.observeFinished(limit = 1).first().firstOrNull() ?: return null
+        return last.routineId?.let { fromRoutine(it) } ?: repeat(last.id)
+    }
+
+    /** The next day of the followed program, or an empty workout. */
+    suspend fun next(): WorkoutId {
+        val routine = programs.observeActive().first()?.nextDay?.routineId
+        return routine?.let { fromRoutine(it) } ?: empty()
     }
 
     private suspend fun start(create: suspend (now: Long) -> Workout): WorkoutId {

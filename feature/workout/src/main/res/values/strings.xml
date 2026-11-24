@@ -83,6 +83,9 @@
     <string name="rest_channel_over_vibrate">Rest over, vibration only</string>
     <string name="rest_channel_over_sound">Rest over, sound only</string>
     <string name="rest_countdown_title">Resting</string>
+    <!-- At most ten characters. -->
+    <string name="rest_metric">Rest</string>
+    <string name="rest_next">Next: %1$s</string>
     <string name="rest_add_15">+15s</string>
     <string name="rest_skip">Skip</string>
     <string name="rest_over_title">Rest over</string>

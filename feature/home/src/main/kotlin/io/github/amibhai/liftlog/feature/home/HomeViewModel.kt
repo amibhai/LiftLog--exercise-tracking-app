@@ -87,7 +87,7 @@ data class NextWorkout(
 
 /** "Repeat last Push" (SPEC §5): the routine of the last workout, or that workout when it had none. */
 @Immutable
-data class RepeatLast(val workoutId: WorkoutId, val routineId: RoutineId?, val routineName: String?)
+data class RepeatLast(val routineName: String?)
 
 @Immutable
 data class RoutineCardUiModel(
@@ -172,10 +172,7 @@ class HomeViewModel @Inject constructor(
 
     fun startRoutine(id: RoutineId) = start { startWorkout.fromRoutine(id) }
 
-    fun repeatLast() {
-        val repeat = uiState.value.repeatLast ?: return
-        start { repeat.routineId?.let { startWorkout.fromRoutine(it) } ?: startWorkout.repeat(repeat.workoutId) }
-    }
+    fun repeatLast() = start { startWorkout.repeatLast() }
 
     fun onWorkoutOpened() = local.update { it.copy(openWorkout = null) }
 
@@ -233,7 +230,7 @@ class HomeViewModel @Inject constructor(
 
     private fun repeatLast(last: Workout, routines: List<RoutineSummary>): RepeatLast {
         val routine = routines.firstOrNull { it.routine.id == last.routineId }?.routine
-        return RepeatLast(last.id, routine?.id, routine?.name?.ifBlank { null })
+        return RepeatLast(routine?.name?.ifBlank { null })
     }
 
     private fun card(summary: RoutineSummary) = RoutineCardUiModel(

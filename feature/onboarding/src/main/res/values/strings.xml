@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_step">%1$d of %2$d</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+
+    <string name="onboarding_unit_title">Welcome to LiftLog</string>
+    <string name="onboarding_unit_body">Which unit do you lift in? You can change it at any time; nothing you log is rounded.</string>
+
+    <string name="onboarding_plates_title">Your bar and plates</string>
+    <string name="onboarding_plates_body">The plate calculator and the warm-up sets use them.</string>
+    <string name="onboarding_bar">Barbell</string>
+    <string name="onboarding_plates">Plates</string>
+
+    <string name="onboarding_program_title">Follow a program?</string>
+    <string name="onboarding_program_body">A program says what to train next, and how much to lift each time. Without one you log whatever you like, and LiftLog still remembers your last weights.</string>
+    <string name="onboarding_choose_program">Choose a program</string>
+    <string name="onboarding_no_program">Start without one</string>
+</resources>

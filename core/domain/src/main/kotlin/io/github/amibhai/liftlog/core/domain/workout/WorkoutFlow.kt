@@ -22,6 +22,14 @@ fun Workout.nextStepAfter(setId: WorkoutSetId): NextStep {
     return NextStep(next?.id, restFirst = next != null && partner == null && !isDropSet)
 }
 
+/** The set to do next: the one that follows the last completed set, or the first one. Null when all are done. */
+fun Workout.upNext(): Pair<WorkoutExercise, WorkoutSet>? {
+    val last = exercises.flatMap { it.sets }.filter { it.isCompleted }.maxByOrNull { it.completedAt ?: 0 }
+    val next = if (last == null) exercises.firstNotNullOfOrNull { it.firstOpen() }?.id else nextStepAfter(last.id).setId
+    val exercise = exercises.firstOrNull { it.sets.any { set -> set.id == next } }
+    return exercise?.let { it to it.sets.first { set -> set.id == next } }
+}
+
 /** Completes a set and starts, or ends, the rest timer accordingly. */
 fun Workout.logSet(setId: WorkoutSetId, now: Long, settings: UserSettings): Workout {
     val logged = completeSet(setId, now)

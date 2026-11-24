@@ -12,9 +12,12 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
@@ -40,6 +43,7 @@ import io.github.amibhai.liftlog.feature.routines.navigation.navigateToRoutineEd
 import io.github.amibhai.liftlog.feature.routines.navigation.routinesGraph
 import io.github.amibhai.liftlog.feature.settings.navigation.SettingsDestination
 import io.github.amibhai.liftlog.feature.settings.navigation.settingsGraph
+import io.github.amibhai.liftlog.feature.widget.WidgetPinning
 import io.github.amibhai.liftlog.feature.workout.active.ActiveWorkoutBanner
 import io.github.amibhai.liftlog.feature.workout.logging.WorkoutNavigation
 import io.github.amibhai.liftlog.feature.workout.navigation.WorkoutDestination
@@ -50,15 +54,34 @@ private val MinTabLabelSize = 8.sp
 
 /**
  * The navigation shell: a bottom bar for the top-level tabs (hidden on detail screens) around a
- * type-safe NavHost. Each screen draws its own top bar and handles its own insets.
+ * type-safe NavHost. Each screen draws its own top bar and handles its own insets. [target] is opened on
+ * top of what is shown.
  */
 @Composable
-fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modifier = Modifier) {
+fun LiftLogApp(
+    appVersion: String,
+    showDeveloperOptions: Boolean,
+    target: AppTarget?,
+    onOpenTarget: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentTab = TopLevelDestination.entries.firstOrNull { tab ->
         backStackEntry?.destination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true
     }
+    val currentOnOpenTarget by rememberUpdatedState(onOpenTarget)
+    val hasGraph = backStackEntry != null
+    LaunchedEffect(target, hasGraph) {
+        if (target != null && hasGraph) {
+            when (target) {
+                is AppTarget.ActiveWorkout -> navController.navigateToWorkout(target.id)
+                AppTarget.Programs -> navController.navigateToPrograms()
+            }
+            currentOnOpenTarget()
+        }
+    }
+    val context = LocalContext.current
     val homeNavigation = remember(navController) {
         HomeNavigation(
             onOpenSettings = { navController.navigate(SettingsDestination) },
@@ -135,7 +158,13 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
                 onOpenExercise = { navController.navigateToExerciseDetail(it, showProgress = true) },
             )
             exercisesGraph(navController)
-            settingsGraph(navController, appVersion, showDeveloperOptions)
+            settingsGraph(
+                navController = navController,
+                appVersion = appVersion,
+                showDeveloperOptions = showDeveloperOptions,
+                canAddWidget = { WidgetPinning.isSupported(context) },
+                onAddWidget = { WidgetPinning.request(context) },
+            )
         }
     }
 }

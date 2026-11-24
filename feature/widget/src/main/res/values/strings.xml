@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name">Workout and streak</string>
+    <string name="widget_description">Start or resume a workout, and see your weekly streak.</string>
+    <string name="widget_start">Start workout</string>
+    <string name="widget_start_day">Start %1$s</string>
+    <string name="widget_resume">Resume workout</string>
+    <string name="widget_next">Next up: %1$s</string>
+    <string name="widget_ready">Ready to train</string>
+    <plurals name="widget_streak">
+        <item quantity="one">%1$d-week streak</item>
+        <item quantity="other">%1$d-week streak</item>
+    </plurals>
+    <string name="widget_no_streak">No streak yet</string>
+    <plurals name="widget_workouts">
+        <item quantity="one">%1$d workout this week</item>
+        <item quantity="other">%1$d workouts this week</item>
+    </plurals>
+    <string name="widget_preview_day">Push</string>
+    <string name="widget_preview_title">Next up: Push</string>
+    <string name="widget_preview_streak">8-week streak</string>
+    <string name="widget_preview_button">Start Push</string>
+</resources>

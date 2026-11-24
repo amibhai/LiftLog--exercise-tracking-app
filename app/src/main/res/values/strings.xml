@@ -5,4 +5,10 @@
     <string name="nav_history">History</string>
     <string name="nav_progress">Progress</string>
     <string name="nav_exercises">Exercises</string>
+
+    <!-- App shortcuts -->
+    <string name="shortcut_start">Start workout</string>
+    <string name="shortcut_start_long">Start an empty workout</string>
+    <string name="shortcut_repeat">Repeat last</string>
+    <string name="shortcut_repeat_long">Repeat the last workout</string>
 </resources>

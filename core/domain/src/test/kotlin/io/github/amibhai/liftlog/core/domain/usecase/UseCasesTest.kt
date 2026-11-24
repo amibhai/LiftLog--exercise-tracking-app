@@ -178,6 +178,37 @@ class UseCasesTest {
     }
 
     @Test
+    fun `repeating the last workout prefers its routine`() = runTest {
+        assertThat(start.repeatLast()).isNull()
+        routines.create(Routine(RoutineId("r"), "Push"))
+        val old = workout(exercise("bench", set("1", target = values(70.0, 8), done = true)))
+            .copy(id = WorkoutId("old"), isInProgress = false, endedAt = NOW, routineId = RoutineId("r"))
+        workouts.create(old)
+
+        start.repeatLast()
+        assertThat(workouts.active()!!.routineId).isEqualTo(RoutineId("r"))
+
+        workouts.delete(workouts.active()!!.id)
+        routines.delete(RoutineId("r"))
+        start.repeatLast()
+        assertThat(workouts.active()!!.exercises.single().exercise.name).isEqualTo("bench")
+    }
+
+    @Test
+    fun `the next workout is the next day of the program, or an empty one`() = runTest {
+        start.next()
+        assertThat(workouts.active()!!.routineId).isNull()
+        workouts.delete(workouts.active()!!.id)
+
+        routines.create(Routine(RoutineId("r"), "Push"))
+        val days = listOf(ProgramDay(ProgramDayId("d1"), "Push", RoutineId("r")))
+        programs.create(Program(ProgramId("p"), "PPL", days = days))
+        programs.activate(ProgramId("p"))
+        start.next()
+        assertThat(workouts.active()!!.routineId).isEqualTo(RoutineId("r"))
+    }
+
+    @Test
     fun `picked exercises are added in the order they were picked, pre-filled`() = runTest {
         val id = start.empty()
 

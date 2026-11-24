@@ -37,12 +37,21 @@ data object ComponentGalleryDestination
 
 /**
  * Settings and their pages, About & attributions, and (debug builds only, [showDeveloperOptions]) the
- * component gallery for trying the logging controls on a phone.
+ * component gallery for trying the logging controls on a phone. [onAddWidget] puts the widget on the home
+ * screen, where the launcher can do that.
  */
-fun NavGraphBuilder.settingsGraph(navController: NavController, appVersion: String, showDeveloperOptions: Boolean) {
+fun NavGraphBuilder.settingsGraph(
+    navController: NavController,
+    appVersion: String,
+    showDeveloperOptions: Boolean,
+    canAddWidget: () -> Boolean,
+    onAddWidget: () -> Unit,
+) {
     val back: () -> Unit = { navController.popBackStack() }
     val navigation = SettingsNavigation(
         onBack = back,
+        canAddWidget = canAddWidget,
+        onAddWidget = onAddWidget,
         onOpenPlates = { navController.navigate(PlatesDestination) },
         onOpenWarmup = { navController.navigate(WarmupDestination) },
         onOpenData = { navController.navigate(DataDestination) },

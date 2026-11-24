@@ -51,6 +51,8 @@ data class UserSettings(
     val warmupSteps: List<WarmupStep> = DEFAULT_WARMUP,
     /** Keys of the insights that were read and put away. */
     val dismissedInsights: Set<String> = emptySet(),
+    /** The first-run pages were finished or skipped. */
+    val onboardingDone: Boolean = false,
 ) {
     val weeklySetTarget: IntRange get() = weeklySetTargetMin..weeklySetTargetMax
 
@@ -76,6 +78,17 @@ data class UserSettings(
     }
 
     fun plates(unit: WeightUnit): List<Plate> = if (unit == WeightUnit.KG) platesKg else platesLb
+
+    /** Of barbells, in the chosen unit. */
+    val barWeight: Double get() = if (weightUnit == WeightUnit.KG) barWeightKg else barWeightLb
+
+    /** The bar of barbells, in the chosen unit. */
+    fun withBarWeight(weight: Double): UserSettings =
+        if (weightUnit == WeightUnit.KG) copy(barWeightKg = weight) else copy(barWeightLb = weight)
+
+    /** The plates there are in the chosen unit. */
+    fun withPlates(plates: List<Plate>): UserSettings =
+        if (weightUnit == WeightUnit.KG) copy(platesKg = plates) else copy(platesLb = plates)
 
     private companion object {
         const val DEFAULT_STEP_KG = 2.5

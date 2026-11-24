@@ -1,6 +1,7 @@
 package io.github.amibhai.liftlog
 
 import android.app.Application
+import androidx.work.Configuration
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -10,12 +11,14 @@ import coil3.request.crossfade
 import dagger.hilt.android.HiltAndroidApp
 import io.github.amibhai.liftlog.core.data.backup.BackupScheduler
 import io.github.amibhai.liftlog.core.data.progress.RecordMaintainer
+import io.github.amibhai.liftlog.feature.widget.WidgetUpdater
 import io.github.amibhai.liftlog.feature.workout.timer.RestTimerCoordinator
 import javax.inject.Inject
 
 @HiltAndroidApp
 class LiftLogApplication :
     Application(),
+    Configuration.Provider,
     SingletonImageLoader.Factory {
 
     @Inject
@@ -27,12 +30,19 @@ class LiftLogApplication :
     @Inject
     lateinit var backups: BackupScheduler
 
+    @Inject
+    lateinit var widgets: WidgetUpdater
+
+    /** WorkManager asks for it when it is first used; nothing of it is needed for the first screen. */
+    override val workManagerConfiguration: Configuration get() = Configuration.Builder().build()
+
     override fun onCreate() {
         super.onCreate()
         // The rest timer's alarm and notifications follow the stored workout from the start (SPEC §6).
         restTimer.start(this)
         records.start()
         backups.start()
+        widgets.start()
     }
 
     /**

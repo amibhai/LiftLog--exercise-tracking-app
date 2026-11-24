@@ -9,6 +9,8 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_dynamic_color">Dynamic color</string>
     <string name="settings_dynamic_color_body">Use colors from your wallpaper instead of the LiftLog palette</string>
+    <string name="settings_widget">Add the home screen widget</string>
+    <string name="settings_widget_body">Start or resume a workout, and see your weekly streak</string>
     <string name="settings_dynamic_color_unavailable">Needs Android 12 or newer</string>
     <string name="settings_section_units">Units</string>
     <string name="settings_weight_unit">Weight unit</string>

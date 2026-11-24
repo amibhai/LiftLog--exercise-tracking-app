@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPEC §11. The actions are those of LaunchAction in core:ui. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:icon="@mipmap/ic_shortcut_start"
+        android:shortcutId="start"
+        android:shortcutLongLabel="@string/shortcut_start_long"
+        android:shortcutShortLabel="@string/shortcut_start">
+        <intent
+            android:action="io.github.amibhai.liftlog.action.START_EMPTY"
+            android:targetClass="io.github.amibhai.liftlog.MainActivity"
+            android:targetPackage="io.github.amibhai.liftlog" />
+    </shortcut>
+    <shortcut
+        android:icon="@mipmap/ic_shortcut_repeat"
+        android:shortcutId="repeat_last"
+        android:shortcutLongLabel="@string/shortcut_repeat_long"
+        android:shortcutShortLabel="@string/shortcut_repeat">
+        <intent
+            android:action="io.github.amibhai.liftlog.action.REPEAT_LAST"
+            android:targetClass="io.github.amibhai.liftlog.MainActivity"
+            android:targetPackage="io.github.amibhai.liftlog" />
+    </shortcut>
+</shortcuts>

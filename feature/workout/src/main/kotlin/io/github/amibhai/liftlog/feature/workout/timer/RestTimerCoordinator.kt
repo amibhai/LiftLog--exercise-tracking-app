@@ -9,7 +9,10 @@ import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.time.partOfDay
+import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.domain.workout.adjustedBy
+import io.github.amibhai.liftlog.core.domain.workout.upNext
+import io.github.amibhai.liftlog.core.ui.format.SetText
 import io.github.amibhai.liftlog.core.ui.format.WorkoutTitle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +20,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,7 +33,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /** A rest in progress, as the notifications show it. */
-internal data class ActiveRest(val workoutId: WorkoutId, val title: WorkoutTitle, val endsAt: Long)
+internal data class ActiveRest(
+    val workoutId: WorkoutId,
+    val title: WorkoutTitle,
+    val endsAt: Long,
+    /** "Bench Press, 82.5 kg × 8"; null after the last set. */
+    val next: String? = null,
+)
 
 /**
  * Takes the rest timer outside the app (SPEC §6). The stored workout holds the timer as an absolute end
@@ -57,6 +67,7 @@ class RestTimerCoordinator internal constructor(
     private val notifications = RestNotifications(context)
     private val alarms = RestAlarms(context)
     private val alert = RestAlert(context)
+    private val dismissedEnd = MutableStateFlow<Long?>(null)
     private var isStarted = false
 
     /** Called once, from `Application.onCreate`. */
@@ -83,6 +94,9 @@ class RestTimerCoordinator internal constructor(
                     RestTimerReceiver.ACTION_ADD -> adjust(ADD_SECONDS)
 
                     RestTimerReceiver.ACTION_SKIP -> adjust(null)
+
+                    RestTimerReceiver.ACTION_DISMISSED ->
+                        dismissedEnd.value = intent.getLongExtra(RestTimerReceiver.EXTRA_ENDS_AT, 0)
                 }
             } finally {
                 onDone()
@@ -130,14 +144,21 @@ class RestTimerCoordinator internal constructor(
             else -> {
                 alarms.schedule(rest.workoutId, rest.endsAt)
                 notifications.cancelRestOver()
-                if (isVisible) notifications.cancelCountdown() else notifications.showCountdown(rest, now)
+                val isHidden = isVisible || rest.endsAt == dismissedEnd.value
+                if (isHidden) notifications.cancelCountdown() else notifications.showCountdown(rest, now)
             }
         }
     }
 
-    private fun activeRest(): Flow<ActiveRest?> = workouts.observeActive()
-        .map { workout -> workout?.restTimer?.let { ActiveRest(workout.id, workout.title(), it.endsAt) } }
-        .distinctUntilChanged()
+    private fun activeRest(): Flow<ActiveRest?> =
+        combine(workouts.observeActive(), settings.settings.map { it.weightUnit }) { workout, unit ->
+            workout?.restTimer?.let { ActiveRest(workout.id, workout.title(), it.endsAt, workout.nextSet(unit)) }
+        }.distinctUntilChanged()
+
+    private fun Workout.nextSet(unit: WeightUnit): String? = upNext()?.let { (exercise, set) ->
+        val values = SetText(unit).summary(exercise.exercise.type, set.shown)
+        listOf(exercise.exercise.name, values).filter { it.isNotEmpty() }.joinToString()
+    }
 
     /** Rotating the phone stops and starts the activity; that is no reason to flash a notification. */
     @OptIn(FlowPreview::class)

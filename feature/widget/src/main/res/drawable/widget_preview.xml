@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget in the picker before Android 12: two lines and a button. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="110dp"
+    android:viewportWidth="180"
+    android:viewportHeight="110">
+    <path
+        android:fillColor="@color/widget_surface"
+        android:pathData="M16,0h148a16,16 0,0 1,16 16v78a16,16 0,0 1,-16 16h-148a16,16 0,0 1,-16 -16v-78a16,16 0,0 1,16 -16z" />
+    <path
+        android:fillColor="@color/widget_on_surface"
+        android:pathData="M20,18h78a4,4 0,0 1,0 8h-78a4,4 0,0 1,0 -8z" />
+    <path
+        android:fillColor="@color/widget_on_surface_variant"
+        android:pathData="M19,34h54a3,3 0,0 1,0 6h-54a3,3 0,0 1,0 -6z" />
+    <path
+        android:fillColor="@color/widget_primary"
+        android:pathData="M36,54h108a20,20 0,0 1,0 40h-108a20,20 0,0 1,0 -40z" />
+    <path
+        android:fillColor="@color/widget_on_primary"
+        android:pathData="M84,66l14,8l-14,8z" />
+</vector>

@@ -1,7 +1,9 @@
 package io.github.amibhai.liftlog.core.ui.theme
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -17,22 +19,22 @@ import io.github.amibhai.liftlog.core.domain.model.ThemeMode
  */
 @Composable
 fun LiftLogTheme(darkTheme: Boolean = true, dynamicColor: Boolean = false, content: @Composable () -> Unit) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> LiftLogDarkColors
-
-        else -> LiftLogLightColors
-    }
     MaterialExpressiveTheme(
-        colorScheme = colorScheme,
+        colorScheme = liftLogColorScheme(LocalContext.current, darkTheme, dynamicColor),
         motionScheme = MotionScheme.expressive(),
         typography = LiftLogTypography,
         content = content,
     )
+}
+
+/** The colors of [LiftLogTheme], for the widget, which is drawn without a Compose theme. */
+fun liftLogColorScheme(context: Context, darkTheme: Boolean, dynamicColor: Boolean): ColorScheme = when {
+    dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
+        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+
+    darkTheme -> LiftLogDarkColors
+
+    else -> LiftLogLightColors
 }
 
 /** Resolves the user's theme setting against the system setting. */

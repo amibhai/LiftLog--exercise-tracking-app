@@ -45,6 +45,7 @@ internal data class SettingsJson(
     val firstDayOfWeek: String? = null,
     val warmupSteps: List<WarmupStepJson> = DEFAULTS.warmupSteps.map { it.toJson() },
     val dismissedInsights: Set<String> = emptySet(),
+    val onboardingDone: Boolean = false,
 )
 
 @Serializable
@@ -85,6 +86,7 @@ internal fun SettingsJson.toDomain() = UserSettings(
     firstDayOfWeek = DayOfWeek.entries.firstOrNull { it.name == firstDayOfWeek },
     warmupSteps = warmupSteps.map { WarmupStep(it.percent, it.reps) },
     dismissedInsights = dismissedInsights,
+    onboardingDone = onboardingDone,
 )
 
 internal fun UserSettings.toJson() = SettingsJson(
@@ -110,4 +112,5 @@ internal fun UserSettings.toJson() = SettingsJson(
     firstDayOfWeek = firstDayOfWeek?.name,
     warmupSteps = warmupSteps.map { it.toJson() },
     dismissedInsights = dismissedInsights,
+    onboardingDone = onboardingDone,
 )

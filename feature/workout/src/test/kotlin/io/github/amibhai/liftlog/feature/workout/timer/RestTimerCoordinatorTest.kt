@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.AlarmManager
 import android.app.Application
 import android.app.NotificationManager
+import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
@@ -16,6 +17,7 @@ import io.github.amibhai.liftlog.feature.workout.bench
 import io.github.amibhai.liftlog.feature.workout.exercise
 import io.github.amibhai.liftlog.feature.workout.set
 import io.github.amibhai.liftlog.feature.workout.testClock
+import io.github.amibhai.liftlog.feature.workout.values
 import io.github.amibhai.liftlog.feature.workout.workout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -36,7 +38,8 @@ class RestTimerCoordinatorTest {
     private val endsAt = NOW + 90_000
     private val id = WorkoutId("w")
     private val workouts = FakeWorkoutRepository(
-        workout(exercise("e", bench, set("1"))).copy(restTimer = RestTimer(endsAt, totalSeconds = 90)),
+        workout(exercise("e", bench, set("1", target = values(82.5, 8))))
+            .copy(restTimer = RestTimer(endsAt, totalSeconds = 90)),
     )
     private val posted get() = shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications
 
@@ -55,9 +58,30 @@ class RestTimerCoordinatorTest {
         assertThat(countdown.`when`).isEqualTo(endsAt)
         assertThat(countdown.extras.getBoolean(NotificationCompat.EXTRA_CHRONOMETER_COUNT_DOWN)).isTrue()
         assertThat(NotificationCompat.isRequestPromotedOngoing(countdown)).isTrue()
+        assertThat(countdown.extras.getString(NotificationCompat.EXTRA_TEXT))
+            .isEqualTo("Next: Bench Press, 82.5 kg × 8")
         assertThat(countdown.actions.map { it.title.toString() }).containsExactly("+15s", "Skip").inOrder()
         val alarm = shadowOf(context.getSystemService(AlarmManager::class.java)).peekNextScheduledAlarm()
         assertThat(alarm?.triggerAtMs).isEqualTo(endsAt)
+    }
+
+    @Test
+    fun aCountdownThatWasSwipedAwayStaysAway() = runTest {
+        val coordinator = start()
+        settle()
+        val swiped = Intent(RestTimerReceiver.ACTION_DISMISSED).putExtra(RestTimerReceiver.EXTRA_ENDS_AT, endsAt)
+        coordinator.handle(swiped) {}
+        context.getSystemService(NotificationManager::class.java).cancelAll()
+
+        coordinator.visibility.started()
+        settle()
+        coordinator.visibility.stopped()
+        settle()
+        assertThat(posted).isEmpty()
+
+        workouts.edit(id) { it.copy(restTimer = RestTimer(endsAt + 15_000, totalSeconds = 105)) }
+        settle()
+        assertThat(posted).hasSize(1)
     }
 
     @Test

@@ -157,6 +157,19 @@ class WorkoutFlowTest {
         assertThat(done.exercise("bench").sets.map { it.id.value }).containsExactly("1")
     }
 
+    @Test
+    fun `what is next follows the set completed last`() {
+        val fresh = workout(exercise("bench", set("1"), set("2")), exercise("row", set("3")))
+        assertThat(fresh.upNext()?.second?.id).isEqualTo(WorkoutSetId("1"))
+
+        val early = set("1", done = true).copy(completedAt = NOW - 5)
+        val started = workout(exercise("bench", early, set("2", done = true)), exercise("row", set("3")))
+        assertThat(started.upNext()?.first?.exercise?.name).isEqualTo("row")
+
+        assertThat(workout(exercise("bench", set("1", done = true))).upNext()).isNull()
+        assertThat(workout().upNext()).isNull()
+    }
+
     private fun Workout.complete(id: String) = completeSet(WorkoutSetId(id), NOW)
 
     private fun Workout.nextStep(id: String) = nextStepAfter(WorkoutSetId(id))

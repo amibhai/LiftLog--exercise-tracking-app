@@ -1,5 +1,6 @@
 package io.github.amibhai.liftlog
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,8 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.amibhai.liftlog.core.ui.launch.LaunchAction
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogTheme
 import io.github.amibhai.liftlog.core.ui.theme.isDarkTheme
+import io.github.amibhai.liftlog.feature.onboarding.OnboardingRoute
 import io.github.amibhai.liftlog.ui.LiftLogApp
 
 @AndroidEntryPoint
@@ -29,13 +32,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        // After a rotation, or from the recent apps, it was carried out before.
+        val isFromRecents = intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
+        if (savedInstanceState == null && !isFromRecents) LaunchAction.of(intent)?.let(viewModel::onLaunch)
         // Keep the splash until settings are read, so the first frame already uses the chosen theme.
         splashScreen.setKeepOnScreenCondition { viewModel.uiState.value is MainUiState.Loading }
         enableEdgeToEdge(barStyle, barStyle)
 
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            val settings = (uiState as? MainUiState.Ready)?.settings ?: return@setContent
+            val target by viewModel.target.collectAsStateWithLifecycle()
+            val ready = uiState as? MainUiState.Ready ?: return@setContent
+            val settings = ready.settings
             val darkTheme = settings.themeMode.isDarkTheme()
             // System bar icons follow the app theme, which can differ from the system theme.
             DisposableEffect(darkTheme) {
@@ -44,8 +52,22 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
             LiftLogTheme(darkTheme = darkTheme, dynamicColor = settings.useDynamicColor) {
-                LiftLogApp(appVersion = BuildConfig.VERSION_NAME, showDeveloperOptions = BuildConfig.DEBUG)
+                if (ready.showOnboarding) {
+                    OnboardingRoute(onFinish = viewModel::onOnboardingFinished)
+                } else {
+                    LiftLogApp(
+                        appVersion = BuildConfig.VERSION_NAME,
+                        showDeveloperOptions = BuildConfig.DEBUG,
+                        target = target,
+                        onOpenTarget = viewModel::onTargetOpened,
+                    )
+                }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        LaunchAction.of(intent)?.let(viewModel::onLaunch)
     }
 }

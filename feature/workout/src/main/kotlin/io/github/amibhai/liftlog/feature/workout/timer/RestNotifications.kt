@@ -10,14 +10,18 @@ import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationChannelGroupCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.Metric
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.ui.format.workoutTitleRes
+import io.github.amibhai.liftlog.core.ui.launch.openAppIntent
 import io.github.amibhai.liftlog.feature.workout.R
+import java.time.Instant
 import io.github.amibhai.liftlog.core.ui.R as UiR
 
 /** The rest timer's notifications: the countdown while the app is away, and the end of the rest. */
@@ -71,10 +75,10 @@ internal class RestNotifications(private val context: Context) {
     fun showCountdown(rest: ActiveRest, now: Long) {
         if (!mayPost()) return
         val title = rest.title.name ?: context.getString(rest.title.partOfDay.workoutTitleRes())
-        val notification = NotificationCompat.Builder(context, COUNTDOWN)
+        val builder = NotificationCompat.Builder(context, COUNTDOWN)
             .setSmallIcon(UiR.drawable.ic_timer)
             .setContentTitle(context.getString(R.string.rest_countdown_title))
-            .setContentText(title)
+            .setContentText(rest.next?.let { context.getString(R.string.rest_next, it) } ?: title)
             .setUsesChronometer(true)
             .setChronometerCountDown(true)
             .setWhen(rest.endsAt)
@@ -85,13 +89,22 @@ internal class RestNotifications(private val context: Context) {
             .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(openApp())
+            .setDeleteIntent(dismissed(rest))
             .addAction(0, context.getString(R.string.rest_add_15), action(RestTimerReceiver.ACTION_ADD))
             .addAction(0, context.getString(R.string.rest_skip), action(RestTimerReceiver.ACTION_SKIP))
-            // A status bar chip with the time left, on Android 16 and later.
+            // A Live Update: a status bar chip with the time left, on Android 16 and later.
             .setRequestPromotedOngoing(true)
             .setTimeoutAfter((rest.endsAt - now).coerceAtLeast(1))
-            .build()
-        manager.notify(COUNTDOWN_ID, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) builder.setStyle(countdown(rest))
+        manager.notify(COUNTDOWN_ID, builder.build())
+    }
+
+    /** Android 17 shows the countdown large when the notification is opened. */
+    @RequiresApi(Build.VERSION_CODES.CINNAMON_BUN)
+    private fun countdown(rest: ActiveRest): NotificationCompat.Style {
+        val end = Instant.ofEpochMilli(rest.endsAt)
+        val timer = Metric.TimeDifference.forTimer(end, Metric.TimeDifference.FORMAT_CHRONOMETER)
+        return NotificationCompat.MetricStyle().addMetric(Metric(timer, context.getString(R.string.rest_metric)))
     }
 
     @SuppressLint("MissingPermission") // See showCountdown.
@@ -125,8 +138,18 @@ internal class RestNotifications(private val context: Context) {
         PackageManager.PERMISSION_GRANTED
 
     /** Brings the app back as it was left, workout screen or banner. */
-    private fun openApp(): PendingIntent? = context.packageManager.getLaunchIntentForPackage(context.packageName)
-        ?.let { PendingIntent.getActivity(context, REQUEST_OPEN, it, PendingIntent.FLAG_IMMUTABLE) }
+    private fun openApp(): PendingIntent =
+        PendingIntent.getActivity(context, REQUEST_OPEN, openAppIntent(context), PendingIntent.FLAG_IMMUTABLE)
+
+    /** A countdown that was swiped away does not come back for the same rest. */
+    private fun dismissed(rest: ActiveRest): PendingIntent = PendingIntent.getBroadcast(
+        context,
+        RestTimerReceiver.ACTION_DISMISSED.hashCode(),
+        Intent(context, RestTimerReceiver::class.java)
+            .setAction(RestTimerReceiver.ACTION_DISMISSED)
+            .putExtra(RestTimerReceiver.EXTRA_ENDS_AT, rest.endsAt),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
 
     private fun action(name: String): PendingIntent = PendingIntent.getBroadcast(
         context,

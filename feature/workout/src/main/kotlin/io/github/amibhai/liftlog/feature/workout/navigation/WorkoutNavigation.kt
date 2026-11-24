@@ -1,8 +1,10 @@
 package io.github.amibhai.liftlog.feature.workout.navigation
 
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.feature.workout.logging.WorkoutNavigation
 import io.github.amibhai.liftlog.feature.workout.logging.WorkoutRoute
@@ -22,7 +24,12 @@ fun NavGraphBuilder.workoutScreen(navigation: WorkoutNavigation, onFinished: (Wo
     }
 }
 
-/** Opens a workout; opening the one that is already on top does nothing. */
+/** Opens a workout, or goes back to it where it is open already. */
 fun NavController.navigateToWorkout(id: WorkoutId) {
-    navigate(WorkoutDestination(id.value)) { launchSingleTop = true }
+    val destination = WorkoutDestination(id.value)
+    val top = currentBackStackEntry?.takeIf { it.destination.hasRoute<WorkoutDestination>() }
+    // Not single top: that would put this workout into the screen of another one, such as a past one being edited.
+    if (top?.toRoute<WorkoutDestination>() != destination && !popBackStack(destination, inclusive = false)) {
+        navigate(destination)
+    }
 }

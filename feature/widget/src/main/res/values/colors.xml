@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- For the preview; the widget itself has the colors of the app. -->
+    <color name="widget_surface">#FF121411</color>
+    <color name="widget_on_surface">#FFE3E3DC</color>
+    <color name="widget_on_surface_variant">#FFC5C8BA</color>
+    <color name="widget_primary">#FFC6F24E</color>
+    <color name="widget_on_primary">#FF1A2600</color>
+</resources>

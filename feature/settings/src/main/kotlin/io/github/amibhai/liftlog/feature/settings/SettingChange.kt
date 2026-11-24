@@ -58,9 +58,9 @@ internal fun UserSettings.with(change: SettingChange): UserSettings {
             copy(stepsLb = stepsLb.copy(dumbbell = change.step))
         }
 
-        is SettingChange.BarWeight -> if (isKg) copy(barWeightKg = change.weight) else copy(barWeightLb = change.weight)
+        is SettingChange.BarWeight -> withBarWeight(change.weight)
 
-        is SettingChange.Plates -> if (isKg) copy(platesKg = change.plates) else copy(platesLb = change.plates)
+        is SettingChange.Plates -> withPlates(change.plates)
 
         is SettingChange.Warmup -> copy(warmupSteps = change.steps)
 
@@ -93,6 +93,3 @@ internal val UserSettings.weightStep: Double
 
 internal val UserSettings.dumbbellStep: Double
     get() = if (weightUnit == WeightUnit.KG) stepsKg.dumbbell else stepsLb.dumbbell
-
-internal val UserSettings.barWeight: Double
-    get() = if (weightUnit == WeightUnit.KG) barWeightKg else barWeightLb

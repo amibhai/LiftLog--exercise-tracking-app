@@ -7,7 +7,7 @@ plugins {
 android {
     sourceSets {
         // MigrationTestHelper reads the exported schemas from the test assets.
-        getByName("test").assets.srcDir("$projectDir/schemas")
+        getByName("test").assets.directories += "$projectDir/schemas"
     }
 }
 

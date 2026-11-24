@@ -71,6 +71,7 @@ internal class SettingsNavigation(
     val onBack: () -> Unit,
     val onOpenPlates: () -> Unit,
     val onOpenWarmup: () -> Unit,
+    val onOpenData: () -> Unit,
     val onOpenAbout: () -> Unit,
     val onOpenGallery: () -> Unit,
 )
@@ -124,6 +125,12 @@ internal fun SettingsScreen(
             )
             SectionHeader(stringResource(R.string.settings_section_progress))
             ProgressRows(settings, onChange = actions.onChange, onOpen = { dialog = it })
+            SectionHeader(stringResource(R.string.settings_section_data))
+            NavigationRow(
+                title = stringResource(R.string.data_title),
+                value = stringResource(R.string.data_summary),
+                onClick = navigation.onOpenData,
+            )
             SectionHeader(stringResource(R.string.settings_section_about))
             NavigationRow(title = stringResource(R.string.settings_about), onClick = navigation.onOpenAbout)
             if (showDeveloperOptions) {
@@ -167,7 +174,7 @@ private fun AppearanceSection(
 }
 
 @Composable
-private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
+internal fun SectionHeader(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleSmall,

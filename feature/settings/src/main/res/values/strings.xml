@@ -38,6 +38,7 @@
     <string name="settings_formula_brzycki" translatable="false">Brzycki</string>
     <string name="settings_first_day">First day of the week</string>
     <string name="settings_first_day_auto">Automatic (%1$s)</string>
+    <string name="settings_section_data">Data</string>
     <string name="settings_section_about">About</string>
     <string name="settings_about">About &amp; attributions</string>
     <string name="settings_section_developer">Developer</string>
@@ -79,6 +80,101 @@
     <string name="warmup_example">Before %1$s on a barbell</string>
     <string name="warmup_example_none">No warm-up sets</string>
 
+    <!-- Data -->
+    <string name="data_title">Backup, export and import</string>
+    <string name="data_summary">Automatic backups, moving data in and out, offline pictures</string>
+    <string name="data_section_backup">Automatic backups</string>
+    <string name="data_folder">Backup folder</string>
+    <string name="data_folder_none">Choose a folder, for example one that syncs to the cloud</string>
+    <string name="data_folder_unnamed">Chosen</string>
+    <string name="data_frequency">Back up</string>
+    <string name="data_frequency_off">Never</string>
+    <string name="data_frequency_daily">Daily</string>
+    <string name="data_frequency_weekly">Weekly</string>
+    <string name="data_keep">Backups to keep</string>
+    <string name="data_keep_fewer">Keep fewer backups</string>
+    <string name="data_keep_more">Keep more backups</string>
+    <string name="data_back_up_now">Back up now</string>
+    <string name="data_last_backup">Last backup: %1$s</string>
+    <string name="data_no_backup">No backup yet</string>
+    <string name="data_last_failed">The last try did not work. Check the folder.</string>
+    <string name="data_section_export">Export</string>
+    <string name="data_export_json">Export everything</string>
+    <string name="data_export_json_body">A backup file (JSON) with everything except progress photos</string>
+    <string name="data_export_csv">Export all sets</string>
+    <string name="data_export_csv_body">A table (CSV) for spreadsheets</string>
+    <string name="data_section_import">Import</string>
+    <string name="data_restore">Restore a backup</string>
+    <string name="data_restore_body">Replaces everything in LiftLog except progress photos</string>
+    <string name="data_restore_title">Restore this backup?</string>
+    <string name="data_restore_text">Backup of %1$s: %2$s. It replaces what is in LiftLog now.</string>
+    <string name="data_restore_confirm">Restore</string>
+    <string name="data_import">Import from Strong or Hevy</string>
+    <string name="data_import_body">Adds the workouts of a CSV export to your history</string>
+    <plurals name="data_workouts">
+        <item quantity="one">%1$d workout</item>
+        <item quantity="other">%1$d workouts</item>
+    </plurals>
+    <plurals name="data_routines">
+        <item quantity="one">%1$d routine</item>
+        <item quantity="other">%1$d routines</item>
+    </plurals>
+    <plurals name="data_measurements">
+        <item quantity="one">%1$d measurement</item>
+        <item quantity="other">%1$d measurements</item>
+    </plurals>
+    <string name="data_section_images">Exercise pictures</string>
+    <string name="data_images">Download all pictures</string>
+    <string name="data_images_body">On this phone: %1$d of %2$d. All pictures take about 300 MB and load over Wi-Fi.</string>
+    <string name="data_images_running">On this phone: %1$d of %2$d</string>
+    <string name="data_images_complete">All pictures are on this phone</string>
+    <string name="data_images_cancel">Stop downloading pictures</string>
+    <string name="data_backed_up">Backup saved</string>
+    <string name="data_backup_failed">The backup could not be saved</string>
+    <string name="data_folder_failed">This folder cannot be used</string>
+    <string name="data_exported">Exported</string>
+    <string name="data_export_failed">The file could not be written</string>
+    <string name="data_not_a_backup">This is not a LiftLog backup, or it was made by a newer version</string>
+    <string name="data_restored">Backup restored</string>
+    <string name="data_restore_failed">The backup could not be restored; nothing has changed</string>
+    <string name="data_restore_undone">Restore undone</string>
+
+    <!-- Import -->
+    <string name="import_title">Import workouts</string>
+    <string name="import_unknown">Nothing to import</string>
+    <string name="import_unknown_body">This file is not a CSV export of Strong or Hevy.</string>
+    <string name="import_summary">%1$s: %2$s, %3$s to %4$s</string>
+    <string name="import_strong" translatable="false">Strong</string>
+    <string name="import_hevy" translatable="false">Hevy</string>
+    <plurals name="import_unreadable">
+        <item quantity="one">%1$d row could not be read and is left out.</item>
+        <item quantity="other">%1$d rows could not be read and are left out.</item>
+    </plurals>
+    <string name="import_unit">Weights in the file</string>
+    <string name="import_unit_guessed">The file does not say its unit. Weights are in</string>
+    <string name="import_names">Exercises in the file and what they become. Tap one to change it.</string>
+    <string name="import_check">Please check</string>
+    <string name="import_create_row">New custom exercise</string>
+    <string name="import_skip_row">Left out</string>
+    <plurals name="import_start">
+        <item quantity="one">Import %1$d workout</item>
+        <item quantity="other">Import %1$d workouts</item>
+    </plurals>
+    <plurals name="import_done">
+        <item quantity="one">%1$d workout imported</item>
+        <item quantity="other">%1$d workouts imported</item>
+    </plurals>
+    <plurals name="import_already_there">
+        <item quantity="one">%1$d was imported before.</item>
+        <item quantity="other">%1$d were imported before.</item>
+    </plurals>
+    <string name="import_close">Done</string>
+    <string name="import_search">Exercise for “%1$s”</string>
+    <string name="import_create">Create a custom exercise</string>
+    <string name="import_create_body">Keeps the name from the file</string>
+    <string name="import_skip">Leave it out</string>
+    <string name="import_skip_body">Its sets are not imported</string>
+
     <string name="about_title">About &amp; attributions</string>
     <string name="about_app_name" translatable="false">LiftLog</string>
     <string name="about_version">Version %1$s</string>
@@ -94,7 +190,7 @@
     <string name="about_icons_body">Material Symbols by Google, used under the Apache License 2.0.</string>
     <string name="about_icons_link">Material Symbols</string>
     <string name="about_open_source">Open-source software</string>
-    <string name="about_open_source_body">LiftLog is built with Android Jetpack (including Compose and Room), Kotlin, kotlinx.coroutines, kotlinx.serialization and Dagger Hilt, all licensed under the Apache License 2.0.</string>
+    <string name="about_open_source_body">LiftLog is built with Android Jetpack (including Compose, Room, WorkManager and Glance), Kotlin, kotlinx.coroutines, kotlinx.serialization, Dagger Hilt, Coil, OkHttp and Vico, all licensed under the Apache License 2.0.</string>
 
     <string name="gallery_title">Component gallery</string>
 </resources>

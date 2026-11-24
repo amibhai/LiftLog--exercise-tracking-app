@@ -1,0 +1,39 @@
+{
+  "_comment": "Manual curation, keyed by source ref (fedb:<id> or wger:<uuid>). rename: final display name (the source name stays searchable as an alias). fields: override type, equipment, category, mechanic, primary, secondary or unilateral. exclude: ref -> reason. merge: duplicate ref -> ref it should merge into.",
+  "rename": {
+    "fedb:Barbell_Bench_Press_-_Medium_Grip": "Barbell Bench Press",
+    "fedb:Barbell_Incline_Bench_Press_-_Medium_Grip": "Barbell Incline Bench Press",
+    "fedb:Barbell_Squat": "Barbell Back Squat",
+    "fedb:Front_Barbell_Squat": "Barbell Front Squat",
+    "fedb:Standing_Military_Press": "Barbell Overhead Press",
+    "fedb:Pullups": "Pull-Up",
+    "fedb:Pushups": "Push-Up",
+    "fedb:Dips_-_Chest_Version": "Chest Dip",
+    "fedb:Dips_-_Triceps_Version": "Triceps Dip",
+    "fedb:Seated_Cable_Rows": "Seated Cable Row",
+    "fedb:Leg_Extensions": "Leg Extension",
+    "fedb:Lying_Leg_Curls": "Lying Leg Curl",
+    "fedb:Standing_Calf_Raises": "Standing Calf Raise",
+    "fedb:Hammer_Curls": "Hammer Curl",
+    "fedb:Concentration_Curls": "Concentration Curl",
+    "fedb:Crunches": "Crunch",
+    "fedb:Hyperextensions_Back_Extensions": "Back Extension",
+    "fedb:Thigh_Abductor": "Hip Abduction Machine",
+    "fedb:Thigh_Adductor": "Hip Adduction Machine",
+    "fedb:Butterfly": "Pec Deck",
+    "fedb:Farmers_Walk": "Farmer's Walk",
+    "fedb:One-Arm_Kettlebell_Swings": "One-Arm Kettlebell Swing",
+    "fedb:Dumbbell_Lunges": "Dumbbell Lunge",
+    "fedb:Split_Squat_with_Dumbbells": "Dumbbell Split Squat",
+    "fedb:Dumbbell_Flyes": "Dumbbell Fly",
+    "fedb:Incline_Dumbbell_Flyes": "Incline Dumbbell Fly",
+    "fedb:Reverse_Flyes": "Reverse Dumbbell Fly"
+  },
+  "fields": {
+    "fedb:Plank": {"type": "DURATION"},
+    "fedb:Hanging_Leg_Raise": {"type": "REPS_ONLY"},
+    "fedb:Ab_Roller": {"type": "REPS_ONLY"}
+  },
+  "exclude": {},
+  "merge": {}
+}

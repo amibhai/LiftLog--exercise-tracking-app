@@ -1,0 +1,16 @@
+{
+  "libraryVersion": 1,
+  "builtAt": "2026-11-24T00:00:00Z",
+  "minimumExercises": 1000,
+  "freeExerciseDb": {
+    "repo": "yuhonas/free-exercise-db",
+    "commit": "f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5",
+    "commitDate": "2026-09-27",
+    "url": "https://github.com/yuhonas/free-exercise-db"
+  },
+  "wger": {
+    "api": "https://wger.de/api/v2/",
+    "url": "https://wger.de",
+    "snapshot": "snapshots/wger-exerciseinfo.json"
+  }
+}

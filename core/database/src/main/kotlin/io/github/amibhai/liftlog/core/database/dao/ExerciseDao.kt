@@ -57,6 +57,13 @@ interface ExerciseDao {
     @Query("SELECT * FROM library_source WHERE deleted_at IS NULL ORDER BY exercise_count DESC, name")
     fun observeSources(): Flow<List<LibrarySourceEntity>>
 
+    /** Every non-deleted exercise; for exports and library updates, not for UI lists. */
+    @Query("SELECT * FROM exercise WHERE deleted_at IS NULL ORDER BY name")
+    suspend fun getAll(): List<ExerciseEntity>
+
+    @Query("SELECT * FROM exercise_muscle WHERE deleted_at IS NULL")
+    suspend fun getAllMuscles(): List<ExerciseMuscleEntity>
+
     @Insert
     suspend fun insert(exercise: ExerciseEntity)
 

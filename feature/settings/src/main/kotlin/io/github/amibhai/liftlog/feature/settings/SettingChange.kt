@@ -2,7 +2,9 @@ package io.github.amibhai.liftlog.feature.settings
 
 import io.github.amibhai.liftlog.core.domain.model.EffortMode
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
+import io.github.amibhai.liftlog.core.domain.progress.E1rmFormula
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
+import java.time.DayOfWeek
 
 /** A change to the logging settings (SPEC §12). Weights are in the unit that is chosen at the time. */
 sealed interface SettingChange {
@@ -23,6 +25,15 @@ sealed interface SettingChange {
     data class Effort(val mode: EffortMode) : SettingChange
 
     data class KeepScreenOn(val enabled: Boolean) : SettingChange
+
+    data class WeeklySets(val least: Int, val most: Int) : SettingChange
+
+    data class SecondaryMuscles(val share: Double) : SettingChange
+
+    data class Formula(val formula: E1rmFormula) : SettingChange
+
+    /** Null follows the phone's language. */
+    data class FirstDay(val day: DayOfWeek?) : SettingChange
 }
 
 internal fun UserSettings.with(change: SettingChange): UserSettings {
@@ -53,6 +64,15 @@ internal fun UserSettings.with(change: SettingChange): UserSettings {
         is SettingChange.Effort -> copy(effortMode = change.mode)
 
         is SettingChange.KeepScreenOn -> copy(keepScreenOn = change.enabled)
+
+        is SettingChange.WeeklySets ->
+            copy(weeklySetTargetMin = change.least, weeklySetTargetMax = change.most)
+
+        is SettingChange.SecondaryMuscles -> copy(secondaryMuscleSets = change.share)
+
+        is SettingChange.Formula -> copy(e1rmFormula = change.formula)
+
+        is SettingChange.FirstDay -> copy(firstDayOfWeek = change.day)
     }
 }
 

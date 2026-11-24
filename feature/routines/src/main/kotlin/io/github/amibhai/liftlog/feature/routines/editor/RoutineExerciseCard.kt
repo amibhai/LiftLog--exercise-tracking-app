@@ -33,6 +33,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import io.github.amibhai.liftlog.core.domain.model.EffortMode
 import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
+import io.github.amibhai.liftlog.core.ui.component.NumberStepper
 import io.github.amibhai.liftlog.core.ui.component.effortText
 import io.github.amibhai.liftlog.core.ui.format.LiftLogFormat
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
@@ -80,7 +81,14 @@ internal fun RoutineExerciseCard(
             horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
             itemVerticalAlignment = Alignment.CenterVertically,
         ) {
-            SetsStepper(exercise.targetSets, onChange = { onAction(RoutineEditorAction.SetSets(exercise.id, it)) })
+            NumberStepper(
+                value = exercise.targetSets,
+                range = 1..MAX_PLANNED_SETS,
+                onChange = { onAction(RoutineEditorAction.SetSets(exercise.id, it)) },
+                fewer = stringResource(R.string.routine_fewer_sets),
+                more = stringResource(R.string.routine_more_sets),
+                text = pluralStringResource(R.plurals.routine_sets, exercise.targetSets, exercise.targetSets),
+            )
             AssistChip(
                 onClick = { onOpenDialog(RoutineDialog.Reps(exercise)) },
                 label = { Text(repsLabel(exercise.repMin, exercise.repMax)) },
@@ -112,19 +120,6 @@ internal fun RoutineExerciseCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-    }
-}
-
-@Composable
-private fun SetsStepper(sets: Int, onChange: (Int) -> Unit, modifier: Modifier = Modifier) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = { onChange(sets - 1) }, enabled = sets > 1) {
-            Icon(painterResource(LiftLogIcons.Remove), stringResource(R.string.routine_fewer_sets))
-        }
-        Text(pluralStringResource(R.plurals.routine_sets, sets, sets), style = MaterialTheme.typography.labelLarge)
-        IconButton(onClick = { onChange(sets + 1) }, enabled = sets < MAX_PLANNED_SETS) {
-            Icon(painterResource(LiftLogIcons.Add), stringResource(R.string.routine_more_sets))
         }
     }
 }

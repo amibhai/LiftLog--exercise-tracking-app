@@ -117,6 +117,8 @@ internal fun SettingsScreen(
             WeightRows(settings, onOpen = { dialog = it })
             SectionHeader(stringResource(R.string.settings_section_workout))
             WorkoutRows(settings, onChange = actions.onChange, onOpen = { dialog = it })
+            SectionHeader(stringResource(R.string.settings_section_progress))
+            ProgressRows(settings, onChange = actions.onChange, onOpen = { dialog = it })
             SectionHeader(stringResource(R.string.settings_section_about))
             NavigationRow(title = stringResource(R.string.settings_about), onClick = actions.onOpenAbout)
             if (showDeveloperOptions) {

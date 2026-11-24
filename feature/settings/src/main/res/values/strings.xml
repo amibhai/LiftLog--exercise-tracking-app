@@ -23,6 +23,21 @@
     <string name="settings_effort">Rate effort with</string>
     <string name="settings_effort_off">Off</string>
     <string name="settings_keep_screen_on">Keep the screen on during a workout</string>
+    <string name="settings_section_progress">Progress</string>
+    <string name="settings_weekly_sets">Weekly sets per muscle</string>
+    <string name="settings_weekly_sets_min">At least</string>
+    <string name="settings_weekly_sets_max">At most</string>
+    <string name="settings_fewer">%1$s: fewer</string>
+    <string name="settings_more">%1$s: more</string>
+    <string name="settings_secondary_muscles">A set counts for secondary muscles as</string>
+    <string name="settings_secondary_none">Nothing</string>
+    <string name="settings_secondary_half">Half a set</string>
+    <string name="settings_secondary_full">One set</string>
+    <string name="settings_formula">Estimated 1RM formula</string>
+    <string name="settings_formula_epley" translatable="false">Epley</string>
+    <string name="settings_formula_brzycki" translatable="false">Brzycki</string>
+    <string name="settings_first_day">First day of the week</string>
+    <string name="settings_first_day_auto">Automatic (%1$s)</string>
     <string name="settings_section_about">About</string>
     <string name="settings_about">About &amp; attributions</string>
     <string name="settings_section_developer">Developer</string>

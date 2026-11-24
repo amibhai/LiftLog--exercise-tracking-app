@@ -18,10 +18,11 @@ class SettingsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = FakeSettingsRepository()
-    private val viewModel = SettingsViewModel(repository)
 
     @Test
     fun exposesTheStoredSettings() = runTest {
+        val viewModel = SettingsViewModel(repository)
+
         viewModel.uiState.test {
             assertThat(awaitReady().settings).isEqualTo(UserSettings())
         }
@@ -29,6 +30,8 @@ class SettingsViewModelTest {
 
     @Test
     fun choicesAreSaved() = runTest {
+        val viewModel = SettingsViewModel(repository)
+
         viewModel.setWeightUnit(WeightUnit.LB)
         viewModel.setThemeMode(ThemeMode.LIGHT)
         viewModel.setDynamicColor(false)
@@ -41,7 +44,7 @@ class SettingsViewModelTest {
         }
     }
 
-    /** `stateIn` starts with Loading; skip it rather than depend on dispatcher timing. */
+    /** `stateIn` starts with Loading; skip it. */
     private suspend fun ReceiveTurbine<SettingsUiState>.awaitReady(): SettingsUiState.Ready {
         while (true) {
             val item = awaitItem()

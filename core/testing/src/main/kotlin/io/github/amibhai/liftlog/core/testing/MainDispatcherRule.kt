@@ -12,6 +12,9 @@ import org.junit.runner.Description
 /**
  * Replaces Dispatchers.Main (used by viewModelScope) with a test dispatcher. `runTest` then shares
  * its scheduler, so `advanceTimeBy` also drives debounce and delays inside ViewModels.
+ *
+ * Create ViewModels inside the test function. Property initializers run before this rule, and a
+ * ViewModel created there falls back to a real background dispatcher, which makes tests flaky.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule(val dispatcher: TestDispatcher = UnconfinedTestDispatcher()) : TestWatcher() {

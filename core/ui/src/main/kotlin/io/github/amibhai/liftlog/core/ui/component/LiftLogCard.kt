@@ -23,13 +23,7 @@ fun LiftLogCard(
     spacing: Dp = LiftLogDimens.spacingS,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-        ),
-    ) {
+    Card(modifier = modifier.fillMaxWidth(), colors = liftLogCardColors()) {
         Column(
             modifier = Modifier.padding(LiftLogDimens.spacingL),
             verticalArrangement = Arrangement.spacedBy(spacing),
@@ -37,3 +31,26 @@ fun LiftLogCard(
         )
     }
 }
+
+/** A card that opens something: the whole card is one touch target. */
+@Composable
+fun LiftLogCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    spacing: Dp = LiftLogDimens.spacingS,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(onClick = onClick, modifier = modifier.fillMaxWidth(), colors = liftLogCardColors()) {
+        Column(
+            modifier = Modifier.padding(LiftLogDimens.spacingL),
+            verticalArrangement = Arrangement.spacedBy(spacing),
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun liftLogCardColors() = CardDefaults.cardColors(
+    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+    contentColor = MaterialTheme.colorScheme.onSurface,
+)

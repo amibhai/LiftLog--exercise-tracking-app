@@ -6,6 +6,7 @@ import io.github.amibhai.liftlog.core.domain.model.ExerciseCategory
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.Mechanic
 import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.domain.model.SetField
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.ui.R
 
@@ -80,4 +81,12 @@ fun Mechanic.labelRes(): Int = when (this) {
 fun WeightUnit.labelRes(): Int = when (this) {
     WeightUnit.KG -> R.string.ui_unit_kg
     WeightUnit.LB -> R.string.ui_unit_lb
+}
+
+@StringRes
+fun SetField.labelRes(): Int = when (this) {
+    SetField.WEIGHT -> R.string.ui_field_weight
+    SetField.REPS -> R.string.ui_field_reps
+    SetField.DURATION -> R.string.ui_field_duration
+    SetField.DISTANCE -> R.string.ui_field_distance
 }

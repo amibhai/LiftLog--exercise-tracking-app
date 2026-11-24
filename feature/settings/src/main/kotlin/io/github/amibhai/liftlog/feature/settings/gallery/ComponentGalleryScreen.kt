@@ -1,25 +1,16 @@
 package io.github.amibhai.liftlog.feature.settings.gallery
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,29 +18,33 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import io.github.amibhai.liftlog.core.domain.model.EffortMode
 import io.github.amibhai.liftlog.core.domain.model.SetField
-import io.github.amibhai.liftlog.core.domain.units.WeightUnit
+import io.github.amibhai.liftlog.core.domain.model.SetType
+import io.github.amibhai.liftlog.core.ui.component.EffortChips
+import io.github.amibhai.liftlog.core.ui.component.NumberInputState
 import io.github.amibhai.liftlog.core.ui.component.NumberPad
 import io.github.amibhai.liftlog.core.ui.component.NumberPadUiState
+import io.github.amibhai.liftlog.core.ui.component.PadInput
 import io.github.amibhai.liftlog.core.ui.component.RestTimerBar
+import io.github.amibhai.liftlog.core.ui.component.RestTimerUiState
+import io.github.amibhai.liftlog.core.ui.component.SetFieldUiModel
 import io.github.amibhai.liftlog.core.ui.component.SetRow
-import io.github.amibhai.liftlog.core.ui.format.LiftLogFormat
+import io.github.amibhai.liftlog.core.ui.component.SetRowAction
+import io.github.amibhai.liftlog.core.ui.component.SetRowUiModel
+import io.github.amibhai.liftlog.core.ui.component.SwitchRow
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
-import io.github.amibhai.liftlog.core.ui.label.labelRes
-import io.github.amibhai.liftlog.core.ui.list.animateItemIntoView
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 import io.github.amibhai.liftlog.feature.settings.R
+import java.math.BigDecimal
 import io.github.amibhai.liftlog.core.ui.R as UiR
 
-/**
- * Debug-only playground for the Phase 0 logging controls: set rows, the docked number pad and the
- * rest timer, wired together like the real workout screen will be. Nothing here is saved.
- */
+private const val REST_SECONDS = 120
+private const val MILLIS_PER_SECOND = 1_000L
+
+/** Debug-only: the design-system components on one page, for trying changes on a phone. */
 @Composable
 internal fun ComponentGalleryScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
-    var state by remember { mutableStateOf(GalleryState()) }
-    val listState = rememberLazyListState()
-    val unitLabel = stringResource(state.unit.labelRes())
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -57,136 +52,103 @@ internal fun ComponentGalleryScreen(onBack: () -> Unit, modifier: Modifier = Mod
                 title = { Text(stringResource(R.string.gallery_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            painterResource(LiftLogIcons.ArrowBack),
-                            contentDescription = stringResource(R.string.settings_back),
-                        )
+                        Icon(painterResource(LiftLogIcons.ArrowBack), stringResource(UiR.string.ui_back))
                     }
                 },
             )
         },
-        bottomBar = { GalleryControls(state = state, unitLabel = unitLabel, onStateChange = { state = it }) },
     ) { padding ->
-        // Keep the edited row clear of the controls when they open, grow or move to another row.
-        val editedItem = state.editing?.let { state.itemIndex(it) }
-        LaunchedEffect(editedItem, padding.calculateBottomPadding()) {
-            if (editedItem != null) listState.animateItemIntoView(editedItem)
-        }
-        LazyColumn(
-            state = listState,
-            contentPadding = padding,
-            verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingXs),
+        Column(
+            modifier = Modifier.padding(padding).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingL),
         ) {
-            item(key = "intro") { Intro(unit = state.unit, onUnitChange = { state = state.withUnit(it) }) }
-            state.exercises.forEachIndexed { exerciseIndex, exercise ->
-                item(key = "header-${exercise.name}") {
-                    Column(
-                        Modifier.padding(horizontal = LiftLogDimens.screenGutter, vertical = LiftLogDimens.spacingS),
-                    ) {
-                        Text(exercise.name, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = stringResource(exercise.type.labelRes()),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                itemsIndexed(exercise.sets, key = { _, set -> set.id }) { setIndex, _ ->
-                    SetRow(
-                        model = state.rowModel(exerciseIndex, setIndex, unitLabel),
-                        onAction = { action ->
-                            state = state.handle(action, exerciseIndex, setIndex, System.currentTimeMillis())
-                        },
-                        modifier = Modifier.padding(horizontal = LiftLogDimens.spacingS),
-                    )
-                }
-            }
+            SetRows()
+            Effort()
+            Timer()
+            Switches()
+            Pad()
         }
     }
 }
 
 @Composable
-private fun Intro(unit: WeightUnit, onUnitChange: (WeightUnit) -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(LiftLogDimens.screenGutter),
-        verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
-    ) {
-        Text(stringResource(R.string.gallery_intro), style = MaterialTheme.typography.bodyMedium)
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            WeightUnit.entries.forEachIndexed { index, option ->
-                SegmentedButton(
-                    selected = option == unit,
-                    onClick = { onUnitChange(option) },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = WeightUnit.entries.size),
-                    label = { Text(stringResource(option.labelRes())) },
-                )
-            }
-        }
-        Text(
-            text = stringResource(R.string.gallery_unit_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun GalleryControls(
-    state: GalleryState,
-    unitLabel: String,
-    onStateChange: (GalleryState) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val ref = state.editing
-    val input = state.input
-    val timer = state.restTimer
-    if (timer == null && ref == null) return
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            // The number pad pads itself above the navigation bar; the timer alone needs it here.
-            .then(if (ref == null) Modifier.navigationBarsPadding() else Modifier),
-    ) {
-        if (timer != null) {
-            RestTimerBar(
-                state = timer,
-                onAdjust = { onStateChange(state.adjustRest(it)) },
-                onSkip = { onStateChange(state.skipRest()) },
-                modifier = Modifier.padding(LiftLogDimens.spacingS),
-            )
-        }
-        if (ref != null && input != null) {
-            NumberPad(
-                state = NumberPadUiState(
-                    fieldLabel = fieldLabel(ref.field, unitLabel),
-                    valueText = input.text.replace('.', LiftLogFormat.decimalSeparator()),
-                    stepLabel = LiftLogFormat.decimal(state.step(ref)),
-                    allowsDecimal = input.maxDecimals > 0,
-                    canUsePrevious = state.previousValue(ref) != null,
-                    isLastField = state.nextField(ref) == null,
-                ),
-                onKey = { onStateChange(state.press(it)) },
+private fun SetRows(modifier: Modifier = Modifier) {
+    var rows by remember { mutableStateOf(sampleRows()) }
+    Column(modifier) {
+        for (row in rows) {
+            SetRow(
+                model = row,
+                onAction = { action ->
+                    rows = rows.map { if (it.id == action.setId) it.after(action) else it }
+                },
+                modifier = Modifier.padding(horizontal = LiftLogDimens.spacingS),
             )
         }
     }
 }
 
 @Composable
-private fun fieldLabel(field: SetField, unitLabel: String): String = when (field) {
-    SetField.WEIGHT -> stringResource(
-        R.string.gallery_field_with_unit,
-        stringResource(UiR.string.ui_field_weight),
-        unitLabel,
+private fun Effort(modifier: Modifier = Modifier) {
+    var rating by remember { mutableStateOf<Double?>(null) }
+    EffortChips(mode = EffortMode.RPE, selected = rating, onSelect = { rating = it }, modifier = modifier)
+}
+
+@Composable
+private fun Timer(modifier: Modifier = Modifier) {
+    var end by remember { mutableStateOf(System.currentTimeMillis() + REST_SECONDS * MILLIS_PER_SECOND) }
+    RestTimerBar(
+        state = RestTimerUiState(end, REST_SECONDS),
+        onAdjust = { end += it * MILLIS_PER_SECOND },
+        onSkip = { end = System.currentTimeMillis() },
+        modifier = modifier.padding(horizontal = LiftLogDimens.spacingS),
     )
+}
 
-    SetField.REPS -> stringResource(UiR.string.ui_field_reps)
-
-    SetField.DURATION -> stringResource(
-        R.string.gallery_field_with_unit,
-        stringResource(UiR.string.ui_field_duration),
-        stringResource(R.string.gallery_seconds),
+@Composable
+private fun Switches(modifier: Modifier = Modifier) {
+    var isOn by remember { mutableStateOf(true) }
+    SwitchRow(
+        title = stringResource(R.string.settings_dynamic_color),
+        checked = isOn,
+        onCheckedChange = { isOn = it },
+        modifier = modifier,
+        supportingText = stringResource(R.string.settings_dynamic_color_body),
     )
+}
 
-    SetField.DISTANCE -> stringResource(UiR.string.ui_field_distance)
+@Composable
+private fun Pad(modifier: Modifier = Modifier) {
+    var input by remember { mutableStateOf<PadInput>(NumberInputState.start(BigDecimal("80"), 2, BigDecimal("999"))) }
+    NumberPad(
+        state = NumberPadUiState(
+            fieldLabel = stringResource(UiR.string.ui_field_weight),
+            valueText = input.display,
+            stepLabel = "2.5",
+            allowsDecimal = true,
+            canUsePrevious = true,
+            isLastField = false,
+        ),
+        onKey = { input = input.reduce(it, step = BigDecimal("2.5"), previous = BigDecimal("77.5")) },
+        modifier = modifier,
+    )
+}
+
+private fun SetRowUiModel.after(action: SetRowAction): SetRowUiModel = when (action) {
+    is SetRowAction.ToggleComplete -> copy(isCompleted = !isCompleted)
+    is SetRowAction.ChangeType -> copy(type = action.type)
+    else -> this
+}
+
+private fun sampleRows() = listOf(SetType.WARMUP, SetType.WORKING, SetType.DROP, SetType.FAILURE).map { type ->
+    SetRowUiModel(
+        id = type.name,
+        type = type,
+        workingSetNumber = 1,
+        previous = "77.5 × 8",
+        fields = listOf(
+            SetFieldUiModel(SetField.WEIGHT, "80", "kg", isGhost = type != SetType.WARMUP, note = "+2.5 kg"),
+            SetFieldUiModel(SetField.REPS, "8", null, isGhost = type != SetType.WARMUP),
+        ),
+        isCompleted = type == SetType.WARMUP,
+    )
 }

@@ -15,6 +15,8 @@
     <string name="ui_set_field_suggested">%1$s %2$s, suggested</string>
     <string name="ui_set_complete">Complete set</string>
     <string name="ui_set_action_change_type">change set type</string>
+    <string name="ui_set_action_use_previous">use these values</string>
+    <string name="ui_set_type_working">Working set</string>
     <string name="ui_set_action_duplicate">Duplicate set</string>
     <string name="ui_set_action_delete">Delete set</string>
     <string name="ui_field_weight">Weight</string>
@@ -119,10 +121,26 @@
         <item quantity="other">%1$d years ago</item>
     </plurals>
 
+    <!-- Effort -->
+    <string name="ui_rpe" translatable="false">RPE</string>
+    <string name="ui_rir" translatable="false">RIR</string>
+    <string name="ui_effort_value">%1$s %2$s</string>
+
+    <!-- Reordering -->
+    <string name="ui_reorder_handle">Drag to move %1$s</string>
+    <string name="ui_move_up">Move up</string>
+    <string name="ui_move_down">Move down</string>
+
     <!-- Rest time -->
     <string name="ui_rest_time">Rest time</string>
     <string name="ui_rest_default">Default (%1$s)</string>
     <string name="ui_rest_off">No rest timer</string>
+
+    <!-- Workouts without a name -->
+    <string name="ui_workout_morning">Morning workout</string>
+    <string name="ui_workout_afternoon">Afternoon workout</string>
+    <string name="ui_workout_evening">Evening workout</string>
+    <string name="ui_workout_night">Night workout</string>
 
     <!-- Common actions -->
     <string name="ui_back">Back</string>
@@ -133,6 +151,8 @@
     <string name="ui_done">Done</string>
     <string name="ui_edit">Edit</string>
     <string name="ui_more_options">More options</string>
+    <string name="ui_next">Next</string>
+    <string name="ui_select_time">Select time</string>
     <string name="ui_save">Save</string>
     <string name="ui_undo">Undo</string>
     <string name="ui_clear_search">Clear search</string>

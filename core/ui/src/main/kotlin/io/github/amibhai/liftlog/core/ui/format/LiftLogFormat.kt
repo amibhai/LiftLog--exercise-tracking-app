@@ -3,6 +3,7 @@ package io.github.amibhai.liftlog.core.ui.format
 import io.github.amibhai.liftlog.core.domain.units.Weight
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
 import java.util.Locale
@@ -33,6 +34,12 @@ object LiftLogFormat {
         } else {
             String.format(Locale.ROOT, "%d:%02d", minutes, rest)
         }
+    }
+
+    /** A rounded total with thousands separators: "3,240 kg". */
+    fun volume(volume: Weight, unit: WeightUnit, locale: Locale = Locale.getDefault()): String {
+        val rounded = volume.displayValue(unit).setScale(0, RoundingMode.HALF_UP)
+        return NumberFormat.getIntegerInstance(locale).format(rounded) + " " + unit.symbol
     }
 
     fun decimalSeparator(locale: Locale = Locale.getDefault()): Char =

@@ -51,10 +51,10 @@ private fun previewRow(
             unit = "kg",
             isGhost = ghost,
             isFocused = suggestion != null,
+            note = suggestion,
         ),
         SetFieldUiModel(SetField.REPS, text = "8", unit = null, isGhost = ghost),
     ),
-    suggestion = suggestion,
     isCompleted = completed,
 )
 

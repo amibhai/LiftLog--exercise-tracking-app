@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workout_minimize">Minimize workout</string>
+    <string name="workout_finish">Finish</string>
+    <string name="workout_finish_long">Finish workout</string>
+    <string name="workout_rename">Rename</string>
+    <string name="workout_name_label">Workout name</string>
+    <string name="workout_notes">Workout notes</string>
+    <string name="workout_reorder">Reorder exercises</string>
+    <string name="workout_discard">Discard workout</string>
+    <string name="workout_started">Started</string>
+    <string name="workout_ended">Ended</string>
+
+    <string name="workout_duration_label">Time</string>
+    <string name="workout_volume_label">Volume</string>
+    <string name="workout_sets_label">Sets</string>
+    <string name="workout_sets_value">%1$d / %2$d</string>
+
+    <string name="workout_empty_title">What are you training?</string>
+    <string name="workout_empty_body">Add exercises and their sets come filled in from last time.</string>
+    <string name="workout_add_exercises">Add exercises</string>
+    <string name="workout_add_set">Add set</string>
+    <string name="workout_column_set">Set</string>
+    <string name="workout_column_previous">Previous</string>
+
+    <string name="workout_exercise_options">Options for %1$s</string>
+    <string name="workout_exercise_note">Note for this workout</string>
+    <string name="workout_exercise_pinned_note">Pinned note</string>
+    <string name="workout_exercise_rest">Rest time</string>
+    <string name="workout_exercise_replace">Replace exercise</string>
+    <string name="workout_exercise_superset">Superset with…</string>
+    <string name="workout_exercise_leave_superset">Leave superset</string>
+    <string name="workout_exercise_remove">Remove exercise</string>
+    <string name="workout_superset">Superset %1$s</string>
+    <string name="workout_superset_title">Superset with</string>
+    <string name="workout_superset_confirm">Group</string>
+
+    <string name="workout_finish_title">Finish workout?</string>
+    <plurals name="workout_finish_open_sets">
+        <item quantity="one">%1$d set is not done and will be left out.</item>
+        <item quantity="other">%1$d sets are not done and will be left out.</item>
+    </plurals>
+    <string name="workout_finish_nothing_title">Nothing logged yet</string>
+    <string name="workout_finish_nothing_text">Complete a set first, or discard this workout.</string>
+    <string name="workout_discard_title">Discard this workout?</string>
+    <string name="workout_discard_text">Everything logged in it will be lost.</string>
+    <string name="workout_keep_logging">Keep logging</string>
+
+    <string name="workout_set_deleted">Set deleted</string>
+    <string name="workout_exercise_removed">Exercise removed</string>
+
+    <string name="workout_banner_resume">Resume</string>
+    <string name="workout_banner_details">%1$s · %2$s</string>
+    <string name="workout_banner_resting">%1$s · %2$s · rest %3$s</string>
+    <plurals name="workout_banner_sets">
+        <item quantity="one">%1$d set</item>
+        <item quantity="other">%1$d sets</item>
+    </plurals>
+</resources>

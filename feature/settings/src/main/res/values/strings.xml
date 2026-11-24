@@ -35,8 +35,4 @@
     <string name="about_open_source_body">LiftLog is built with Android Jetpack (including Compose and Room), Kotlin, kotlinx.coroutines, kotlinx.serialization and Dagger Hilt, all licensed under the Apache License 2.0.</string>
 
     <string name="gallery_title">Component gallery</string>
-    <string name="gallery_intro">A practice workout for the logging controls. Tap a value to edit it with the number pad, tap ✓ to complete a set and start the rest timer, tap the set number to change its type. Nothing here is saved.</string>
-    <string name="gallery_unit_hint">Weights are stored in kilograms. Switch to lb and enter 45: it displays back as exactly 45.</string>
-    <string name="gallery_field_with_unit">%1$s (%2$s)</string>
-    <string name="gallery_seconds">seconds</string>
 </resources>

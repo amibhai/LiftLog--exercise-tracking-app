@@ -4,18 +4,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +28,8 @@ import io.github.amibhai.liftlog.core.domain.model.Attribution
 import io.github.amibhai.liftlog.core.domain.model.ExerciseDetail
 import io.github.amibhai.liftlog.core.domain.model.Muscle
 import io.github.amibhai.liftlog.core.ui.component.EmptyState
+import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
+import io.github.amibhai.liftlog.core.ui.component.TextLink
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.label.labelRes
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
@@ -173,26 +172,22 @@ private fun Tag(text: String, modifier: Modifier = Modifier) {
 @Composable
 private fun AttributionCard(attribution: Attribution, modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
-    Card(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(LiftLogDimens.spacingL),
-            verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingXs),
-        ) {
-            Text(
-                text = stringResource(R.string.exercises_detail_source, attribution.sourceName),
-                style = MaterialTheme.typography.titleSmall,
+    LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingXs) {
+        Text(
+            text = stringResource(R.string.exercises_detail_source, attribution.sourceName),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        attribution.license?.let {
+            Text(stringResource(R.string.exercises_detail_license, it), style = MaterialTheme.typography.bodySmall)
+        }
+        attribution.author?.let {
+            Text(stringResource(R.string.exercises_detail_author, it), style = MaterialTheme.typography.bodySmall)
+        }
+        attribution.licenseUrl?.let { url ->
+            TextLink(
+                text = stringResource(R.string.exercises_detail_view_license),
+                onClick = { uriHandler.openUri(url) },
             )
-            attribution.license?.let {
-                Text(stringResource(R.string.exercises_detail_license, it), style = MaterialTheme.typography.bodySmall)
-            }
-            attribution.author?.let {
-                Text(stringResource(R.string.exercises_detail_author, it), style = MaterialTheme.typography.bodySmall)
-            }
-            attribution.licenseUrl?.let { url ->
-                TextButton(onClick = { uriHandler.openUri(url) }) {
-                    Text(stringResource(R.string.exercises_detail_view_license))
-                }
-            }
         }
     }
 }

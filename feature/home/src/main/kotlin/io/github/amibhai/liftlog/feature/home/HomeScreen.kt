@@ -9,13 +9,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +24,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 
@@ -77,48 +77,43 @@ internal fun HomeScreen(
 
 @Composable
 private fun StartWorkoutCard(modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(LiftLogDimens.spacingL),
-            verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingM),
+    LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingM) {
+        Text(stringResource(R.string.home_start_title), style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = stringResource(R.string.home_start_coming),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Button(
+            onClick = {},
+            enabled = false,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = LiftLogDimens.primaryAction),
         ) {
-            Text(stringResource(R.string.home_start_title), style = MaterialTheme.typography.titleLarge)
-            Text(
-                text = stringResource(R.string.home_start_coming),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Button(
-                onClick = {},
-                enabled = false,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = LiftLogDimens.primaryAction),
-            ) {
-                Text(stringResource(R.string.home_start_empty))
-            }
+            Text(stringResource(R.string.home_start_empty))
         }
     }
 }
 
 @Composable
 private fun LibraryCard(exerciseCount: Int?, onBrowseExercises: () -> Unit, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(LiftLogDimens.spacingL),
-            verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
+    LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingM) {
+        Text(stringResource(R.string.home_library_title), style = MaterialTheme.typography.titleLarge)
+        if (exerciseCount != null) {
+            Text(
+                text = pluralStringResource(R.plurals.home_library_count, exerciseCount, exerciseCount),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        FilledTonalButton(
+            onClick = onBrowseExercises,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = LiftLogDimens.minTouchTarget),
         ) {
-            Text(stringResource(R.string.home_library_title), style = MaterialTheme.typography.titleLarge)
-            if (exerciseCount != null) {
-                Text(
-                    text = pluralStringResource(R.plurals.home_library_count, exerciseCount, exerciseCount),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            TextButton(onClick = onBrowseExercises, modifier = Modifier.heightIn(min = LiftLogDimens.minTouchTarget)) {
-                Text(stringResource(R.string.home_library_browse))
-            }
+            Text(stringResource(R.string.home_library_browse))
         }
     }
 }

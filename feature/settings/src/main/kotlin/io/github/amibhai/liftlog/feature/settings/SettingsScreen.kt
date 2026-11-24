@@ -15,7 +15,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -30,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.amibhai.liftlog.core.domain.model.ThemeMode
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
+import io.github.amibhai.liftlog.core.ui.component.SwitchRow
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.label.labelRes
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
@@ -125,7 +125,6 @@ private fun AppearanceSection(
     dynamicColorAvailable: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val dynamicColorOn = settings.useDynamicColor && dynamicColorAvailable
     val dynamicColorHint = if (dynamicColorAvailable) {
         R.string.settings_dynamic_color_body
     } else {
@@ -140,17 +139,13 @@ private fun AppearanceSection(
             label = { stringResource(it.labelRes()) },
             onSelect = actions.onThemeModeChange,
         )
-        ListItem(
-            checked = dynamicColorOn,
+        SwitchRow(
+            title = stringResource(R.string.settings_dynamic_color),
+            checked = settings.useDynamicColor && dynamicColorAvailable,
             onCheckedChange = actions.onDynamicColorChange,
+            supportingText = stringResource(dynamicColorHint),
             enabled = dynamicColorAvailable,
-            supportingContent = { Text(stringResource(dynamicColorHint)) },
-            trailingContent = {
-                Switch(checked = dynamicColorOn, onCheckedChange = null, enabled = dynamicColorAvailable)
-            },
-        ) {
-            Text(stringResource(R.string.settings_dynamic_color))
-        }
+        )
     }
 }
 

@@ -44,7 +44,7 @@ Images are never bundled in the APK; only URLs are stored. free-exercise-db imag
    If wger gives no equipment, the movement name alone decides. Free-exercise-db wins every merge. Near-duplicates that were not merged are listed in the report for review.
 4. **Aliases and search terms** (`pipeline/aliases.py`):
    - Display aliases are source names and true synonyms (Skullcrusher ↔ Lying Triceps Extension).
-   - Hidden search terms are abbreviations and spellings: db, bb, kb, ez, ohp, rdl, sldl, bss, cgbp, pulldown, pullup, plus equipment and muscle words.
+   - Hidden search terms are abbreviations and spellings: db, bb, kb, ez, ohp, rdl, sldl, bss, cgbp, pulldown, pullup, plus equipment and muscle words. They are stored one phrase per line, because a search for a whole term ("ohp", "chest") ranks above a match on part of one.
 5. **Curate** from `data/`:
    - `overrides.json`: renames, field overrides, exclusions and manual merges, keyed by `fedb:<id>` or `wger:<uuid>`. A key that refers to nothing is a validation error.
    - `popular.json`: ranked list. The first 12 entries are the starter set for a brand-new user; the rest break search ties.

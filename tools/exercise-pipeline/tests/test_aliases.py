@@ -7,12 +7,12 @@ class AliasesTest(unittest.TestCase):
     def test_common_abbreviations_become_search_terms(self):
         _, terms = generate("Romanian Deadlift", "BARBELL", ["HAMSTRINGS"], [])
         for term in ("rdl", "bb", "barbell", "hamstrings"):
-            self.assertIn(term, terms.split())
+            self.assertIn(term, terms)
 
     def test_skullcrusher_and_lying_triceps_extension_find_each_other(self):
         aliases, terms = generate("EZ-Bar Skullcrusher", "EZ_BAR", ["TRICEPS"], [])
         self.assertIn("Lying Triceps Extension", aliases)
-        self.assertIn("ez", terms.split())
+        self.assertIn("ez", terms)
 
     def test_source_names_are_kept_as_aliases_but_never_repeat_the_name(self):
         aliases, terms = generate(
@@ -22,16 +22,22 @@ class AliasesTest(unittest.TestCase):
             ["Standing Military Press", "barbell overhead press"],
         )
         self.assertEqual(aliases, ["Standing Military Press"])
-        self.assertIn("ohp", terms.split())
+        self.assertIn("ohp", terms)
 
     def test_implement_nicknames_stay_hidden_search_terms(self):
         aliases, terms = generate("Smith Machine Close-Grip Bench Press", "SMITH", ["TRICEPS"], [])
         self.assertEqual(aliases, [])
-        self.assertIn("cgbp", terms.split())
+        self.assertIn("cgbp", terms)
 
     def test_dumbbell_exercises_are_findable_as_db(self):
         _, terms = generate("Dumbbell Fly", "DUMBBELL", ["CHEST"], [])
-        self.assertIn("db", terms.split())
+        self.assertIn("db", terms)
+
+    def test_search_terms_are_whole_phrases_without_duplicates(self):
+        _, terms = generate("Bent Over Barbell Row", "BARBELL", ["UPPER_BACK", "LATS"], [])
+        self.assertIn("barbell row", terms)
+        self.assertNotIn("row", terms)
+        self.assertEqual(terms, sorted(set(terms)))
 
 
 if __name__ == "__main__":

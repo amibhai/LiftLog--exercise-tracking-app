@@ -24,9 +24,7 @@ internal class RoomExerciseRepository @Inject constructor(private val dao: Exerc
 
     override fun search(query: String, limit: Int): Flow<List<ExerciseSummary>> {
         val match = FtsQuery.prefix(query) ?: return flowOf(emptyList())
-        // Normalized text is only [a-z0-9 ], so it never contains LIKE wildcards.
-        val normalized = SearchText.normalize(query)
-        return dao.search(match = match, exactName = normalized, namePrefix = "$normalized%", limit = limit)
+        return dao.search(match = match, query = SearchText.normalize(query), limit = limit)
             .map { rows -> rows.map { it.toSummary() } }
     }
 

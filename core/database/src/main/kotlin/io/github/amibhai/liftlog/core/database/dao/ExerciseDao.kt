@@ -26,9 +26,11 @@ interface ExerciseDao {
     fun observeCustomCount(): Flow<Int>
 
     /**
-     * FTS prefix search. [match] comes from `FtsQuery.prefix`; [exactName] is the normalized query and
-     * [namePrefix] the LIKE pattern for it. Exact name beats name prefix beats any other match, then
-     * popularity, then name.
+     * FTS prefix search. [match] comes from `FtsQuery.prefix` and [query] from `SearchText.normalize`.
+     *
+     * Best first (SPEC §4): the exact name; a whole alias or search term ("ohp"); a prefix of the name or
+     * of an alias; any other match. Ties go to popularity, then name. Newlines mark where an alias or term
+     * starts and ends.
      */
     @Query(
         """
@@ -43,12 +45,23 @@ interface ExerciseDao {
         JOIN exercise_fts ON exercise_fts.rowid = e.rowid
         WHERE exercise_fts MATCH :match AND e.deleted_at IS NULL AND e.is_archived = 0
         ORDER BY
-            CASE WHEN lower(e.name) = :exactName THEN 0 WHEN lower(e.name) LIKE :namePrefix THEN 1 ELSE 2 END,
+            CASE
+                WHEN lower(replace(e.name, '-', ' ')) = :query THEN 0
+                WHEN instr(
+                    char(10) || lower(replace(e.aliases, '-', ' ')) || char(10) || e.search_terms || char(10),
+                    char(10) || :query || char(10)
+                ) > 0 THEN 1
+                WHEN instr(
+                    char(10) || lower(replace(e.name || char(10) || e.aliases, '-', ' ')),
+                    char(10) || :query
+                ) > 0 THEN 2
+                ELSE 3
+            END,
             e.popularity_rank IS NULL, e.popularity_rank, e.name COLLATE NOCASE
         LIMIT :limit
         """,
     )
-    fun search(match: String, exactName: String, namePrefix: String, limit: Int): Flow<List<ExerciseSearchRow>>
+    fun search(match: String, query: String, limit: Int): Flow<List<ExerciseSearchRow>>
 
     @Transaction
     @Query("SELECT * FROM exercise WHERE id = :id AND deleted_at IS NULL")

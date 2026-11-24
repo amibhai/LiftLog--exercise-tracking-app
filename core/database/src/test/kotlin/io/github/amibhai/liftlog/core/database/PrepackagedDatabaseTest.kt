@@ -75,16 +75,28 @@ class PrepackagedDatabaseTest {
         assertThat(search("rdl").first()).isEqualTo("Romanian Deadlift")
         assertThat(search("ohp").first()).isEqualTo("Barbell Overhead Press")
         assertThat(search("db bench").first()).isEqualTo("Dumbbell Bench Press")
-        assertThat(search("bss")).contains("Bulgarian Split Squat")
-        assertThat(search("skullcrusher")).contains("EZ-Bar Skullcrusher")
-        assertThat(search("lying triceps extension")).contains("EZ-Bar Skullcrusher")
-        assertThat(search("pulldown")).contains("Wide-Grip Lat Pulldown")
-        assertThat(search("lat pulldown")).contains("Wide-Grip Lat Pulldown")
+        assertThat(search("bss").first()).isEqualTo("Bulgarian Split Squat")
+        assertThat(search("skullcrusher").first()).isEqualTo("EZ-Bar Skullcrusher")
+        assertThat(search("lying triceps extension").first()).isEqualTo("EZ-Bar Skullcrusher")
+        assertThat(search("pulldown").first()).isEqualTo("Wide-Grip Lat Pulldown")
+        assertThat(search("lat pulldown").first()).isEqualTo("Wide-Grip Lat Pulldown")
+    }
+
+    @Test
+    fun theCommonLiftComesFirst() = runTest {
+        assertThat(search("bench").first()).isEqualTo("Barbell Bench Press")
+        assertThat(search("bench press").first()).isEqualTo("Barbell Bench Press")
+        assertThat(search("squat").first()).isEqualTo("Barbell Back Squat")
+        assertThat(search("deadlift").first()).isEqualTo("Barbell Deadlift")
+        assertThat(search("pull up").first()).isEqualTo("Pull-Up")
+        assertThat(search("barbell row").first()).isEqualTo("Bent Over Barbell Row")
+        assertThat(search("lateral raise").first()).isEqualTo("Side Lateral Raise")
+        assertThat(search("chest").first()).isEqualTo("Barbell Bench Press")
     }
 
     @Test
     fun searchRowsCarryMusclesAndThumbnails() = runTest {
-        val bench = dao.search(match("bench press"), "bench press", "bench press%", limit = 5).first()
+        val bench = dao.search(match("bench press"), "bench press", limit = 5).first()
             .first { it.name == "Barbell Bench Press" }
 
         assertThat(bench.primaryMuscle).isEqualTo(Muscle.CHEST)
@@ -101,8 +113,7 @@ class PrepackagedDatabaseTest {
 
     private suspend fun search(query: String): List<String> = dao.search(
         match = match(query),
-        exactName = SearchText.normalize(query),
-        namePrefix = SearchText.normalize(query) + "%",
+        query = SearchText.normalize(query),
         limit = 20,
     ).first().map { it.name }
 

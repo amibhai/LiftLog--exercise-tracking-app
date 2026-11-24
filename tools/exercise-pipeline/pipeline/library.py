@@ -66,7 +66,7 @@ class Exercise:
     exercise_type: str = ""
     unilateral: bool = False
     aliases: list[str] = field(default_factory=list)
-    search_terms: str = ""
+    search_terms: list[str] = field(default_factory=list)
     popularity_rank: int | None = None
     merged_from: list[str] = field(default_factory=list)
     merged_names: list[str] = field(default_factory=list)

@@ -28,7 +28,7 @@ data class ExerciseEntity(
     val name: String,
     /** Display aliases, one per line. */
     val aliases: String,
-    /** Hidden search words (abbreviations, spellings, equipment and muscle words), space separated. */
+    /** Hidden search terms (abbreviations, spellings, equipment and muscle words), normalized, one per line. */
     @ColumnInfo(name = "search_terms") val searchTerms: String,
     val type: ExerciseType,
     val equipment: Equipment,

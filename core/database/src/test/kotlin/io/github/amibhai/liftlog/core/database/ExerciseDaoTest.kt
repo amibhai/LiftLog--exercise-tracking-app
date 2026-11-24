@@ -48,7 +48,7 @@ class ExerciseDaoTest {
 
     @Test
     fun searchMatchesAliasesAndGeneratedSearchTerms() = runTest {
-        dao.insert(exercise("Romanian Deadlift", searchTerms = "rdl dl bb barbell"))
+        dao.insert(exercise("Romanian Deadlift", searchTerms = listOf("barbell", "bb", "dl", "rdl")))
         dao.insert(exercise("Lying Triceps Extension", aliases = listOf("Skullcrusher")))
 
         assertThat(search("rdl").map { it.name }).containsExactly("Romanian Deadlift")
@@ -63,6 +63,49 @@ class ExerciseDaoTest {
         dao.insert(exercise("Squat"))
 
         assertThat(search("squat").map { it.name }).containsExactly("Squat", "Squat Jump", "Front Squat").inOrder()
+    }
+
+    @Test
+    fun aWholeAliasRanksBelowAnExactNameAndAboveAPrefix() = runTest {
+        dao.insert(exercise("Bench Press with Chains"))
+        dao.insert(exercise("Barbell Bench Press", aliases = listOf("Flat Press", "Bench Press"), popularityRank = 1))
+        dao.insert(exercise("Bench Press", isCustom = true))
+
+        assertThat(search("bench press").map { it.name })
+            .containsExactly("Bench Press", "Barbell Bench Press", "Bench Press with Chains").inOrder()
+    }
+
+    @Test
+    fun aPrefixOfAnAliasCountsLikeAPrefixOfTheName() = runTest {
+        dao.insert(exercise("Bench Dips"))
+        dao.insert(exercise("Barbell Bench Press", aliases = listOf("Flat Press", "Bench Press"), popularityRank = 1))
+
+        assertThat(search("bench").map { it.name }).containsExactly("Barbell Bench Press", "Bench Dips").inOrder()
+    }
+
+    @Test
+    fun aWholeSearchTermRanksLikeAnAlias() = runTest {
+        dao.insert(exercise("Shoulder Press", aliases = listOf("OHP Dumbbells"), popularityRank = 1))
+        dao.insert(exercise("Barbell Overhead Press", searchTerms = listOf("bb", "ohp"), popularityRank = 4))
+
+        assertThat(search("ohp").map { it.name })
+            .containsExactly("Barbell Overhead Press", "Shoulder Press").inOrder()
+    }
+
+    @Test
+    fun partOfASearchTermIsOnlyAWordMatch() = runTest {
+        dao.insert(exercise("Push-Up", searchTerms = listOf("press up"), popularityRank = 1))
+        dao.insert(exercise("Press Sit-Up"))
+
+        assertThat(search("press").map { it.name }).containsExactly("Press Sit-Up", "Push-Up").inOrder()
+    }
+
+    @Test
+    fun hyphensAreSpacesWhenRanking() = runTest {
+        dao.insert(exercise("Archer Pull Up", popularityRank = 1))
+        dao.insert(exercise("Pull-Up"))
+
+        assertThat(search("pull up").map { it.name }).containsExactly("Pull-Up", "Archer Pull Up").inOrder()
     }
 
     @Test
@@ -146,8 +189,7 @@ class ExerciseDaoTest {
 
     private suspend fun search(query: String) = dao.search(
         match = FtsQuery.prefix(query)!!,
-        exactName = SearchText.normalize(query),
-        namePrefix = SearchText.normalize(query) + "%",
+        query = SearchText.normalize(query),
         limit = 50,
     ).first()
 }

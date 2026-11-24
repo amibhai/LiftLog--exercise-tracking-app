@@ -69,6 +69,13 @@ class WriteDatabaseTest(unittest.TestCase):
         self.assertEqual(search("rdl*"), ["Romanian Deadlift"])
         self.assertEqual(search("db* fly*"), ["Dumbbell Flyes"])
 
+    def test_search_terms_are_stored_one_per_line(self):
+        row = self.connection.execute("SELECT search_terms FROM exercise WHERE name = 'Romanian Deadlift'").fetchone()
+
+        terms = row[0].split("\n")
+        self.assertIn("rdl", terms)
+        self.assertIn("hamstrings", terms)
+
     def test_muscles_images_and_sources_are_written(self):
         primaries = self.connection.execute("SELECT muscle FROM exercise_muscle WHERE is_primary = 1 ORDER BY muscle")
 

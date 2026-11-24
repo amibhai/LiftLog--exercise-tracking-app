@@ -127,7 +127,7 @@ def _rows(exercises: list[Exercise], sources: list[dict], built_at_ms: int, libr
                 "id": exercise.id,
                 "name": exercise.name,
                 "aliases": "\n".join(exercise.aliases),
-                "search_terms": exercise.search_terms,
+                "search_terms": "\n".join(exercise.search_terms),
                 "type": exercise.exercise_type,
                 "equipment": exercise.equipment,
                 "category": exercise.category,

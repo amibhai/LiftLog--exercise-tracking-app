@@ -85,8 +85,13 @@ MUSCLE_TERMS = {
 }
 
 
-def generate(name: str, equipment: str, primary: list[str], extra_names: list[str]) -> tuple[list[str], str]:
-    """Returns (display aliases, space-separated search terms) for one exercise."""
+def generate(
+    name: str,
+    equipment: str,
+    primary: list[str],
+    extra_names: list[str],
+) -> tuple[list[str], list[str]]:
+    """Returns (display aliases, hidden search terms) for one exercise. A term is a whole phrase."""
     text = search_normalize(name)
     candidates: list[str] = []
     terms: list[str] = []
@@ -107,5 +112,4 @@ def generate(name: str, equipment: str, primary: list[str], extra_names: list[st
             seen.add(key)
             aliases.append(alias)
 
-    normalized_terms = sorted({t for t in (search_normalize(term) for term in terms) if t})
-    return aliases, " ".join(normalized_terms)
+    return aliases, sorted({t for t in (search_normalize(term) for term in terms) if t})

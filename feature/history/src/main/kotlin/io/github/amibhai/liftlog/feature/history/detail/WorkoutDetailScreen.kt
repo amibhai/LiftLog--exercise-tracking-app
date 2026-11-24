@@ -322,7 +322,8 @@ private fun RoutineCard(
 
             offer is RoutineOffer.Update -> {
                 Text(
-                    stringResource(R.string.history_update_routine_title, offer.name),
+                    text = stringResource(R.string.history_update_routine_title, offer.name),
+                    modifier = Modifier.semantics { heading() },
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(stringResource(R.string.history_update_routine_body), style = MaterialTheme.typography.bodyMedium)
@@ -335,7 +336,11 @@ private fun RoutineCard(
             }
 
             else -> {
-                Text(stringResource(R.string.history_save_routine), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = stringResource(R.string.history_save_routine),
+                    modifier = Modifier.semantics { heading() },
+                    style = MaterialTheme.typography.titleMedium,
+                )
                 Text(stringResource(R.string.history_save_routine_body), style = MaterialTheme.typography.bodyMedium)
                 FilledTonalButton(onClick = onSave, modifier = Modifier.heightIn(min = LiftLogDimens.minTouchTarget)) {
                     Text(stringResource(R.string.history_save_routine))

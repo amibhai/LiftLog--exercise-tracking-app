@@ -195,7 +195,11 @@ private fun StartCard(
     val next = state.next
     val repeatLast = state.repeatLast
     LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingM) {
-        Text(stringResource(R.string.home_start_title), style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = stringResource(R.string.home_start_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.titleLarge,
+        )
         if (next != null) {
             NextUp(next)
             StartButton(
@@ -382,7 +386,11 @@ private fun InsightCard(
 @Composable
 private fun LibraryCard(exerciseCount: Int?, onBrowseExercises: () -> Unit, modifier: Modifier = Modifier) {
     LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingM) {
-        Text(stringResource(R.string.home_library_title), style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = stringResource(R.string.home_library_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.titleLarge,
+        )
         if (exerciseCount != null) {
             Text(
                 text = pluralStringResource(R.plurals.home_library_count, exerciseCount, exerciseCount),

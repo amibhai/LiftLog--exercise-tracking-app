@@ -27,4 +27,14 @@ Each entry was checked against current official documentation on 2026-11-23.
 - **Weight display precision.** The spec says to "round on display to the active unit's increment". We round to a fixed 0.01 of the active unit, never to the plate step, so every typed value displays back exactly. The per-exercise step drives only the −/+ buttons and plate math.
 - **One applicationId for debug and release.** Each phase's `installDebug` upgrades in place and keeps logged data. Release builds are signed with your key from `keystore.properties` if that file exists, otherwise with the debug key, so the two builds can replace each other.
 - **Schema changes.** We never use destructive migration fallback. Once a build is installed, every schema change gets a version bump, a migration and a migration test.
-- **Search ranking.** SPEC §4 ranks exact > prefix > word-prefix > fuzzy. An alias or generated search term that equals the whole query ("bench press", "ohp", "chest") counts as exact, just below an exercise with that exact name. A prefix of an alias counts like a prefix of the name. Until there is history to rank by frecency (Phase 1), popularity breaks ties.
+- **Search ranking.** SPEC §4 ranks exact > prefix > word-prefix > fuzzy. An alias or generated search term that equals the whole query ("bench press", "ohp", "chest") counts as exact, just below an exercise with that exact name, and a prefix of an alias counts like a prefix of the name. A well-known lift, or one that was done before, counts as a prefix match wherever its name contains the word: "curl" finds Barbell Curl before "Curl with Shoulder Elevated". Equal matches are ordered by frecency, then popularity, then name. Ranking and typo tolerance are in `core:domain` (`SearchIndex`); SQL only finds the full-text matches.
+
+## Phase 1 (2026-11-24)
+
+The user asked to go on with Phase 1 and left open decisions to us ("do whatever you feel would be best").
+
+1. **Coil's OkHttp network module** (`coil-network-okhttp`, which brings in OkHttp). Coil 3 needs a network module, and the spec does not name one. Coil picks it up by itself.
+2. **Schema version 2** adds `target_duration_s` and `target_distance_m` to `workout_set`, so that timed and distance sets have ghost values like weights and reps do. Version 1 installs are migrated.
+3. **Edits are pure functions.** Every change to a workout or routine is a pure function in `core:domain`. The repository applies it to the stored row tree in one transaction and writes only the rows that changed.
+4. **Previous sets.** Warm-ups are matched with warm-ups and working sets with working sets, so an extra warm-up does not shift the "Previous" column.
+5. **Carried-over weight.** When a set is done with a different weight than planned, the following sets that expected the planned weight follow. Reps never carry over.

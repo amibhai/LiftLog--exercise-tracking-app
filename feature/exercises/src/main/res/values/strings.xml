@@ -1,21 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="exercises_title">Exercises</string>
+    <string name="exercises_new">New exercise</string>
     <string name="exercises_search_hint">Search name or abbreviation</string>
-    <string name="exercises_clear_search">Clear search</string>
-    <plurals name="exercises_prompt_title">
+    <plurals name="exercises_search_count">
         <item quantity="one">Search %1$,d exercise</item>
         <item quantity="other">Search %1$,d exercises</item>
     </plurals>
-    <string name="exercises_prompt_body">Names, aliases and gym shorthand all work. Try “rdl”, “ohp”, “db bench” or “skullcrusher”.</string>
     <string name="exercises_no_matches_title">Nothing matches “%1$s”</string>
-    <string name="exercises_no_matches_body">Check the spelling or try a shorter word. Creating custom exercises arrives with workout logging.</string>
+    <string name="exercises_no_filter_matches">No exercises here</string>
+    <string name="exercises_no_matches_body">Check the spelling, try a shorter word, or create your own exercise.</string>
+    <string name="exercises_create">Create “%1$s”</string>
     <string name="exercises_row_details">%1$s · %2$s</string>
-    <string name="exercises_back">Back</string>
+    <string name="exercises_row_last">Last: %1$s · %2$s</string>
+    <string name="exercises_row_added">Already added</string>
+    <string name="exercises_filter_equipment">Equipment</string>
+    <string name="exercises_filter_any_equipment">Any equipment</string>
+    <string name="exercises_section_frequent">Frequently done</string>
+    <string name="exercises_section_goes_with">Goes with this workout</string>
+    <string name="exercises_section_recent">Recent</string>
+    <string name="exercises_section_favorites">Favorites</string>
+    <string name="exercises_section_starters">Popular lifts to start with</string>
+    <string name="exercises_section_results">Results</string>
+
+    <!-- Picker -->
+    <string name="exercises_picker_title">Add exercises</string>
+    <string name="exercises_picker_replace_title">Replace exercise</string>
+    <string name="exercises_picker_add">Add (%1$d)</string>
+    <string name="exercises_picker_superset">Add as superset</string>
+    <string name="exercises_picker_details">Show details</string>
+
+    <!-- Detail -->
     <string name="exercises_detail_not_found">Exercise not found</string>
     <string name="exercises_detail_not_found_body">It may have been removed.</string>
     <string name="exercises_detail_unilateral">One side at a time</string>
     <string name="exercises_detail_custom">Custom</string>
+    <string name="exercises_detail_hidden">Hidden</string>
     <string name="exercises_detail_muscles">Muscles</string>
     <string name="exercises_detail_primary">Primary</string>
     <string name="exercises_detail_secondary">Secondary</string>
@@ -28,4 +48,34 @@
     <string name="exercises_detail_license">License: %1$s</string>
     <string name="exercises_detail_author">By %1$s</string>
     <string name="exercises_detail_view_license">View license</string>
+    <string name="exercises_detail_favorite">Add to favorites</string>
+    <string name="exercises_detail_unfavorite">Remove from favorites</string>
+    <string name="exercises_detail_hide">Hide from lists</string>
+    <string name="exercises_detail_show">Show in lists</string>
+    <string name="exercises_detail_delete_title">Delete this exercise?</string>
+    <string name="exercises_detail_delete_text">Sets you logged with it stay in your history.</string>
+    <string name="exercises_detail_settings">Your settings</string>
+    <string name="exercises_detail_rest">Rest time</string>
+    <string name="exercises_detail_rest_default">Default (%1$s)</string>
+    <string name="exercises_detail_rest_off">No rest timer</string>
+    <string name="exercises_detail_step_size">Weight step</string>
+    <string name="exercises_detail_bar">Bar weight</string>
+    <string name="exercises_detail_default_value">%1$s (default)</string>
+    <string name="exercises_detail_note">Pinned note</string>
+    <string name="exercises_detail_note_empty">Shown every time you log this exercise</string>
+    <string name="exercises_detail_value_label">Value in %1$s; empty for the default</string>
+    <string name="exercises_detail_history">History</string>
+    <string name="exercises_detail_no_history">Not logged yet. Finished workouts show up here.</string>
+
+    <!-- Editor -->
+    <string name="exercises_editor_new_title">New exercise</string>
+    <string name="exercises_editor_edit_title">Edit exercise</string>
+    <string name="exercises_editor_name">Name</string>
+    <string name="exercises_editor_type">Logged as</string>
+    <string name="exercises_editor_equipment">Equipment</string>
+    <string name="exercises_editor_primary">Primary muscles</string>
+    <string name="exercises_editor_secondary">Secondary muscles</string>
+    <string name="exercises_editor_unilateral">One side at a time</string>
+    <string name="exercises_editor_unilateral_body">Like one-arm rows or single-leg squats</string>
+    <string name="exercises_editor_instructions">Instructions, one step per line</string>
 </resources>

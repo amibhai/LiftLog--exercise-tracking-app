@@ -7,6 +7,8 @@ import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Relation
 import androidx.room3.Transaction
+import androidx.room3.Update
+import androidx.room3.Upsert
 import io.github.amibhai.liftlog.core.database.entity.ExerciseEntity
 import io.github.amibhai.liftlog.core.database.entity.ExerciseImageEntity
 import io.github.amibhai.liftlog.core.database.entity.ExerciseMuscleEntity
@@ -25,43 +27,48 @@ interface ExerciseDao {
     @Query("SELECT COUNT(*) FROM exercise WHERE deleted_at IS NULL AND is_archived = 0 AND is_custom = 1")
     fun observeCustomCount(): Flow<Int>
 
-    /**
-     * FTS prefix search. [match] comes from `FtsQuery.prefix` and [query] from `SearchText.normalize`.
-     *
-     * Best first (SPEC §4): the exact name; a whole alias or search term ("ohp"); a prefix of the name or
-     * of an alias; any other match. Ties go to popularity, then name. Newlines mark where an alias or term
-     * starts and ends.
-     */
+    /** FTS prefix search (SPEC §4), unranked: the domain ranks. [match] comes from `FtsQuery.prefix`. */
     @Query(
         """
-        SELECT e.id, e.name, e.type, e.equipment, e.is_custom,
-            (SELECT m.muscle FROM exercise_muscle m
-                WHERE m.exercise_id = e.id AND m.is_primary = 1 AND m.deleted_at IS NULL
-                ORDER BY m.rowid LIMIT 1) AS primary_muscle,
-            (SELECT COALESCE(i.thumbnail_url, i.url) FROM exercise_image i
-                WHERE i.exercise_id = e.id AND i.deleted_at IS NULL
-                ORDER BY i.position LIMIT 1) AS thumbnail_url
-        FROM exercise e
-        JOIN exercise_fts ON exercise_fts.rowid = e.rowid
+        SELECT e.id FROM exercise e JOIN exercise_fts ON exercise_fts.rowid = e.rowid
         WHERE exercise_fts MATCH :match AND e.deleted_at IS NULL AND e.is_archived = 0
-        ORDER BY
-            CASE
-                WHEN lower(replace(e.name, '-', ' ')) = :query THEN 0
-                WHEN instr(
-                    char(10) || lower(replace(e.aliases, '-', ' ')) || char(10) || e.search_terms || char(10),
-                    char(10) || :query || char(10)
-                ) > 0 THEN 1
-                WHEN instr(
-                    char(10) || lower(replace(e.name || char(10) || e.aliases, '-', ' ')),
-                    char(10) || :query
-                ) > 0 THEN 2
-                ELSE 3
-            END,
-            e.popularity_rank IS NULL, e.popularity_rank, e.name COLLATE NOCASE
-        LIMIT :limit
         """,
     )
-    fun search(match: String, query: String, limit: Int): Flow<List<ExerciseSearchRow>>
+    suspend fun matchingIds(match: String): List<String>
+
+    /** Every visible exercise, without the long texts. */
+    @Query(
+        """
+        SELECT id, name, aliases, search_terms, type, equipment, popularity_rank, is_custom, is_favorite
+        FROM exercise WHERE deleted_at IS NULL AND is_archived = 0
+        """,
+    )
+    fun observeCatalog(): Flow<List<CatalogRow>>
+
+    @Query(
+        """
+        SELECT exercise_id, muscle FROM exercise_muscle
+        WHERE is_primary = 1 AND deleted_at IS NULL ORDER BY exercise_id, rowid
+        """,
+    )
+    fun observePrimaryMuscles(): Flow<List<PrimaryMuscleRow>>
+
+    /** The first image of each exercise (bare columns next to MIN() come from that row). */
+    @Query(
+        """
+        SELECT exercise_id, COALESCE(thumbnail_url, url) AS url, MIN(position) AS position
+        FROM exercise_image WHERE deleted_at IS NULL GROUP BY exercise_id
+        """,
+    )
+    fun observeThumbnails(): Flow<List<ThumbnailRow>>
+
+    @Query(
+        """
+        SELECT id, name, type, equipment, notes, default_rest_s, weight_step_kg, weight_step_lb, bar_weight_kg
+        FROM exercise WHERE id IN (:ids) AND deleted_at IS NULL
+        """,
+    )
+    suspend fun infos(ids: List<String>): List<ExerciseInfoRow>
 
     @Transaction
     @Query("SELECT * FROM exercise WHERE id = :id AND deleted_at IS NULL")
@@ -69,6 +76,9 @@ interface ExerciseDao {
 
     @Query("SELECT * FROM library_source WHERE deleted_at IS NULL ORDER BY exercise_count DESC, name")
     fun observeSources(): Flow<List<LibrarySourceEntity>>
+
+    @Query("SELECT * FROM exercise WHERE id = :id AND deleted_at IS NULL")
+    suspend fun get(id: String): ExerciseEntity?
 
     /** Every non-deleted exercise; for exports and library updates, not for UI lists. */
     @Query("SELECT * FROM exercise WHERE deleted_at IS NULL ORDER BY name")
@@ -80,8 +90,15 @@ interface ExerciseDao {
     @Insert
     suspend fun insert(exercise: ExerciseEntity)
 
-    @Insert
-    suspend fun insertMuscles(muscles: List<ExerciseMuscleEntity>)
+    @Update
+    suspend fun update(exercise: ExerciseEntity)
+
+    /** Including soft-deleted rows, which are revived when a muscle comes back. */
+    @Query("SELECT * FROM exercise_muscle WHERE exercise_id = :id")
+    suspend fun musclesOf(id: String): List<ExerciseMuscleEntity>
+
+    @Upsert
+    suspend fun upsertMuscles(muscles: List<ExerciseMuscleEntity>)
 
     @Insert
     suspend fun insertImages(images: List<ExerciseImageEntity>)
@@ -89,25 +106,43 @@ interface ExerciseDao {
     @Insert
     suspend fun insertSources(sources: List<LibrarySourceEntity>)
 
-    @Query("UPDATE exercise SET name = :name, updated_at = :now, user_modified_at = :now WHERE id = :id")
-    suspend fun rename(id: String, name: String, now: Long)
-
     @Query("UPDATE exercise SET is_archived = :archived, updated_at = :now, user_modified_at = :now WHERE id = :id")
     suspend fun setArchived(id: String, archived: Boolean, now: Long)
+
+    @Query("UPDATE exercise SET is_favorite = :favorite, updated_at = :now WHERE id = :id")
+    suspend fun setFavorite(id: String, favorite: Boolean, now: Long)
+
+    @Query("UPDATE exercise SET notes = :notes, updated_at = :now WHERE id = :id")
+    suspend fun setNotes(id: String, notes: String?, now: Long)
+
+    @Query(
+        """
+        UPDATE exercise SET default_rest_s = :restSeconds, weight_step_kg = :stepKg, weight_step_lb = :stepLb,
+            bar_weight_kg = :barKg, updated_at = :now
+        WHERE id = :id
+        """,
+    )
+    suspend fun setDefaults(id: String, restSeconds: Int?, stepKg: Double?, stepLb: Double?, barKg: Double?, now: Long)
 
     @Query("UPDATE exercise SET deleted_at = :now, updated_at = :now WHERE id = :id AND is_custom = 1")
     suspend fun softDeleteCustom(id: String, now: Long)
 }
 
-data class ExerciseSearchRow(
+data class CatalogRow(
     val id: String,
     val name: String,
+    val aliases: String,
+    @ColumnInfo(name = "search_terms") val searchTerms: String,
     val type: ExerciseType,
     val equipment: Equipment,
+    @ColumnInfo(name = "popularity_rank") val popularityRank: Int?,
     @ColumnInfo(name = "is_custom") val isCustom: Boolean,
-    @ColumnInfo(name = "primary_muscle") val primaryMuscle: Muscle?,
-    @ColumnInfo(name = "thumbnail_url") val thumbnailUrl: String?,
+    @ColumnInfo(name = "is_favorite") val isFavorite: Boolean,
 )
+
+data class PrimaryMuscleRow(@ColumnInfo(name = "exercise_id") val exerciseId: String, val muscle: Muscle)
+
+data class ThumbnailRow(@ColumnInfo(name = "exercise_id") val exerciseId: String, val url: String, val position: Int)
 
 data class ExerciseWithDetails(
     @Embedded val exercise: ExerciseEntity,

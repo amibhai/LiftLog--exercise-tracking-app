@@ -1,72 +1,64 @@
 package io.github.amibhai.liftlog.core.data.exercise
 
-import android.content.Context
-import androidx.room3.Room
-import androidx.sqlite.driver.AndroidSQLiteDriver
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import io.github.amibhai.liftlog.core.database.LiftLogDatabase
-import io.github.amibhai.liftlog.core.database.entity.ExerciseEntity
+import io.github.amibhai.liftlog.core.data.CountingIds
+import io.github.amibhai.liftlog.core.data.NOW
+import io.github.amibhai.liftlog.core.data.TestClock
+import io.github.amibhai.liftlog.core.data.TestDatabase
+import io.github.amibhai.liftlog.core.data.exerciseEntity
 import io.github.amibhai.liftlog.core.database.entity.ExerciseImageEntity
 import io.github.amibhai.liftlog.core.database.entity.ExerciseMuscleEntity
 import io.github.amibhai.liftlog.core.domain.model.Equipment
-import io.github.amibhai.liftlog.core.domain.model.ExerciseCategory
+import io.github.amibhai.liftlog.core.domain.model.ExerciseDefaults
+import io.github.amibhai.liftlog.core.domain.model.ExerciseDraft
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.LibraryStats
 import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.domain.units.Weight
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import org.junit.After
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class RoomExerciseRepositoryTest {
 
-    private lateinit var database: LiftLogDatabase
-    private lateinit var repository: RoomExerciseRepository
+    @get:Rule
+    val db = TestDatabase()
 
-    @Before
-    fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.inMemoryDatabaseBuilder(context, LiftLogDatabase::class.java)
-            .setDriver(AndroidSQLiteDriver())
-            .build()
-        repository = RoomExerciseRepository(database.exerciseDao())
-    }
+    private val dao get() = db.database.exerciseDao()
 
-    @After
-    fun tearDown() {
-        database.close()
+    @Test
+    fun blankQueriesMatchNothing() = runTest {
+        insertBench()
+
+        assertThat(repository().matching("   ")).isEmpty()
+        assertThat(repository().matching("ben")).containsExactly(ExerciseId("bench"))
     }
 
     @Test
-    fun blankQueryHasNoResults() = runTest {
+    fun theCatalogHasAliasesMusclesAndThumbnails() = runTest {
         insertBench()
 
-        assertThat(repository.search("   ").first()).isEmpty()
-    }
+        val entry = repository().observeCatalog().first().single()
 
-    @Test
-    fun searchReturnsSummariesWithPrimaryMuscleAndThumbnail() = runTest {
-        insertBench()
-
-        val result = repository.search("bench").first().single()
-
-        assertThat(result.id).isEqualTo(ExerciseId("bench"))
-        assertThat(result.name).isEqualTo("Barbell Bench Press")
-        assertThat(result.primaryMuscle).isEqualTo(Muscle.CHEST)
-        assertThat(result.thumbnailUrl).isEqualTo("https://img/thumb0.png")
+        assertThat(entry.name).isEqualTo("Barbell Bench Press")
+        assertThat(entry.aliases).containsExactly("Bench Press", "Flat Bench").inOrder()
+        assertThat(entry.primaryMuscles).containsExactly(Muscle.CHEST)
+        assertThat(entry.thumbnailUrl).isEqualTo("https://img/thumb0.png")
     }
 
     @Test
     fun detailSplitsAliasesAndStepsAndCreditsTheSource() = runTest {
         insertBench()
 
-        val detail = repository.observeDetail(ExerciseId("bench")).first()!!
+        val detail = repository().observeDetail(ExerciseId("bench")).first()!!
 
         assertThat(detail.aliases).containsExactly("Bench Press", "Flat Bench").inOrder()
         assertThat(detail.instructions).containsExactly("Lie on the bench.", "Press the bar.").inOrder()
@@ -79,23 +71,107 @@ class RoomExerciseRepositoryTest {
 
     @Test
     fun customExercisesHaveNoAttribution() = runTest {
-        database.exerciseDao().insert(exercise(id = "mine", name = "My Press", sourceRef = null, isCustom = true))
+        dao.insert(exerciseEntity(id = "mine", name = "My Press", sourceRef = null, isCustom = true))
 
-        assertThat(repository.observeDetail(ExerciseId("mine")).first()!!.attribution).isNull()
+        assertThat(repository().observeDetail(ExerciseId("mine")).first()!!.attribution).isNull()
     }
 
     @Test
     fun statsCountActiveAndCustomExercises() = runTest {
         insertBench()
-        database.exerciseDao().insert(exercise(id = "mine", name = "My Press", sourceRef = null, isCustom = true))
+        dao.insert(exerciseEntity(id = "mine", name = "My Press", sourceRef = null, isCustom = true))
 
-        assertThat(repository.observeStats().first()).isEqualTo(LibraryStats(totalExercises = 2, customExercises = 1))
+        assertThat(repository().observeStats().first()).isEqualTo(LibraryStats(totalExercises = 2, customExercises = 1))
     }
 
+    @Test
+    fun infosKeepTheRequestedOrder() = runTest {
+        db.addExercise("a")
+        db.addExercise("b")
+
+        val infos = repository().infos(listOf(ExerciseId("b"), ExerciseId("gone"), ExerciseId("a")))
+
+        assertThat(infos.map { it.name }).containsExactly("b", "a").inOrder()
+    }
+
+    @Test
+    fun aNewCustomExerciseCanBeFoundByItsGroupWords() = runTest {
+        val id = editor().save(
+            ExerciseDraft(
+                name = " Landmine Press ",
+                equipment = Equipment.DUMBBELL,
+                primaryMuscles = listOf(Muscle.CHEST, Muscle.FRONT_DELTS),
+                secondaryMuscles = listOf(Muscle.TRICEPS),
+                instructions = listOf("Press.", ""),
+            ),
+        )
+
+        val detail = repository().observeDetail(id).first()!!
+        assertThat(detail.name).isEqualTo("Landmine Press")
+        assertThat(detail.isCustom).isTrue()
+        assertThat(detail.primaryMuscles).containsExactly(Muscle.CHEST, Muscle.FRONT_DELTS)
+        assertThat(detail.secondaryMuscles).containsExactly(Muscle.TRICEPS)
+        assertThat(detail.instructions).containsExactly("Press.")
+        assertThat(repository().matching("db chest")).containsExactly(id)
+    }
+
+    @Test
+    fun editingKeepsTheIdAndCanBringAMuscleBack() = runTest {
+        insertBench()
+        val id = ExerciseId("bench")
+        val draft = ExerciseDraft(id, "Bench", equipment = Equipment.BARBELL, primaryMuscles = listOf(Muscle.TRICEPS))
+
+        assertThat(editor().save(draft)).isEqualTo(id)
+        val changed = repository().observeDetail(id).first()!!
+        assertThat(changed.name).isEqualTo("Bench")
+        assertThat(changed.isCustom).isFalse()
+        assertThat(changed.primaryMuscles).containsExactly(Muscle.TRICEPS)
+        assertThat(changed.secondaryMuscles).isEmpty()
+
+        editor().save(draft.copy(primaryMuscles = listOf(Muscle.CHEST), secondaryMuscles = listOf(Muscle.TRICEPS)))
+        val back = repository().observeDetail(id).first()!!
+        assertThat(back.primaryMuscles).containsExactly(Muscle.CHEST)
+        assertThat(back.secondaryMuscles).containsExactly(Muscle.TRICEPS)
+    }
+
+    @Test
+    fun hiddenExercisesLeaveTheCatalogAndSearch() = runTest {
+        insertBench()
+
+        editor().setHidden(ExerciseId("bench"), hidden = true)
+
+        assertThat(repository().observeCatalog().first()).isEmpty()
+        assertThat(repository().matching("bench")).isEmpty()
+        assertThat(repository().observeDetail(ExerciseId("bench")).first()!!.isArchived).isTrue()
+    }
+
+    @Test
+    fun personalSettingsOfAnExerciseAreStored() = runTest {
+        db.addExercise("bench", type = ExerciseType.WEIGHT_REPS)
+        val id = ExerciseId("bench")
+        val defaults = ExerciseDefaults(180, weightStepKg = 5.0, weightStepLb = 10.0, barWeight = Weight(15.0))
+
+        editor().setFavorite(id, favorite = true)
+        editor().setStickyNote(id, "  Elbows in ")
+        editor().setDefaults(id, defaults)
+
+        val info = repository().infos(listOf(id)).single()
+        assertThat(info.stickyNote).isEqualTo("Elbows in")
+        assertThat(info.defaults).isEqualTo(defaults)
+        assertThat(repository().observeCatalog().first().single().isFavorite).isTrue()
+
+        editor().setStickyNote(id, " ")
+        assertThat(repository().infos(listOf(id)).single().stickyNote).isNull()
+    }
+
+    private fun TestScope.repository() =
+        RoomExerciseRepository(dao, CoroutineScope(backgroundScope.coroutineContext), Dispatchers.IO)
+
+    private fun editor() = RoomExerciseEditor(db.database, dao, CountingIds(), TestClock())
+
     private suspend fun insertBench() {
-        val dao = database.exerciseDao()
         dao.insert(
-            exercise(
+            exerciseEntity(
                 id = "bench",
                 name = "Barbell Bench Press",
                 aliases = "Bench Press\nFlat Bench",
@@ -103,51 +179,13 @@ class RoomExerciseRepositoryTest {
                 sourceRef = "wger:abc",
             ),
         )
-        dao.insertMuscles(listOf(muscle("bench", Muscle.CHEST, true), muscle("bench", Muscle.TRICEPS, false)))
-        dao.insertImages(listOf(image("bench", 1, "https://img/1.jpg"), image("bench", 0, "https://img/0.jpg")))
+        dao.upsertMuscles(listOf(muscle(Muscle.CHEST, isPrimary = true), muscle(Muscle.TRICEPS, isPrimary = false)))
+        dao.insertImages(listOf(image(1, "https://img/1.jpg"), image(0, "https://img/0.jpg")))
     }
 
-    private fun exercise(
-        id: String,
-        name: String,
-        aliases: String = "",
-        instructions: String = "",
-        sourceRef: String?,
-        isCustom: Boolean = false,
-    ) = ExerciseEntity(
-        id = id,
-        name = name,
-        aliases = aliases,
-        searchTerms = "",
-        type = ExerciseType.WEIGHT_REPS,
-        equipment = Equipment.BARBELL,
-        category = ExerciseCategory.STRENGTH,
-        mechanic = null,
-        instructions = instructions,
-        isUnilateral = false,
-        defaultRestSeconds = null,
-        weightStepKg = null,
-        weightStepLb = null,
-        barWeightKg = null,
-        notes = null,
-        isFavorite = false,
-        isArchived = false,
-        isCustom = isCustom,
-        popularityRank = null,
-        sourceRef = sourceRef,
-        license = "CC-BY-SA 4.0",
-        licenseUrl = "https://creativecommons.org/licenses/by-sa/4.0/",
-        licenseAuthor = "someone",
-        libraryVersion = 1,
-        userModifiedAt = null,
-        createdAt = NOW,
-        updatedAt = NOW,
-        deletedAt = null,
-    )
-
-    private fun muscle(exerciseId: String, muscle: Muscle, isPrimary: Boolean) = ExerciseMuscleEntity(
-        id = "$exerciseId-$muscle",
-        exerciseId = exerciseId,
+    private fun muscle(muscle: Muscle, isPrimary: Boolean) = ExerciseMuscleEntity(
+        id = "bench-$muscle",
+        exerciseId = "bench",
         muscle = muscle,
         isPrimary = isPrimary,
         createdAt = NOW,
@@ -155,9 +193,9 @@ class RoomExerciseRepositoryTest {
         deletedAt = null,
     )
 
-    private fun image(exerciseId: String, position: Int, url: String) = ExerciseImageEntity(
-        id = "$exerciseId-$position",
-        exerciseId = exerciseId,
+    private fun image(position: Int, url: String) = ExerciseImageEntity(
+        id = "bench-$position",
+        exerciseId = "bench",
         position = position,
         url = url,
         thumbnailUrl = "https://img/thumb$position.png",
@@ -167,8 +205,4 @@ class RoomExerciseRepositoryTest {
         updatedAt = NOW,
         deletedAt = null,
     )
-
-    private companion object {
-        const val NOW = 1_700_000_000_000L
-    }
 }

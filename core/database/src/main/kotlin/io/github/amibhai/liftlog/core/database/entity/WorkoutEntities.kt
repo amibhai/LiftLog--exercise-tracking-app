@@ -116,6 +116,8 @@ data class WorkoutSetEntity(
     val rir: Int?,
     @ColumnInfo(name = "target_weight_kg") val targetWeightKg: Double?,
     @ColumnInfo(name = "target_reps") val targetReps: Int?,
+    @ColumnInfo(name = "target_duration_s") val targetDurationSeconds: Int?,
+    @ColumnInfo(name = "target_distance_m") val targetDistanceMeters: Double?,
     @ColumnInfo(name = "is_completed") val isCompleted: Boolean,
     @ColumnInfo(name = "completed_at") val completedAt: Long?,
     @ColumnInfo(name = "created_at") val createdAt: Long,

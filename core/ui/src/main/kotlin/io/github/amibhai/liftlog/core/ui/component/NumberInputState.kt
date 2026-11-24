@@ -15,8 +15,10 @@ data class NumberInputState(
     val maxDecimals: Int,
     val maxValue: BigDecimal,
     val replaceOnNextKey: Boolean,
-) {
-    val value: BigDecimal? get() = text.toBigDecimalOrNull()
+) : PadInput {
+    override val display: String get() = text
+
+    override val value: BigDecimal? get() = text.toBigDecimalOrNull()
 
     fun digit(digit: Int): NumberInputState {
         require(digit in 0..MAX_DIGIT) { "Not a digit: $digit" }
@@ -59,7 +61,7 @@ data class NumberInputState(
      * Applies a pad key. [step] is the exercise's −/+ step in the display unit and [previous] the
      * value from last time; Next and Hide are navigation and leave the input unchanged.
      */
-    fun reduce(key: NumberPadKey, step: BigDecimal?, previous: BigDecimal?): NumberInputState = when (key) {
+    override fun reduce(key: NumberPadKey, step: BigDecimal?, previous: BigDecimal?): NumberInputState = when (key) {
         is NumberPadKey.Digit -> digit(key.value)
         NumberPadKey.Decimal -> decimal()
         NumberPadKey.Backspace -> backspace()

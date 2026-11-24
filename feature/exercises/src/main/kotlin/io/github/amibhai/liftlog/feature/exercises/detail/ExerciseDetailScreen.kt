@@ -1,61 +1,82 @@
 package io.github.amibhai.liftlog.feature.exercises.detail
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.amibhai.liftlog.core.domain.model.Attribution
 import io.github.amibhai.liftlog.core.domain.model.ExerciseDetail
-import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.domain.model.ExerciseId
+import io.github.amibhai.liftlog.core.ui.component.ConfirmDialog
 import io.github.amibhai.liftlog.core.ui.component.EmptyState
-import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
-import io.github.amibhai.liftlog.core.ui.component.TextLink
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
-import io.github.amibhai.liftlog.core.ui.label.labelRes
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 import io.github.amibhai.liftlog.feature.exercises.R
+import io.github.amibhai.liftlog.core.ui.R as UiR
 
 @Composable
-internal fun ExerciseDetailRoute(onBack: () -> Unit, viewModel: ExerciseDetailViewModel = hiltViewModel()) {
+internal fun ExerciseDetailRoute(
+    onBack: () -> Unit,
+    onEdit: (ExerciseId) -> Unit,
+    viewModel: ExerciseDetailViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ExerciseDetailScreen(state = state, onBack = onBack)
+    val actions = remember(viewModel, onBack, onEdit) {
+        ExerciseDetailActions(
+            onBack = onBack,
+            onEdit = onEdit,
+            onFavoriteChange = viewModel::setFavorite,
+            onHiddenChange = viewModel::setHidden,
+            onDelete = {
+                viewModel.delete()
+                onBack()
+            },
+            onNoteChange = viewModel::setNote,
+            onDefaultsChange = viewModel::setDefaults,
+        )
+    }
+    ExerciseDetailScreen(state = state, actions = actions)
 }
 
 @Composable
-internal fun ExerciseDetailScreen(state: ExerciseDetailUiState, onBack: () -> Unit, modifier: Modifier = Modifier) {
+internal fun ExerciseDetailScreen(
+    state: ExerciseDetailUiState,
+    actions: ExerciseDetailActions,
+    modifier: Modifier = Modifier,
+) {
+    val exercise = (state as? ExerciseDetailUiState.Loaded)?.exercise
     Scaffold(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text((state as? ExerciseDetailUiState.Loaded)?.exercise?.name.orEmpty(), maxLines = 1) },
+                title = { Text(exercise?.name.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painterResource(LiftLogIcons.ArrowBack),
-                            contentDescription = stringResource(R.string.exercises_back),
-                        )
+                    IconButton(onClick = actions.onBack) {
+                        Icon(painterResource(LiftLogIcons.ArrowBack), stringResource(UiR.string.ui_back))
                     }
                 },
+                actions = { if (exercise != null) TopBarActions(exercise, actions) },
             )
         },
     ) { padding ->
@@ -70,7 +91,8 @@ internal fun ExerciseDetailScreen(state: ExerciseDetailUiState, onBack: () -> Un
             )
 
             is ExerciseDetailUiState.Loaded -> DetailContent(
-                exercise = state.exercise,
+                state = state,
+                actions = actions,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -78,116 +100,85 @@ internal fun ExerciseDetailScreen(state: ExerciseDetailUiState, onBack: () -> Un
 }
 
 @Composable
-private fun DetailContent(exercise: ExerciseDetail, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(LiftLogDimens.screenGutter),
-        verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingL),
-    ) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
-            verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
-        ) {
-            Tag(stringResource(exercise.equipment.labelRes()))
-            Tag(stringResource(exercise.type.labelRes()))
-            Tag(stringResource(exercise.category.labelRes()))
-            exercise.mechanic?.let { Tag(stringResource(it.labelRes())) }
-            if (exercise.isUnilateral) Tag(stringResource(R.string.exercises_detail_unilateral))
-            if (exercise.isCustom) Tag(stringResource(R.string.exercises_detail_custom))
-        }
-        Section(title = stringResource(R.string.exercises_detail_muscles)) {
-            MuscleLine(label = stringResource(R.string.exercises_detail_primary), muscles = exercise.primaryMuscles)
-            if (exercise.secondaryMuscles.isNotEmpty()) {
-                MuscleLine(
-                    label = stringResource(R.string.exercises_detail_secondary),
-                    muscles = exercise.secondaryMuscles,
-                )
-            }
-        }
-        if (exercise.aliases.isNotEmpty()) {
-            Section(title = stringResource(R.string.exercises_detail_aliases)) {
-                Text(exercise.aliases.joinToString(), style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-        Section(title = stringResource(R.string.exercises_detail_instructions)) {
-            if (exercise.instructions.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.exercises_detail_no_instructions),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            exercise.instructions.forEachIndexed { index, step ->
-                Text(
-                    text = stringResource(R.string.exercises_detail_step, index + 1, step),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-        exercise.attribution?.let { AttributionCard(it) }
-    }
-}
-
-@Composable
-private fun Section(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingXs)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.semantics { heading() },
+private fun RowScope.TopBarActions(exercise: ExerciseDetail, actions: ExerciseDetailActions) {
+    var isMenuOpen by remember { mutableStateOf(false) }
+    var isConfirmingDelete by remember { mutableStateOf(false) }
+    IconButton(onClick = { actions.onFavoriteChange(!exercise.isFavorite) }) {
+        Icon(
+            painterResource(if (exercise.isFavorite) LiftLogIcons.Favorite else LiftLogIcons.NotFavorite),
+            stringResource(
+                if (exercise.isFavorite) R.string.exercises_detail_unfavorite else R.string.exercises_detail_favorite,
+            ),
         )
-        content()
+    }
+    Box {
+        IconButton(onClick = { isMenuOpen = true }) {
+            Icon(painterResource(LiftLogIcons.More), stringResource(UiR.string.ui_more_options))
+        }
+        DropdownMenu(expanded = isMenuOpen, onDismissRequest = { isMenuOpen = false }) {
+            MenuItem(stringResource(UiR.string.ui_edit), LiftLogIcons.Edit) {
+                isMenuOpen = false
+                actions.onEdit(exercise.id)
+            }
+            MenuItem(
+                label = stringResource(
+                    if (exercise.isArchived) R.string.exercises_detail_show else R.string.exercises_detail_hide,
+                ),
+                icon = if (exercise.isArchived) LiftLogIcons.Show else LiftLogIcons.Hide,
+            ) {
+                isMenuOpen = false
+                actions.onHiddenChange(!exercise.isArchived)
+            }
+            if (exercise.isCustom) {
+                MenuItem(stringResource(UiR.string.ui_delete), LiftLogIcons.Delete) {
+                    isMenuOpen = false
+                    isConfirmingDelete = true
+                }
+            }
+        }
+    }
+    if (isConfirmingDelete) {
+        ConfirmDialog(
+            title = stringResource(R.string.exercises_detail_delete_title),
+            text = stringResource(R.string.exercises_detail_delete_text),
+            confirmLabel = stringResource(UiR.string.ui_delete),
+            onConfirm = actions.onDelete,
+            onDismiss = { isConfirmingDelete = false },
+            isDestructive = true,
+        )
     }
 }
 
 @Composable
-private fun MuscleLine(label: String, muscles: List<Muscle>, modifier: Modifier = Modifier) {
-    val names = muscles.map { stringResource(it.labelRes()) }.joinToString()
-    Text(
-        text = stringResource(R.string.exercises_detail_muscle_line, label, names),
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = modifier,
+private fun MenuItem(label: String, icon: Int, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(label) },
+        onClick = onClick,
+        leadingIcon = { Icon(painterResource(icon), contentDescription = null) },
     )
 }
 
 @Composable
-private fun Tag(text: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+private fun DetailContent(
+    state: ExerciseDetailUiState.Loaded,
+    actions: ExerciseDetailActions,
+    modifier: Modifier = Modifier,
+) {
+    val exercise = state.exercise
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = LiftLogDimens.spacingM),
+        verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingL),
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(horizontal = LiftLogDimens.spacingM, vertical = LiftLogDimens.spacingXs),
-        )
-    }
-}
-
-@Composable
-private fun AttributionCard(attribution: Attribution, modifier: Modifier = Modifier) {
-    val uriHandler = LocalUriHandler.current
-    LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingXs) {
-        Text(
-            text = stringResource(R.string.exercises_detail_source, attribution.sourceName),
-            style = MaterialTheme.typography.titleSmall,
-        )
-        attribution.license?.let {
-            Text(stringResource(R.string.exercises_detail_license, it), style = MaterialTheme.typography.bodySmall)
-        }
-        attribution.author?.let {
-            Text(stringResource(R.string.exercises_detail_author, it), style = MaterialTheme.typography.bodySmall)
-        }
-        attribution.licenseUrl?.let { url ->
-            TextLink(
-                text = stringResource(R.string.exercises_detail_view_license),
-                onClick = { uriHandler.openUri(url) },
-            )
-        }
+        if (exercise.images.isNotEmpty()) ExerciseImages(exercise.images)
+        val gutter = Modifier.padding(horizontal = LiftLogDimens.screenGutter)
+        Tags(exercise, gutter)
+        Muscles(exercise, gutter)
+        PersonalSettings(exercise, state.settings, actions, gutter)
+        History(state.sessions, gutter)
+        Instructions(exercise, gutter)
+        exercise.attribution?.let { AttributionCard(it, gutter) }
     }
 }

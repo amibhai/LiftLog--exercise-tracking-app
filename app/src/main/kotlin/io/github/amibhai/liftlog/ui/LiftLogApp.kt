@@ -23,9 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import io.github.amibhai.liftlog.feature.exercises.navigation.exerciseDetailScreen
-import io.github.amibhai.liftlog.feature.exercises.navigation.exercisesScreen
-import io.github.amibhai.liftlog.feature.exercises.navigation.navigateToExerciseDetail
+import io.github.amibhai.liftlog.feature.exercises.navigation.exercisesGraph
 import io.github.amibhai.liftlog.feature.history.navigation.historyScreen
 import io.github.amibhai.liftlog.feature.home.navigation.HomeDestination
 import io.github.amibhai.liftlog.feature.home.navigation.homeScreen
@@ -79,8 +77,7 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
             )
             historyScreen()
             progressScreen()
-            exercisesScreen(onOpenExercise = { navController.navigateToExerciseDetail(it) })
-            exerciseDetailScreen(onBack = { navController.popBackStack() })
+            exercisesGraph(navController)
             settingsGraph(
                 appVersion = appVersion,
                 showDeveloperOptions = showDeveloperOptions,

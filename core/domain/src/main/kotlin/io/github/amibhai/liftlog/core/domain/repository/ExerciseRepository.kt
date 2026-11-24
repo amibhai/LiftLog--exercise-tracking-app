@@ -1,8 +1,9 @@
 package io.github.amibhai.liftlog.core.domain.repository
 
+import io.github.amibhai.liftlog.core.domain.model.CatalogExercise
 import io.github.amibhai.liftlog.core.domain.model.ExerciseDetail
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
-import io.github.amibhai.liftlog.core.domain.model.ExerciseSummary
+import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
 import io.github.amibhai.liftlog.core.domain.model.LibrarySource
 import io.github.amibhai.liftlog.core.domain.model.LibraryStats
 import kotlinx.coroutines.flow.Flow
@@ -10,14 +11,16 @@ import kotlinx.coroutines.flow.Flow
 interface ExerciseRepository {
     fun observeStats(): Flow<LibraryStats>
 
-    /** Prefix search over names, aliases and abbreviations. A blank query emits an empty list. */
-    fun search(query: String, limit: Int = DEFAULT_SEARCH_LIMIT): Flow<List<ExerciseSummary>>
+    /** Every exercise that is not hidden, for ranking, browsing and suggestions. */
+    fun observeCatalog(): Flow<List<CatalogExercise>>
+
+    /** Full-text prefix search over names, aliases and abbreviations, unranked. Empty for a blank query. */
+    suspend fun matching(query: String): Set<ExerciseId>
 
     fun observeDetail(id: ExerciseId): Flow<ExerciseDetail?>
 
-    fun observeSources(): Flow<List<LibrarySource>>
+    /** What logging needs to know, in the order of [ids]; unknown ids are left out. */
+    suspend fun infos(ids: List<ExerciseId>): List<ExerciseInfo>
 
-    companion object {
-        const val DEFAULT_SEARCH_LIMIT = 50
-    }
+    fun observeSources(): Flow<List<LibrarySource>>
 }

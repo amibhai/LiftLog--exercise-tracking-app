@@ -7,9 +7,11 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.database.dao.ExerciseDao
+import io.github.amibhai.liftlog.core.domain.model.CatalogExercise
+import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.Muscle
 import io.github.amibhai.liftlog.core.domain.search.FtsQuery
-import io.github.amibhai.liftlog.core.domain.search.SearchText
+import io.github.amibhai.liftlog.core.domain.search.SearchIndex
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -92,15 +94,26 @@ class PrepackagedDatabaseTest {
         assertThat(search("barbell row").first()).isEqualTo("Bent Over Barbell Row")
         assertThat(search("lateral raise").first()).isEqualTo("Side Lateral Raise")
         assertThat(search("chest").first()).isEqualTo("Barbell Bench Press")
+        assertThat(search("curl").first()).isEqualTo("Barbell Curl")
+        assertThat(search("press").first()).isEqualTo("Barbell Bench Press")
+        assertThat(search("lunge").first()).isEqualTo("Dumbbell Lunge")
     }
 
     @Test
-    fun searchRowsCarryMusclesAndThumbnails() = runTest {
-        val bench = dao.search(match("bench press"), "bench press", limit = 5).first()
-            .first { it.name == "Barbell Bench Press" }
+    fun theCatalogHasMusclesAndThumbnails() = runTest {
+        val bench = catalog().first { it.name == "Barbell Bench Press" }
 
-        assertThat(bench.primaryMuscle).isEqualTo(Muscle.CHEST)
+        assertThat(bench.primaryMuscles).containsExactly(Muscle.CHEST)
         assertThat(bench.thumbnailUrl).startsWith("https://raw.githubusercontent.com/yuhonas/free-exercise-db/")
+    }
+
+    @Test
+    fun typosFindTheRightLift() = runTest {
+        val index = SearchIndex(catalog())
+
+        assertThat(index.fuzzy("skulcrusher", emptyMap(), limit = 5).first().name).isEqualTo("EZ-Bar Skullcrusher")
+        assertThat(index.fuzzy("bnech press", emptyMap(), limit = 5).first().name).isEqualTo("Barbell Bench Press")
+        assertThat(index.fuzzy("romainan deadlift", emptyMap(), limit = 5).first().name).isEqualTo("Romanian Deadlift")
     }
 
     @Test
@@ -111,13 +124,28 @@ class PrepackagedDatabaseTest {
         assertThat(sources.sumOf { it.exerciseCount }).isEqualTo(dao.getAll().size)
     }
 
-    private suspend fun search(query: String): List<String> = dao.search(
-        match = match(query),
-        query = SearchText.normalize(query),
-        limit = 20,
-    ).first().map { it.name }
+    private suspend fun search(query: String): List<String> {
+        val ids = dao.matchingIds(requireNotNull(FtsQuery.prefix(query))).map(::ExerciseId).toSet()
+        return SearchIndex(catalog()).rank(query, ids, emptyMap()).map { it.name }
+    }
 
-    private fun match(query: String) = requireNotNull(FtsQuery.prefix(query))
+    private suspend fun catalog(): List<CatalogExercise> {
+        val muscles = dao.observePrimaryMuscles().first().groupBy({ it.exerciseId }, { it.muscle })
+        val thumbnails = dao.observeThumbnails().first().associate { it.exerciseId to it.url }
+        return dao.observeCatalog().first().map { row ->
+            CatalogExercise(
+                id = ExerciseId(row.id),
+                name = row.name,
+                aliases = row.aliases.lines().filter(String::isNotBlank),
+                searchTerms = row.searchTerms.lines().filter(String::isNotBlank),
+                type = row.type,
+                equipment = row.equipment,
+                primaryMuscles = muscles[row.id].orEmpty(),
+                thumbnailUrl = thumbnails[row.id],
+                popularityRank = row.popularityRank,
+            )
+        }
+    }
 
     private companion object {
         const val DB_NAME = "prepackaged-test.db"

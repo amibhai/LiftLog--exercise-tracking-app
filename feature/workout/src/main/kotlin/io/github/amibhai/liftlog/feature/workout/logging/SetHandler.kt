@@ -51,7 +51,11 @@ internal class SetHandler(private val session: WorkoutSession) {
         when (action) {
             is SetRowAction.EditField -> startEditing(set, action.field)
 
-            is SetRowAction.ToggleComplete -> if (set.isCompleted) reopen(id) else complete(set, exercise)
+            is SetRowAction.ToggleComplete -> {
+                // What the row shows, which may be ahead of the stored workout.
+                val isDone = session.local.value.pendingDone[id] ?: set.isCompleted
+                if (isDone) reopen(id) else complete(set, exercise)
+            }
 
             is SetRowAction.ChangeType -> session.edit { it.updateSet(id) { set -> set.copy(type = action.type) } }
 
@@ -111,6 +115,7 @@ internal class SetHandler(private val session: WorkoutSession) {
             it.copy(
                 editing = null,
                 effortFor = set.id.takeIf { rates },
+                pendingDone = it.pendingDone + (set.id to true),
                 focus = if (workout.isInProgress && next != null) it.focusOn(next) else it.focus,
             )
         }
@@ -118,7 +123,12 @@ internal class SetHandler(private val session: WorkoutSession) {
 
     private fun reopen(id: WorkoutSetId) {
         session.edit { it.reopenSet(id) }
-        session.updateLocal { if (it.effortFor == id) it.copy(effortFor = null) else it }
+        session.updateLocal {
+            it.copy(
+                effortFor = it.effortFor.takeIf { setId -> setId != id },
+                pendingDone = it.pendingDone + (id to false),
+            )
+        }
     }
 
     private fun rate(id: WorkoutSetId, value: Double?) {

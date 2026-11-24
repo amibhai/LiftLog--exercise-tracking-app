@@ -116,6 +116,8 @@ class RestTimerCoordinator internal constructor(
 
     private fun show(rest: ActiveRest?, isVisible: Boolean) {
         val now = clock.millis()
+        // Back in the app, the timer bar says it all.
+        if (isVisible) notifications.cancelRestOver()
         when {
             rest == null -> {
                 alarms.cancel()

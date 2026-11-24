@@ -39,6 +39,25 @@ class PickerSuggestionsTest {
     }
 
     @Test
+    fun `with little history the popular lifts fill the list`() {
+        // The only lift done so far is already in the workout, so nothing else would be suggested.
+        val suggestions = build(listOf(used('a', "w1", daysAgo = 1)), current = setOf("a"))
+
+        assertThat(suggestions.frequent).isEmpty()
+        assertThat(suggestions.starters.map { it.value })
+            .containsExactly("b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l").inOrder()
+    }
+
+    @Test
+    fun `popular lifts do not repeat the other suggestions`() {
+        val suggestions = build(listOf(used('b', "w1", daysAgo = 1), used('c', "w2", daysAgo = 2)))
+
+        assertThat(suggestions.frequent.map { it.value }).containsExactly("b", "c")
+        assertThat(suggestions.starters).containsNoneOf(ExerciseId("b"), ExerciseId("c"))
+        assertThat(suggestions.starters.first()).isEqualTo(ExerciseId("a"))
+    }
+
+    @Test
     fun `the eight most frecent exercises come first`() {
         val history = ('a'..'j').flatMapIndexed { index, letter ->
             (0..index).map { day -> used(letter, "w$letter$day", daysAgo = day) }

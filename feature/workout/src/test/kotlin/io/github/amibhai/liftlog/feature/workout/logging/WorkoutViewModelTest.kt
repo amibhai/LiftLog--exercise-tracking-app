@@ -24,8 +24,10 @@ import io.github.amibhai.liftlog.feature.workout.testClock
 import io.github.amibhai.liftlog.feature.workout.values
 import io.github.amibhai.liftlog.feature.workout.workout
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -56,6 +58,25 @@ class WorkoutViewModelTest {
         assertThat(stored.restTimer?.endsAt).isEqualTo(NOW + 120_000)
         assertThat(ready(viewModel).focus?.setId).isEqualTo("2")
         assertThat(ready(viewModel).items.map { it.key }).contains("effort-1")
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun aTickShowsAtOnceBeforeItIsStored() = runTest {
+        // Edits wait in the queue until the test runs them, like a slow database.
+        val viewModel = viewModel(work = SequentialWork(backgroundScope))
+        val row = { ready(viewModel).items.filterIsInstance<WorkoutItem.Set>().first().row }
+
+        viewModel.onAction(WorkoutAction.Row(SetRowAction.ToggleComplete("1")))
+        assertThat(row().isCompleted).isTrue()
+        assertThat(stored.exercises[0].sets[0].isCompleted).isFalse()
+
+        viewModel.onAction(WorkoutAction.Row(SetRowAction.ToggleComplete("1")))
+        assertThat(row().isCompleted).isFalse()
+
+        runCurrent()
+        assertThat(stored.exercises[0].sets[0].isCompleted).isFalse()
+        assertThat(row().isCompleted).isFalse()
     }
 
     @Test
@@ -152,9 +173,13 @@ class WorkoutViewModelTest {
     }
 
     /** Starts collecting [WorkoutViewModel.uiState] (it is shared while subscribed). */
-    private fun TestScope.viewModel(repository: FakeWorkoutRepository = workouts): WorkoutViewModel {
+    private fun TestScope.viewModel(
+        repository: FakeWorkoutRepository = workouts,
+        work: SequentialWork = SequentialWork(
+            CoroutineScope(backgroundScope.coroutineContext + mainDispatcherRule.dispatcher),
+        ),
+    ): WorkoutViewModel {
         var nextId = 0
-        val work = SequentialWork(CoroutineScope(backgroundScope.coroutineContext + mainDispatcherRule.dispatcher))
         val viewModel = WorkoutViewModel(
             savedStateHandle = SavedStateHandle(mapOf("workoutId" to "w")),
             editor = WorkoutEditor(repository, work, IdGenerator { "new${nextId++}" }, testClock),

@@ -28,6 +28,8 @@ internal data class WorkoutLocalState(
     val editing: PadEditing? = null,
     /** The set whose effort chips are shown. */
     val effortFor: WorkoutSetId? = null,
+    /** Sets just ticked or unticked, shown so at once, until the stored workout says the same. */
+    val pendingDone: Map<WorkoutSetId, Boolean> = emptyMap(),
     val focus: FocusTarget? = null,
     val message: WorkoutMessage? = null,
     val isFinished: Boolean = false,
@@ -74,7 +76,7 @@ internal class WorkoutUiMapper(
         val numbers = workingNumbers(exercise.sets)
         exercise.sets.forEachIndexed { index, set ->
             add(WorkoutItem.Set(row(exercise, set, numbers[index], matches[index])))
-            if (set.id == local.effortFor && set.isCompleted) {
+            if (set.id == local.effortFor && set.isDone) {
                 add(WorkoutItem.Effort(set.id, settings.effortMode, set.effort(settings.effortMode)))
             }
         }
@@ -101,7 +103,7 @@ internal class WorkoutUiMapper(
             workingSetNumber = number,
             previous = match?.let { text.compact(type, it.values) }?.ifEmpty { null },
             fields = type.fields.map { field(exercise, set, it) },
-            isCompleted = set.isCompleted,
+            isCompleted = set.isDone,
         )
     }
 
@@ -115,7 +117,7 @@ internal class WorkoutUiMapper(
             // While it is edited, the row shows what was typed without waiting for the database.
             text = editing?.localizedDisplay() ?: stored,
             unit = text.unitOf(type, field),
-            isGhost = !set.isCompleted && !set.entered.has(field),
+            isGhost = !set.isDone && !set.entered.has(field),
             isFocused = editing != null,
             note = effort?.let { "${settings.effortMode.name} ${effortText(it)}" },
         )
@@ -134,8 +136,17 @@ internal class WorkoutUiMapper(
         )
     }
 
+    private val WorkoutSet.isDone: Boolean get() = local.pendingDone[id] ?: isCompleted
+
     private fun title(workout: Workout) =
         WorkoutTitle(workout.name, partOfDay(workout.startedAt, ZoneId.systemDefault()))
 }
 
 private fun PadEditing.localizedDisplay(): String = input.display.replace('.', LiftLogFormat.decimalSeparator())
+
+/** Forgets the ticks that the stored [workout] now shows, or whose sets are gone. */
+internal fun WorkoutLocalState.confirmedBy(workout: Workout?): WorkoutLocalState {
+    if (pendingDone.isEmpty()) return this
+    val stored = workout?.exercises?.flatMap { it.sets }?.associateBy { it.id }.orEmpty()
+    return copy(pendingDone = pendingDone.filter { (id, done) -> stored[id]?.let { it.isCompleted != done } ?: false })
+}

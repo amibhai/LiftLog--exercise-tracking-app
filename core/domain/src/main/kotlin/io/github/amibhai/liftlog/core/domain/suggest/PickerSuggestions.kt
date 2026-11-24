@@ -12,7 +12,7 @@ data class PickerSuggestions(
     val goesWith: List<ExerciseId> = emptyList(),
     val recent: List<ExerciseId> = emptyList(),
     val favorites: List<ExerciseId> = emptyList(),
-    /** Popular compound lifts, for someone without any history. */
+    /** Popular compound lifts, for someone with little or no history. */
     val starters: List<ExerciseId> = emptyList(),
 ) {
     companion object {
@@ -20,6 +20,9 @@ data class PickerSuggestions(
         private const val GOES_WITH = 5
         private const val RECENT = 5
         private const val STARTERS = 12
+
+        /** Fewer suggestions than this are topped up with popular lifts, so the list is never empty. */
+        private const val ENOUGH = 8
 
         /** [current] are the exercises already in the workout or routine; they are not suggested again. */
         fun build(
@@ -42,7 +45,7 @@ data class PickerSuggestions(
                 favorites = catalog.filter { it.isFavorite && it.id in available && it.id !in shown }
                     .sortedBy { it.name.lowercase() }
                     .map { it.id },
-                starters = if (usages.isEmpty()) starters(catalog, available) else emptyList(),
+                starters = if (shown.size < ENOUGH) starters(catalog, available - shown) else emptyList(),
             )
         }
 

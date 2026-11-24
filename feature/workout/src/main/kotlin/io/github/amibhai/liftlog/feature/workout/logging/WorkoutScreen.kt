@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -56,6 +57,8 @@ internal fun WorkoutScreen(
     val snackbars = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     val openDialog: (WorkoutDialog) -> Unit = { dialog = it }
+    var knownExercises by rememberSaveable { mutableStateOf<List<String>?>(null) }
+    val exerciseIds = state.exercises.map { it.id.value }
 
     if (state.keepScreenOn) KeepScreenOn()
     BackHandler(enabled = state.pad != null) { onAction(WorkoutAction.PadKey(NumberPadKey.Hide)) }
@@ -71,6 +74,14 @@ internal fun WorkoutScreen(
         LaunchedEffect(state.focus, padding.calculateBottomPadding()) {
             val index = state.items.indexOfFirst { it.key == state.focus?.setId }
             if (index >= 0) listState.animateItemIntoView(index + leading)
+        }
+        // The list keeps its first visible row in place, which could leave new exercises out of sight.
+        LaunchedEffect(exerciseIds) {
+            val known = knownExercises
+            knownExercises = exerciseIds
+            val added = known?.let { exerciseIds.firstOrNull { id -> id !in it } } ?: return@LaunchedEffect
+            val index = state.items.indexOfFirst { it is WorkoutItem.Header && it.id.value == added }
+            if (index >= 0) listState.animateScrollToItem(index + leading)
         }
         LazyColumn(state = listState, contentPadding = padding) {
             leadingItems(state, openDialog)

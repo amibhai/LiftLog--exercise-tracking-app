@@ -20,7 +20,7 @@
     <string name="exercises_section_goes_with">Goes with this workout</string>
     <string name="exercises_section_recent">Recent</string>
     <string name="exercises_section_favorites">Favorites</string>
-    <string name="exercises_section_starters">Popular lifts to start with</string>
+    <string name="exercises_section_starters">Popular lifts</string>
     <string name="exercises_section_results">Results</string>
 
     <!-- Picker -->

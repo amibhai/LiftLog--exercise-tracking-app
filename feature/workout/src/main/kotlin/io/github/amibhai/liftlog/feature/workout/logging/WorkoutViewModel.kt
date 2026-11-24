@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -61,6 +62,10 @@ class WorkoutViewModel @Inject constructor(
     )
     private val sets = SetHandler(session)
     private val exercises = ExerciseHandler(session, exerciseEditor)
+
+    init {
+        viewModelScope.launch { stored.collect { latest -> session.updateLocal { it.confirmedBy(latest?.workout) } } }
+    }
 
     val uiState: StateFlow<WorkoutUiState> =
         combine(stored, previous, userSettings, session.local) { stored, previous, settings, local ->

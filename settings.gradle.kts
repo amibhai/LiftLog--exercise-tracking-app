@@ -31,6 +31,7 @@ rootProject.name = "LiftLog"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(":app")
+include(":baselineprofile")
 
 include(":core:data")
 include(":core:database")

@@ -56,6 +56,10 @@ gradlePlugin {
             id = libs.plugins.liftlog.android.room.get().pluginId
             implementationClass = "AndroidRoomConventionPlugin"
         }
+        register("androidTest") {
+            id = libs.plugins.liftlog.android.test.get().pluginId
+            implementationClass = "AndroidTestConventionPlugin"
+        }
         register("detekt") {
             id = libs.plugins.liftlog.detekt.get().pluginId
             implementationClass = "DetektConventionPlugin"

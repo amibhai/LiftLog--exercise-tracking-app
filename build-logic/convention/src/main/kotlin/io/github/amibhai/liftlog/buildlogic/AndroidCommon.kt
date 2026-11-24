@@ -32,10 +32,12 @@ internal fun configureAndroidCommon(extension: CommonExtension) {
 
 /** `./gradlew test` should run each suite once (debug), not once per build type. */
 internal fun AndroidComponentsExtension<*, *, *>.disableReleaseUnitTests() {
-    beforeVariants(selector().withBuildType("release")) { variantBuilder ->
-        (variantBuilder as? HasHostTestsBuilder)
-            ?.hostTests
-            ?.get(HostTestBuilder.UNIT_TEST_TYPE)
-            ?.enable = false
+    beforeVariants(selector().all()) { variantBuilder ->
+        if (variantBuilder.buildType != "debug") {
+            (variantBuilder as? HasHostTestsBuilder)
+                ?.hostTests
+                ?.get(HostTestBuilder.UNIT_TEST_TYPE)
+                ?.enable = false
+        }
     }
 }

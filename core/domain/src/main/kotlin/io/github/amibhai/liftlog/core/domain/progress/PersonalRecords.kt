@@ -8,6 +8,7 @@ import io.github.amibhai.liftlog.core.domain.model.PersonalRecord
 import io.github.amibhai.liftlog.core.domain.model.RecordType
 import io.github.amibhai.liftlog.core.domain.model.SetValues
 import io.github.amibhai.liftlog.core.domain.model.WeightMeaning
+import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import kotlin.math.roundToLong
 
 /** Weights within this many kg are the same weight; far below the smallest plate. */
@@ -157,6 +158,45 @@ private val LoggedSet.weightKey: Long?
     get() = values.weight?.kg?.takeIf {
         it > 0 && (values.reps ?: 0) > 0
     }?.let { (it / WEIGHT_PRECISION).roundToLong() }
+
+/** The best of a kind so far, for the record table (SPEC §8). */
+data class BestMark(
+    val type: RecordType,
+    val value: Double,
+    val weightKg: Double?,
+    val reps: Int?,
+    val at: Long,
+    val workoutId: WorkoutId,
+)
+
+/** The standing bests of an exercise, except for the rep records of single weights. */
+fun bestMarks(type: ExerciseType, sessions: List<ExerciseSession>, formula: E1rmFormula): List<BestMark> =
+    (type.recordTypes() - RecordType.REPS_AT_WEIGHT).mapNotNull { kind ->
+        if (kind == RecordType.BEST_SESSION_VOLUME) bestSession(type, sessions) else bestSet(kind, sessions, formula)
+    }
+
+private fun bestSet(kind: RecordType, sessions: List<ExerciseSession>, formula: E1rmFormula): BestMark? = sessions
+    .flatMap { session -> session.countingSets.map { session to it } }
+    .mapNotNull { (session, set) -> set.values.score(kind, formula)?.let { score -> Triple(session, set, score) } }
+    .maxByOrNull { it.third }
+    ?.let { (session, set, score) ->
+        BestMark(
+            type = kind,
+            value = kind.valueOf(score),
+            weightKg = set.values.weight?.kg,
+            reps = set.values.reps,
+            at = session.at,
+            workoutId = session.workoutId,
+        )
+    }
+
+private fun bestSession(type: ExerciseType, sessions: List<ExerciseSession>): BestMark? = sessions
+    .map { it to sessionVolume(type, it.countingSets) }
+    .filter { it.second > 0 }
+    .maxByOrNull { it.second }
+    ?.let { (session, volume) ->
+        BestMark(RecordType.BEST_SESSION_VOLUME, volume, null, null, session.at, session.workoutId)
+    }
 
 /** What a set scores on a record; a higher score is better. Null when the record does not apply to it. */
 internal fun SetValues.score(kind: RecordType, formula: E1rmFormula): Double? = when (kind) {

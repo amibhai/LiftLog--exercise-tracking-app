@@ -136,6 +136,24 @@ class PersonalRecordsTest {
     }
 
     @Test
+    fun `the standing bests are the best of all time`() {
+        val sessions = listOf(
+            session(1, lift(60.0, 5, id = "a")),
+            session(2, lift(50.0, 10)),
+            session(3, lift(60.0, 5)),
+        )
+
+        val marks = bestMarks(ExerciseType.WEIGHT_REPS, sessions, epley)
+
+        val heaviest = marks.single { it.type == RecordType.HEAVIEST_WEIGHT }
+        assertThat(heaviest.value).isEqualTo(60.0)
+        assertThat(heaviest.at).isEqualTo(1)
+        assertThat(marks.map { it.type }).doesNotContain(RecordType.REPS_AT_WEIGHT)
+        assertThat(marks.single { it.type == RecordType.BEST_SESSION_VOLUME }.value).isEqualTo(500.0)
+        assertThat(bestMarks(ExerciseType.WEIGHT_REPS, emptyList(), epley)).isEmpty()
+    }
+
+    @Test
     fun `an unknown exercise has nothing to break`() {
         assertThat(recordsBrokenBy(ExerciseType.WEIGHT_REPS, lift(60.0, 5), Bests(), epley)).isEmpty()
     }

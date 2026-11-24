@@ -10,6 +10,8 @@ dependencies {
     api(libs.androidx.compose.ui)
     implementation(projects.core.domain)
     implementation(libs.coil.compose)
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.androidx.test.core)

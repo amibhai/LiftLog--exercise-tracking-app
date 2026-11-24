@@ -1,5 +1,6 @@
 package io.github.amibhai.liftlog.feature.exercises.detail
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,13 +13,16 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -28,11 +32,16 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.amibhai.liftlog.core.domain.model.ExerciseDetail
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
+import io.github.amibhai.liftlog.core.domain.progress.ProgressMetric
+import io.github.amibhai.liftlog.core.domain.progress.ProgressRange
 import io.github.amibhai.liftlog.core.ui.component.ConfirmDialog
 import io.github.amibhai.liftlog.core.ui.component.EmptyState
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 import io.github.amibhai.liftlog.feature.exercises.R
+import io.github.amibhai.liftlog.feature.exercises.progress.ExerciseProgressUiState
+import io.github.amibhai.liftlog.feature.exercises.progress.ExerciseProgressViewModel
+import io.github.amibhai.liftlog.feature.exercises.progress.ProgressTab
 import io.github.amibhai.liftlog.core.ui.R as UiR
 
 @Composable
@@ -40,8 +49,10 @@ internal fun ExerciseDetailRoute(
     onBack: () -> Unit,
     onEdit: (ExerciseId) -> Unit,
     viewModel: ExerciseDetailViewModel = hiltViewModel(),
+    progressViewModel: ExerciseProgressViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val progress by progressViewModel.uiState.collectAsStateWithLifecycle()
     val actions = remember(viewModel, onBack, onEdit) {
         ExerciseDetailActions(
             onBack = onBack,
@@ -56,7 +67,13 @@ internal fun ExerciseDetailRoute(
             onDefaultsChange = viewModel::setDefaults,
         )
     }
-    ExerciseDetailScreen(state = state, actions = actions)
+    ExerciseDetailScreen(
+        state = state,
+        actions = actions,
+        progress = progress,
+        onSelectMetric = progressViewModel::selectMetric,
+        onSelectRange = progressViewModel::selectRange,
+    )
 }
 
 @Composable
@@ -64,6 +81,9 @@ internal fun ExerciseDetailScreen(
     state: ExerciseDetailUiState,
     actions: ExerciseDetailActions,
     modifier: Modifier = Modifier,
+    progress: ExerciseProgressUiState? = null,
+    onSelectMetric: (ProgressMetric) -> Unit = {},
+    onSelectRange: (ProgressRange) -> Unit = {},
 ) {
     val exercise = (state as? ExerciseDetailUiState.Loaded)?.exercise
     Scaffold(
@@ -90,9 +110,12 @@ internal fun ExerciseDetailScreen(
                 modifier = Modifier.padding(padding),
             )
 
-            is ExerciseDetailUiState.Loaded -> DetailContent(
+            is ExerciseDetailUiState.Loaded -> DetailTabs(
                 state = state,
                 actions = actions,
+                progress = progress,
+                onSelectMetric = onSelectMetric,
+                onSelectRange = onSelectRange,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -158,6 +181,37 @@ private fun MenuItem(label: String, icon: Int, onClick: () -> Unit) {
     )
 }
 
+private enum class DetailTab(@StringRes val label: Int) {
+    ABOUT(R.string.exercises_tab_about),
+    PROGRESS(R.string.exercises_tab_progress),
+    HISTORY(R.string.exercises_tab_history),
+}
+
+@Composable
+private fun DetailTabs(
+    state: ExerciseDetailUiState.Loaded,
+    actions: ExerciseDetailActions,
+    progress: ExerciseProgressUiState?,
+    onSelectMetric: (ProgressMetric) -> Unit,
+    onSelectRange: (ProgressRange) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var tab by rememberSaveable { mutableStateOf(DetailTab.ABOUT) }
+    Column(modifier = modifier.fillMaxSize()) {
+        PrimaryTabRow(selectedTabIndex = tab.ordinal) {
+            DetailTab.entries.forEach {
+                Tab(selected = it == tab, onClick = { tab = it }, text = { Text(stringResource(it.label)) })
+            }
+        }
+        val content = Modifier.weight(1f)
+        when (tab) {
+            DetailTab.ABOUT -> DetailContent(state, actions, content)
+            DetailTab.PROGRESS -> ProgressTab(progress, onSelectMetric, onSelectRange, content)
+            DetailTab.HISTORY -> History(state.sessions, content)
+        }
+    }
+}
+
 @Composable
 private fun DetailContent(
     state: ExerciseDetailUiState.Loaded,
@@ -177,7 +231,6 @@ private fun DetailContent(
         Tags(exercise, gutter)
         Muscles(exercise, gutter)
         PersonalSettings(exercise, state.settings, actions, gutter)
-        History(state.sessions, gutter)
         Instructions(exercise, gutter)
         exercise.attribution?.let { AttributionCard(it, gutter) }
     }

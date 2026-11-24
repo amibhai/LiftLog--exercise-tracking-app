@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -25,9 +27,11 @@ import io.github.amibhai.liftlog.core.domain.model.Attribution
 import io.github.amibhai.liftlog.core.domain.model.ExerciseDetail
 import io.github.amibhai.liftlog.core.domain.model.ExerciseImage
 import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.ui.component.EmptyState
 import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
 import io.github.amibhai.liftlog.core.ui.component.TextLink
 import io.github.amibhai.liftlog.core.ui.format.relativeDays
+import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.label.labelRes
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 import io.github.amibhai.liftlog.feature.exercises.R
@@ -91,12 +95,25 @@ internal fun Muscles(exercise: ExerciseDetail, modifier: Modifier = Modifier) {
     }
 }
 
+/** Every workout with the exercise, newest first. */
 @Composable
 internal fun History(sessions: List<SessionUiModel>, modifier: Modifier = Modifier) {
-    Section(stringResource(R.string.exercises_detail_history), modifier) {
-        if (sessions.isEmpty()) MutedText(stringResource(R.string.exercises_detail_no_history))
-        for (session in sessions) {
-            Column(Modifier.padding(vertical = LiftLogDimens.spacingXs)) {
+    if (sessions.isEmpty()) {
+        EmptyState(
+            icon = LiftLogIcons.History,
+            title = stringResource(R.string.exercises_detail_history),
+            body = stringResource(R.string.exercises_detail_no_history),
+            modifier = modifier,
+        )
+        return
+    }
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(LiftLogDimens.screenGutter),
+        verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingM),
+    ) {
+        items(sessions, key = { it.workoutId.value }) { session ->
+            Column {
                 Text(relativeDays(session.daysAgo), style = MaterialTheme.typography.labelLarge)
                 MutedText(session.sets.joinToString())
             }

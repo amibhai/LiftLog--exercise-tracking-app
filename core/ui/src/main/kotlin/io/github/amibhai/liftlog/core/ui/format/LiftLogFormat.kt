@@ -42,6 +42,12 @@ object LiftLogFormat {
         return NumberFormat.getIntegerInstance(locale).format(rounded) + " " + unit.symbol
     }
 
+    /** An estimated one-rep max: "102.5 kg", never more precise than one decimal. */
+    fun estimate(kg: Double, unit: WeightUnit, locale: Locale = Locale.getDefault()): String {
+        val rounded = BigDecimal.valueOf(kg / unit.kilogramsPerUnit).setScale(1, RoundingMode.HALF_UP)
+        return decimal(rounded, locale) + " " + unit.symbol
+    }
+
     fun decimalSeparator(locale: Locale = Locale.getDefault()): Char =
         DecimalFormatSymbols.getInstance(locale).decimalSeparator
 }

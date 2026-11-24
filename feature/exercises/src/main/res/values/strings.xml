@@ -78,4 +78,40 @@
     <string name="exercises_editor_unilateral">One side at a time</string>
     <string name="exercises_editor_unilateral_body">Like one-arm rows or single-leg squats</string>
     <string name="exercises_editor_instructions">Instructions, one step per line</string>
+
+    <!-- Tabs of the exercise page -->
+    <string name="exercises_tab_about">About</string>
+    <string name="exercises_tab_progress">Progress</string>
+    <string name="exercises_tab_history">History</string>
+
+    <!-- Progress -->
+    <string name="exercises_progress_empty_title">Nothing to chart yet</string>
+    <string name="exercises_progress_empty_body">Finish a workout with this exercise and its progress shows up here.</string>
+    <string name="exercises_progress_none_in_range">No sets in this time span.</string>
+    <string name="exercises_progress_up">+%1$s since the first one</string>
+    <string name="exercises_progress_down">−%1$s since the first one</string>
+    <string name="exercises_progress_chart_description">%1$s, latest %2$s, first %3$s, %4$s</string>
+    <plurals name="exercises_progress_workouts">
+        <item quantity="one">%1$d workout</item>
+        <item quantity="other">%1$d workouts</item>
+    </plurals>
+    <string name="exercises_progress_records">Records</string>
+    <string name="exercises_progress_rep_maxes">Rep maxes</string>
+    <string name="exercises_progress_rep_max">%1$d-rep max</string>
+    <plurals name="exercises_progress_reps">
+        <item quantity="one">%1$d rep</item>
+        <item quantity="other">%1$d reps</item>
+    </plurals>
+    <string name="exercises_progress_done_reps">Done for %1$s, %2$s</string>
+    <string name="exercises_metric_e1rm">Estimated 1RM</string>
+    <string name="exercises_metric_top_weight">Top set</string>
+    <string name="exercises_metric_volume">Volume</string>
+    <string name="exercises_metric_reps">Reps</string>
+    <string name="exercises_metric_time">Time</string>
+    <string name="exercises_metric_distance">Distance</string>
+    <string name="exercises_range_month">1M</string>
+    <string name="exercises_range_quarter">3M</string>
+    <string name="exercises_range_half_year">6M</string>
+    <string name="exercises_range_year">1Y</string>
+    <string name="exercises_range_all">All</string>
 </resources>

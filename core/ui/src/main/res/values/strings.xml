@@ -131,6 +131,25 @@
     <string name="ui_move_up">Move up</string>
     <string name="ui_move_down">Move down</string>
 
+    <!-- Personal records -->
+    <string name="ui_record_heaviest">Heaviest weight</string>
+    <string name="ui_record_e1rm">Best estimated 1RM</string>
+    <string name="ui_record_reps_at_weight">Most reps at a weight</string>
+    <string name="ui_record_set_volume">Best set volume</string>
+    <string name="ui_record_session_volume">Best session volume</string>
+    <string name="ui_record_most_reps">Most reps</string>
+    <string name="ui_record_least_assistance">Least assistance</string>
+    <string name="ui_record_longest_time">Longest time</string>
+    <string name="ui_record_longest_distance">Longest distance</string>
+    <plurals name="ui_reps">
+        <item quantity="one">%1$d rep</item>
+        <item quantity="other">%1$d reps</item>
+    </plurals>
+
+    <!-- Muscle heatmap -->
+    <string name="ui_heatmap_front">Front</string>
+    <string name="ui_heatmap_back">Back</string>
+
     <!-- Rest time -->
     <string name="ui_rest_time">Rest time</string>
     <string name="ui_rest_default">Default (%1$s)</string>

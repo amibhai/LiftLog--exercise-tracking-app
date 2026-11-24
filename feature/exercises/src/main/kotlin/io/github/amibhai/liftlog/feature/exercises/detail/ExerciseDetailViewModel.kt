@@ -92,6 +92,6 @@ class ExerciseDetailViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
-        const val HISTORY_LIMIT = 20
+        const val HISTORY_LIMIT = 1_000
     }
 }

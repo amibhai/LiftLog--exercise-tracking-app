@@ -35,6 +35,8 @@ class SettingsViewModel @Inject constructor(private val repository: SettingsRepo
 
     fun setWeightUnit(unit: WeightUnit) = update { it.copy(weightUnit = unit) }
 
+    fun change(change: SettingChange) = update { it.with(change) }
+
     private fun update(transform: (UserSettings) -> UserSettings) {
         viewModelScope.launch { repository.update(transform) }
     }

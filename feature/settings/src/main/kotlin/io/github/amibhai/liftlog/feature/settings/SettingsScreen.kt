@@ -19,6 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,6 +53,7 @@ internal fun SettingsRoute(
             onThemeModeChange = viewModel::setThemeMode,
             onDynamicColorChange = viewModel::setDynamicColor,
             onWeightUnitChange = viewModel::setWeightUnit,
+            onChange = viewModel::change,
             onOpenAbout = onOpenAbout,
             onOpenGallery = onOpenGallery,
         ),
@@ -64,6 +68,7 @@ internal class SettingsActions(
     val onThemeModeChange: (ThemeMode) -> Unit,
     val onDynamicColorChange: (Boolean) -> Unit,
     val onWeightUnitChange: (WeightUnit) -> Unit,
+    val onChange: (SettingChange) -> Unit,
     val onOpenAbout: () -> Unit,
     val onOpenGallery: () -> Unit,
 )
@@ -76,6 +81,7 @@ internal fun SettingsScreen(
     dynamicColorAvailable: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    var dialog by rememberSaveable { mutableStateOf<SettingsDialog?>(null) }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -108,6 +114,9 @@ internal fun SettingsScreen(
                 label = { stringResource(it.labelRes()) },
                 onSelect = actions.onWeightUnitChange,
             )
+            WeightRows(settings, onOpen = { dialog = it })
+            SectionHeader(stringResource(R.string.settings_section_workout))
+            WorkoutRows(settings, onChange = actions.onChange, onOpen = { dialog = it })
             SectionHeader(stringResource(R.string.settings_section_about))
             NavigationRow(title = stringResource(R.string.settings_about), onClick = actions.onOpenAbout)
             if (showDeveloperOptions) {
@@ -115,6 +124,7 @@ internal fun SettingsScreen(
                 NavigationRow(title = stringResource(R.string.settings_gallery), onClick = actions.onOpenGallery)
             }
         }
+        dialog?.let { SettingsDialogs(it, settings, onChange = actions.onChange, onDismiss = { dialog = null }) }
     }
 }
 
@@ -167,7 +177,7 @@ private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun <T> ChoiceRow(
+internal fun <T> ChoiceRow(
     title: String,
     options: List<T>,
     selected: T,

@@ -1,8 +1,18 @@
 package io.github.amibhai.liftlog.core.ui.component
 
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
@@ -10,6 +20,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.domain.model.SetField
@@ -39,6 +51,21 @@ class ComponentUiTest {
         suggestion = "+2.5 kg",
         isCompleted = false,
     )
+
+    @Test
+    fun switchRowTogglesAsAWholeAndReadsAsASwitch() {
+        var checked by mutableStateOf(true)
+        compose.setContent {
+            LiftLogTheme { SwitchRow(title = "Dynamic color", checked = checked, onCheckedChange = { checked = it }) }
+        }
+
+        compose.onNodeWithText("Dynamic color")
+            .assertIsOn()
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Switch))
+            .performClick()
+
+        compose.onNodeWithText("Dynamic color").assertIsOff()
+    }
 
     @Test
     fun setRowCompletesWithOneTapAndAnnouncesItsState() {
@@ -136,6 +163,29 @@ class ComponentUiTest {
 
         assertThat(adjustments).containsExactly(15, -15).inOrder()
         assertThat(skipped).isTrue()
+    }
+
+    @Test
+    fun restTimerKeepsEveryButtonReachableAtDoubleFontSizeOnANarrowPhone() {
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(density = 1f, fontScale = 2f)) {
+                LiftLogTheme {
+                    RestTimerBar(
+                        state = RestTimerUiState(endsAtMillis = NOW + 90_000, totalSeconds = 120),
+                        onAdjust = {},
+                        onSkip = {},
+                        modifier = Modifier.width(320.dp),
+                        clock = { NOW },
+                    )
+                }
+            }
+        }
+
+        for (button in listOf("Subtract 15 seconds", "Add 15 seconds")) {
+            compose.onNodeWithContentDescription(button).assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+        }
+        compose.onNodeWithText("Skip").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
     }
 
     @Test

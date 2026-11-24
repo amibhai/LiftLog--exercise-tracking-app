@@ -1,5 +1,6 @@
 package io.github.amibhai.liftlog.feature.settings.gallery
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +19,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +36,7 @@ import io.github.amibhai.liftlog.core.ui.component.SetRow
 import io.github.amibhai.liftlog.core.ui.format.LiftLogFormat
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.label.labelRes
+import io.github.amibhai.liftlog.core.ui.list.animateItemIntoView
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 import io.github.amibhai.liftlog.feature.settings.R
 import io.github.amibhai.liftlog.core.ui.R as UiR
@@ -44,6 +48,7 @@ import io.github.amibhai.liftlog.core.ui.R as UiR
 @Composable
 internal fun ComponentGalleryScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     var state by remember { mutableStateOf(GalleryState()) }
+    val listState = rememberLazyListState()
     val unitLabel = stringResource(state.unit.labelRes())
     Scaffold(
         modifier = modifier,
@@ -62,7 +67,13 @@ internal fun ComponentGalleryScreen(onBack: () -> Unit, modifier: Modifier = Mod
         },
         bottomBar = { GalleryControls(state = state, unitLabel = unitLabel, onStateChange = { state = it }) },
     ) { padding ->
+        // Keep the edited row clear of the controls when they open, grow or move to another row.
+        val editedItem = state.editing?.let { state.itemIndex(it) }
+        LaunchedEffect(editedItem, padding.calculateBottomPadding()) {
+            if (editedItem != null) listState.animateItemIntoView(editedItem)
+        }
         LazyColumn(
+            state = listState,
             contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingXs),
         ) {
@@ -128,19 +139,21 @@ private fun GalleryControls(
 ) {
     val ref = state.editing
     val input = state.input
+    val timer = state.restTimer
+    if (timer == null && ref == null) return
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             // The number pad pads itself above the navigation bar; the timer alone needs it here.
-            .then(if (ref == null) Modifier.navigationBarsPadding() else Modifier)
-            .padding(horizontal = LiftLogDimens.spacingS),
-        verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
+            .then(if (ref == null) Modifier.navigationBarsPadding() else Modifier),
     ) {
-        state.restTimer?.let { timer ->
+        if (timer != null) {
             RestTimerBar(
                 state = timer,
                 onAdjust = { onStateChange(state.adjustRest(it)) },
                 onSkip = { onStateChange(state.skipRest()) },
+                modifier = Modifier.padding(LiftLogDimens.spacingS),
             )
         }
         if (ref != null && input != null) {

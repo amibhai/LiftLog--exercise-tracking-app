@@ -87,6 +87,46 @@ class GalleryStateTest {
     }
 
     @Test
+    fun `duplicating a set twice keeps every id unique`() {
+        val duplicate = SetRowAction.Duplicate("bench-1")
+        val state = GalleryState()
+            .handle(duplicate, exercise = 0, set = 1, nowMillis = 0)
+            .handle(duplicate, exercise = 0, set = 1, nowMillis = 0)
+
+        val ids = state.exercises.first().sets.map { it.id }
+        assertThat(ids).hasSize(6)
+        assertThat(ids).containsNoDuplicates()
+    }
+
+    @Test
+    fun `adding or removing a set closes the number pad so it cannot edit another row`() {
+        val editing = GalleryState().startEditing(benchSet1)
+
+        val duplicated = editing.handle(SetRowAction.Duplicate("bench-w"), exercise = 0, set = 0, nowMillis = 0)
+        val deleted = editing.handle(SetRowAction.Delete("bench-w"), exercise = 0, set = 0, nowMillis = 0)
+
+        assertThat(duplicated.editing).isNull()
+        assertThat(deleted.editing).isNull()
+    }
+
+    @Test
+    fun `weight added to bodyweight carries a plus sign`() {
+        val row = GalleryState().rowModel(exercise = 1, set = 0, unitLabel = "kg", locale = Locale.US)
+
+        assertThat(row.fields.first().text).isEqualTo("+10")
+        assertThat(row.fields.first().unit).isEqualTo("kg")
+        assertThat(row.previous).isEqualTo("+7.5 × 6")
+    }
+
+    @Test
+    fun `a set's list position counts the intro and the exercise headers`() {
+        val state = GalleryState()
+
+        assertThat(state.itemIndex(benchSet1)).isEqualTo(3)
+        assertThat(state.itemIndex(FieldRef(exercise = 1, set = 0, field = SetField.REPS))).isEqualTo(7)
+    }
+
+    @Test
     fun `working sets are numbered and warm-ups are not`() {
         val state = GalleryState()
 

@@ -59,14 +59,11 @@ internal data class GalleryState(
 
         is SetRowAction.CycleType -> updateSet(exercise, set) { it.copy(type = it.type.next()) }
 
+        // The number pad edits by position, so it closes when rows are added or removed.
         is SetRowAction.Duplicate -> updateSets(exercise) { sets ->
-            sets.toMutableList().apply {
-                add(
-                    set + 1,
-                    sets[set].copy(id = sets[set].id + "-copy", isCompleted = false),
-                )
-            }
-        }
+            val copy = sets[set].copy(id = sets.unusedId(sets[set].id), isCompleted = false)
+            sets.take(set + 1) + copy + sets.drop(set + 1)
+        }.copy(editing = null, input = null)
 
         is SetRowAction.Delete -> updateSets(exercise) { sets -> sets.filterIndexed { index, _ -> index != set } }
             .copy(editing = null, input = null)
@@ -170,6 +167,9 @@ internal data class GalleryState(
         private val MAX_INPUT = BigDecimal("9999")
     }
 }
+
+private fun List<DemoSet>.unusedId(base: String): String =
+    generateSequence(1) { it + 1 }.map { "$base-$it" }.first { id -> none { it.id == id } }
 
 private fun SetType.next(): SetType = when (this) {
     SetType.WORKING -> SetType.WARMUP

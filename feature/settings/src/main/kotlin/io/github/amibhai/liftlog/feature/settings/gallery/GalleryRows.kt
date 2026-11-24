@@ -18,11 +18,6 @@ internal fun GalleryState.rowModel(
 ): SetRowUiModel {
     val demo = exercises[exercise]
     val current = demo.sets[set]
-    val weightUnit = when (demo.type.weightMeaning) {
-        WeightMeaning.ADDED -> "+$unitLabel"
-        WeightMeaning.ASSISTANCE -> "−$unitLabel"
-        WeightMeaning.LOAD, WeightMeaning.NONE -> unitLabel
-    }
     val focused = editing?.takeIf { it.exercise == exercise && it.set == set }?.field
     val showSuggestion = current.isGhost && current.type == SetType.WORKING && demo.type == ExerciseType.WEIGHT_REPS
     return SetRowUiModel(
@@ -35,10 +30,12 @@ internal fun GalleryState.rowModel(
         },
         previous = demo.previous.getOrNull(set)?.let { previousText(demo.type, it, locale) },
         fields = demo.type.fields.map { field ->
+            val text = fieldText(current, field, locale)
+            val isWeight = field == SetField.WEIGHT
             SetFieldUiModel(
                 field = field,
-                text = fieldText(current, field, locale),
-                unit = if (field == SetField.WEIGHT) weightUnit else null,
+                text = if (isWeight && text.isNotEmpty()) demo.type.weightSign + text else text,
+                unit = if (isWeight) unitLabel else null,
                 isGhost = current.isGhost,
                 isFocused = focused == field,
             )
@@ -52,6 +49,12 @@ internal fun GalleryState.rowModel(
     )
 }
 
+/** Position of [ref]'s row in the gallery list: the intro, then each exercise's header and sets. */
+internal fun GalleryState.itemIndex(ref: FieldRef): Int {
+    val introAndOwnHeader = 2
+    return introAndOwnHeader + exercises.take(ref.exercise).sumOf { it.sets.size + 1 } + ref.set
+}
+
 internal fun GalleryState.fieldText(set: DemoSet, field: SetField, locale: Locale = Locale.getDefault()): String =
     when (field) {
         SetField.WEIGHT -> displayValue(set, field)?.let { LiftLogFormat.decimal(it, locale) }.orEmpty()
@@ -61,13 +64,10 @@ internal fun GalleryState.fieldText(set: DemoSet, field: SetField, locale: Local
     }
 
 private fun GalleryState.previousText(type: ExerciseType, previous: DemoSet, locale: Locale): String {
-    val weight = fieldText(previous, SetField.WEIGHT, locale)
+    val weight = type.weightSign + fieldText(previous, SetField.WEIGHT, locale)
     return when (type) {
-        ExerciseType.WEIGHT_REPS -> "$weight × ${previous.reps}"
-
-        ExerciseType.BODYWEIGHT_ADDED -> "+$weight × ${previous.reps}"
-
-        ExerciseType.BODYWEIGHT_ASSISTED -> "−$weight × ${previous.reps}"
+        ExerciseType.WEIGHT_REPS, ExerciseType.BODYWEIGHT_ADDED, ExerciseType.BODYWEIGHT_ASSISTED ->
+            "$weight × ${previous.reps}"
 
         ExerciseType.DURATION -> fieldText(previous, SetField.DURATION, locale)
 
@@ -75,3 +75,11 @@ private fun GalleryState.previousText(type: ExerciseType, previous: DemoSet, loc
             previous.reps?.toString().orEmpty()
     }
 }
+
+/** Weight added to bodyweight, or taken off it, carries a sign. */
+private val ExerciseType.weightSign: String
+    get() = when (weightMeaning) {
+        WeightMeaning.ADDED -> "+"
+        WeightMeaning.ASSISTANCE -> "−"
+        WeightMeaning.LOAD, WeightMeaning.NONE -> ""
+    }

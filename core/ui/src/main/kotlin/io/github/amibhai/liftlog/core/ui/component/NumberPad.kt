@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -25,14 +27,17 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.github.amibhai.liftlog.core.ui.R
 import io.github.amibhai.liftlog.core.ui.format.LiftLogFormat
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
+
+private val MinStepFontSize = 12.sp
 
 /** What the docked number pad shows for the field being edited. */
 @Immutable
@@ -41,7 +46,7 @@ data class NumberPadUiState(
     val fieldLabel: String,
     /** The value as typed, already localized; empty when nothing is typed. */
     val valueText: String,
-    /** The −/+ step in the display unit, e.g. "2.5"; null hides the step keys' amount. */
+    /** The −/+ step in the display unit, e.g. "2.5"; null disables the step keys. */
     val stepLabel: String?,
     val allowsDecimal: Boolean,
     val canUsePrevious: Boolean,
@@ -79,13 +84,13 @@ fun NumberPad(state: NumberPadUiState, onKey: (NumberPadKey) -> Unit, modifier: 
     }
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = MaterialTheme.shapes.extraLarge.copy(bottomEnd = ZeroCornerSize, bottomStart = ZeroCornerSize),
     ) {
         Column(
             modifier = Modifier
                 .navigationBarsPadding()
-                .padding(LiftLogDimens.spacingM),
+                .padding(horizontal = LiftLogDimens.spacingM, vertical = LiftLogDimens.spacingS),
             verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
         ) {
             PadHeader(state = state, onHide = { press(NumberPadKey.Hide) })
@@ -109,6 +114,7 @@ fun NumberPad(state: NumberPadUiState, onKey: (NumberPadKey) -> Unit, modifier: 
                     onClick = { press(NumberPadKey.SameAsPrevious) },
                     contentDescription = stringResource(R.string.ui_numpad_same_as_previous),
                     enabled = state.canUsePrevious,
+                    tone = KeyTone.ACTION,
                 ) {
                     Icon(painterResource(LiftLogIcons.Repeat), contentDescription = null)
                 }
@@ -133,7 +139,7 @@ fun NumberPad(state: NumberPadUiState, onKey: (NumberPadKey) -> Unit, modifier: 
                     contentDescription = stringResource(
                         if (state.isLastField) R.string.ui_numpad_done else R.string.ui_numpad_next,
                     ),
-                    emphasized = true,
+                    tone = KeyTone.PRIMARY,
                 ) {
                     Icon(
                         painter = painterResource(
@@ -150,19 +156,18 @@ fun NumberPad(state: NumberPadUiState, onKey: (NumberPadKey) -> Unit, modifier: 
 @Composable
 private fun PadHeader(state: NumberPadUiState, onHide: () -> Unit, modifier: Modifier = Modifier) {
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(modifier = Modifier.weight(1f).padding(start = LiftLogDimens.spacingS)) {
-            Text(
-                text = state.fieldLabel,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = state.valueText.ifEmpty { stringResource(R.string.ui_set_previous_none) },
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                style = MaterialTheme.typography.headlineMedium,
-                maxLines = 1,
-            )
-        }
+        Text(
+            text = state.fieldLabel,
+            modifier = Modifier.weight(1f).padding(start = LiftLogDimens.spacingS),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = state.valueText.ifEmpty { stringResource(R.string.ui_set_previous_none) },
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            style = MaterialTheme.typography.headlineMedium,
+            maxLines = 1,
+        )
         IconButton(onClick = onHide) {
             Icon(
                 painter = painterResource(LiftLogIcons.HideKeyboard),
@@ -199,20 +204,40 @@ private fun RowScope.StepKey(up: Boolean, stepLabel: String?, onKey: (NumberPadK
         onClick = { onKey(if (up) NumberPadKey.StepUp else NumberPadKey.StepDown) },
         contentDescription = description,
         enabled = stepLabel != null,
+        tone = KeyTone.ACTION,
     ) {
-        Icon(painterResource(if (up) LiftLogIcons.Add else LiftLogIcons.Remove), contentDescription = null)
+        val style = MaterialTheme.typography.titleLarge
+        Text(
+            text = (if (up) "+" else "−") + stepLabel.orEmpty(),
+            // The key's own description ("Increase by 2.5") says it better.
+            modifier = Modifier.clearAndSetSemantics {},
+            autoSize = TextAutoSize.StepBased(minFontSize = MinStepFontSize, maxFontSize = style.fontSize),
+            maxLines = 1,
+            style = style,
+        )
     }
 }
+
+private enum class KeyTone { DIGIT, ACTION, PRIMARY }
 
 @Composable
 private fun RowScope.PadKey(
     onClick: () -> Unit,
     contentDescription: String?,
     enabled: Boolean = true,
-    emphasized: Boolean = false,
+    tone: KeyTone = KeyTone.DIGIT,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val colors = if (emphasized) ButtonDefaults.buttonColors() else ButtonDefaults.filledTonalButtonColors()
+    val colors = when (tone) {
+        KeyTone.DIGIT -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        )
+
+        KeyTone.ACTION -> ButtonDefaults.filledTonalButtonColors()
+
+        KeyTone.PRIMARY -> ButtonDefaults.buttonColors()
+    }
     val label = contentDescription?.let { Modifier.semantics { this.contentDescription = it } } ?: Modifier
     Button(
         onClick = onClick,
@@ -223,7 +248,7 @@ private fun RowScope.PadKey(
         enabled = enabled,
         shape = MaterialTheme.shapes.large,
         colors = colors,
-        contentPadding = PaddingValues(0.dp),
+        contentPadding = PaddingValues(horizontal = LiftLogDimens.spacingXs),
         content = content,
     )
 }

@@ -30,6 +30,7 @@ import io.github.amibhai.liftlog.feature.exercises.navigation.navigateToExercise
 import io.github.amibhai.liftlog.feature.exercises.navigation.navigateToExercisePicker
 import io.github.amibhai.liftlog.feature.history.navigation.historyGraph
 import io.github.amibhai.liftlog.feature.history.navigation.navigateToWorkoutDetail
+import io.github.amibhai.liftlog.feature.home.HomeNavigation
 import io.github.amibhai.liftlog.feature.home.navigation.HomeDestination
 import io.github.amibhai.liftlog.feature.home.navigation.homeScreen
 import io.github.amibhai.liftlog.feature.progress.navigation.progressGraph
@@ -58,6 +59,16 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentTab = TopLevelDestination.entries.firstOrNull { tab ->
         backStackEntry?.destination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true
+    }
+    val homeNavigation = remember(navController) {
+        HomeNavigation(
+            onOpenSettings = { navController.navigate(SettingsDestination) },
+            onBrowseExercises = { navController.navigateToTab(TopLevelDestination.EXERCISES) },
+            onOpenProgress = { navController.navigateToTab(TopLevelDestination.PROGRESS) },
+            onOpenExercise = { navController.navigateToExerciseDetail(it) },
+            onOpenWorkout = { navController.navigateToWorkout(it) },
+            onEditRoutine = { navController.navigateToRoutineEditor(it) },
+        )
     }
     val workoutNavigation = remember(navController) {
         WorkoutNavigation(
@@ -104,12 +115,7 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
                 .padding(padding)
                 .consumeWindowInsets(padding),
         ) {
-            homeScreen(
-                onOpenSettings = { navController.navigate(SettingsDestination) },
-                onBrowseExercises = { navController.navigateToTab(TopLevelDestination.EXERCISES) },
-                onOpenWorkout = { navController.navigateToWorkout(it) },
-                onEditRoutine = { navController.navigateToRoutineEditor(it) },
-            )
+            homeScreen(homeNavigation)
             routineEditorScreen(routineNavigation)
             historyGraph(
                 navController = navController,

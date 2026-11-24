@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +65,7 @@ private val NoteSizeStep = 1.sp
 @Composable
 fun SetRow(model: SetRowUiModel, onAction: (SetRowAction) -> Unit, modifier: Modifier = Modifier) {
     var isMenuOpen by remember { mutableStateOf(false) }
+    RecordHaptic(model.isRecord)
     val completedTint = MaterialTheme.colorScheme.primaryContainer.copy(alpha = COMPLETED_TINT_ALPHA)
     val background by animateColorAsState(
         targetValue = if (model.isCompleted) completedTint else Color.Transparent,
@@ -100,6 +102,17 @@ fun SetRow(model: SetRowUiModel, onAction: (SetRowAction) -> Unit, modifier: Mod
             completed = model.isCompleted,
             onToggle = { onAction(SetRowAction.ToggleComplete(model.id)) },
         )
+    }
+}
+
+/** Feels the moment a set becomes a record, but not when a record is merely shown again. */
+@Composable
+private fun RecordHaptic(isRecord: Boolean) {
+    val haptics = LocalHapticFeedback.current
+    var wasRecord by remember { mutableStateOf(isRecord) }
+    LaunchedEffect(isRecord) {
+        if (isRecord && !wasRecord) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        wasRecord = isRecord
     }
 }
 

@@ -8,6 +8,8 @@ import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExercise
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
+import io.github.amibhai.liftlog.core.domain.progress.Bests
+import io.github.amibhai.liftlog.core.domain.progress.recordsBrokenBy
 import io.github.amibhai.liftlog.core.domain.time.partOfDay
 import io.github.amibhai.liftlog.core.domain.workout.effort
 import io.github.amibhai.liftlog.core.domain.workout.matchPrevious
@@ -40,6 +42,8 @@ internal class WorkoutUiMapper(
     private val settings: UserSettings,
     private val previous: Map<ExerciseId, List<LoggedSet>>,
     private val local: WorkoutLocalState,
+    /** What every exercise was best at before this workout. */
+    private val bests: Map<ExerciseId, Bests> = emptyMap(),
 ) {
     private val text = SetText(settings.weightUnit)
 
@@ -104,6 +108,7 @@ internal class WorkoutUiMapper(
             previous = match?.let { text.compact(type, it.values) }?.ifEmpty { null },
             fields = type.fields.map { field(exercise, set, it) },
             isCompleted = set.isDone,
+            isRecord = set.isDone && set.breaksRecord(exercise),
         )
     }
 
@@ -137,6 +142,12 @@ internal class WorkoutUiMapper(
     }
 
     private val WorkoutSet.isDone: Boolean get() = local.pendingDone[id] ?: isCompleted
+
+    private fun WorkoutSet.breaksRecord(exercise: WorkoutExercise): Boolean {
+        val logged = LoggedSet(type, shown, rpe, rir, id)
+        val known = bests[exercise.exercise.id] ?: return false
+        return recordsBrokenBy(exercise.exercise.type, logged, known, settings.e1rmFormula).isNotEmpty()
+    }
 
     private fun title(workout: Workout) =
         WorkoutTitle(workout.name, partOfDay(workout.startedAt, ZoneId.systemDefault()))

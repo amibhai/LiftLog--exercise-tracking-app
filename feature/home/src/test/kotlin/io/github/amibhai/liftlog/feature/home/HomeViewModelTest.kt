@@ -7,6 +7,9 @@ import io.github.amibhai.liftlog.core.domain.model.Equipment
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
+import io.github.amibhai.liftlog.core.domain.model.PersonalRecord
+import io.github.amibhai.liftlog.core.domain.model.RecordEntry
+import io.github.amibhai.liftlog.core.domain.model.RecordType
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
@@ -18,12 +21,15 @@ import io.github.amibhai.liftlog.core.domain.model.WorkoutExerciseId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
+import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
 import io.github.amibhai.liftlog.core.domain.units.Weight
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
 import io.github.amibhai.liftlog.core.testing.FakeExerciseRepository
 import io.github.amibhai.liftlog.core.testing.FakeHistoryRepository
+import io.github.amibhai.liftlog.core.testing.FakeProgressRepository
 import io.github.amibhai.liftlog.core.testing.FakeRoutineRepository
+import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
 import io.github.amibhai.liftlog.core.testing.FakeWorkoutRepository
 import io.github.amibhai.liftlog.core.testing.MainDispatcherRule
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +56,7 @@ class HomeViewModelTest {
         exercises = listOf(RoutineExercise(RoutineExerciseId("r"), bench)),
     )
     private val routines = FakeRoutineRepository(push)
+    private val progress = FakeProgressRepository()
 
     @Test
     fun repeatLastStartsTheRoutineOfTheLastWorkout() = runTest {
@@ -109,6 +116,41 @@ class HomeViewModelTest {
         assertThat(viewModel(workouts).uiState.value.activeWorkoutId).isEqualTo(WorkoutId("active"))
     }
 
+    @Test
+    fun thisWeekAndTheLatestRecordsAreShown() = runTest {
+        progress.stats.value = listOf(
+            WorkoutStats(WorkoutId("now"), startedAt = now - HOUR, endedAt = now, sets = 12, volumeKg = 4_000.0),
+            WorkoutStats(WorkoutId("before"), now - WEEK - HOUR, now - WEEK, sets = 9, volumeKg = 3_000.0),
+        )
+        progress.recentRecords.value = List(4) { record(RecordType.entries[it]) }
+
+        val training = viewModel(FakeWorkoutRepository()).uiState.value.training!!
+        assertThat(training.week.workouts).isEqualTo(1)
+        assertThat(training.week.sets).isEqualTo(12)
+        assertThat(training.streakWeeks).isEqualTo(2)
+        assertThat(training.records).hasSize(3)
+    }
+
+    @Test
+    fun thereAreNoStatisticsBeforeTheFirstWorkout() = runTest {
+        assertThat(viewModel(FakeWorkoutRepository()).uiState.value.training).isNull()
+    }
+
+    private fun record(type: RecordType) = RecordEntry(
+        record = PersonalRecord(
+            exerciseId = bench.id,
+            type = type,
+            value = 80.0,
+            weightKg = 80.0,
+            reps = 8,
+            workoutId = WorkoutId("now"),
+            setId = null,
+            achievedAt = now,
+        ),
+        exerciseName = bench.name,
+        exerciseType = bench.type,
+    )
+
     private fun lastWorkout(routineId: RoutineId?) = Workout(
         id = WorkoutId("last"),
         startedAt = now - HOUR,
@@ -140,6 +182,8 @@ class HomeViewModelTest {
             workouts = workouts,
             routines = routines,
             startWorkout = StartWorkout(workouts, routines, FakeHistoryRepository(), WorkoutFactory(ids), clock),
+            progress = progress,
+            settings = FakeSettingsRepository(),
             ids = ids,
             work = SequentialWork(CoroutineScope(backgroundScope.coroutineContext + mainDispatcherRule.dispatcher)),
             clock = clock,
@@ -150,5 +194,6 @@ class HomeViewModelTest {
 
     private companion object {
         const val HOUR = 3_600_000L
+        const val WEEK = 7 * 24 * HOUR
     }
 }

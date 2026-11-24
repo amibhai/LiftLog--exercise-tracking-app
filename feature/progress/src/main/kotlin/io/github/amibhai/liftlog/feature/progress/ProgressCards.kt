@@ -2,10 +2,7 @@ package io.github.amibhai.liftlog.feature.progress
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -32,19 +28,18 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
-import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.progress.BodyMetricType
 import io.github.amibhai.liftlog.core.domain.progress.MuscleLoad
 import io.github.amibhai.liftlog.core.domain.progress.WeekTotals
 import io.github.amibhai.liftlog.core.domain.progress.displayValue
 import io.github.amibhai.liftlog.core.domain.units.Weight
 import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
+import io.github.amibhai.liftlog.core.ui.component.RecordRow
 import io.github.amibhai.liftlog.core.ui.component.StatItem
 import io.github.amibhai.liftlog.core.ui.component.chart.ChartPoint
 import io.github.amibhai.liftlog.core.ui.component.chart.ColumnChart
@@ -52,13 +47,10 @@ import io.github.amibhai.liftlog.core.ui.component.heatmap.BodyHeatmap
 import io.github.amibhai.liftlog.core.ui.format.LiftLogFormat
 import io.github.amibhai.liftlog.core.ui.format.dateText
 import io.github.amibhai.liftlog.core.ui.format.dayMonthText
-import io.github.amibhai.liftlog.core.ui.format.labelRes
-import io.github.amibhai.liftlog.core.ui.format.recordValueText
+import io.github.amibhai.liftlog.core.ui.format.setCountText
 import io.github.amibhai.liftlog.core.ui.format.symbol
 import io.github.amibhai.liftlog.core.ui.label.labelRes
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -72,37 +64,6 @@ private const val BUSY_DAY = 0.7f
 private const val CELL_GAP = 0.18f
 private const val CELL_CORNER = 0.25f
 private const val DAYS_PER_WEEK = 7
-
-@Composable
-internal fun ThisWeekCard(state: ProgressUiState.Ready, modifier: Modifier = Modifier) {
-    LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingM) {
-        CardTitle(stringResource(R.string.progress_this_week))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingXl),
-            verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
-        ) {
-            StatItem(stringResource(R.string.progress_stat_workouts), state.thisWeek.workouts.toString())
-            StatItem(stringResource(R.string.progress_stat_sets), state.thisWeek.sets.toString())
-            StatItem(
-                label = stringResource(R.string.progress_stat_volume),
-                value = LiftLogFormat.volume(Weight(state.thisWeek.volumeKg), state.unit),
-            )
-            StatItem(
-                label = stringResource(R.string.progress_stat_time),
-                value = LiftLogFormat.duration(state.thisWeek.seconds.toInt()),
-            )
-        }
-        Text(
-            text = if (state.streakWeeks > 0) {
-                pluralStringResource(R.plurals.progress_streak, state.streakWeeks, state.streakWeeks)
-            } else {
-                stringResource(R.string.progress_no_streak)
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
 
 /** A column per week, a row per day: how much was done. */
 @Composable
@@ -222,7 +183,7 @@ private fun weekValue(metric: WeeklyMetric, week: WeekTotals, state: ProgressUiS
 @Composable
 internal fun MusclesCard(state: ProgressUiState.Ready, modifier: Modifier = Modifier) {
     val trained = state.muscles.filter { it.load != MuscleLoad.NONE }
-    val description = trained.map { stringResource(it.muscle.labelRes()) + " " + setsText(it.sets) }
+    val description = trained.map { stringResource(it.muscle.labelRes()) + " " + setCountText(it.sets) }
         .ifEmpty { listOf(stringResource(R.string.progress_muscles_none)) }
         .joinToString()
     LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingM) {
@@ -259,7 +220,7 @@ private fun MuscleBar(row: MuscleRow, target: IntRange, modifier: Modifier = Mod
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
-                text = setsText(row.sets),
+                text = setCountText(row.sets),
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (row.load == MuscleLoad.ABOVE) colors.error else colors.onSurface,
             )
@@ -278,13 +239,6 @@ private fun MuscleBar(row: MuscleRow, target: IntRange, modifier: Modifier = Mod
     }
 }
 
-/** "12 sets", and half sets of secondary muscles count too: "12.5 sets". */
-@Composable
-private fun setsText(sets: Double): String = stringResource(
-    R.string.progress_sets,
-    LiftLogFormat.decimal(BigDecimal.valueOf(sets).setScale(1, RoundingMode.HALF_UP)),
-)
-
 @Composable
 internal fun RecordsCard(
     state: ProgressUiState.Ready,
@@ -294,49 +248,9 @@ internal fun RecordsCard(
     LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingXs) {
         CardTitle(stringResource(R.string.progress_records))
         for (entry in state.records) {
-            RecordRow(entry, state, onClick = { onOpenExercise(entry.record.exerciseId) })
+            RecordRow(entry, state.unit, withDate = true, onClick = { onOpenExercise(entry.record.exerciseId) })
             HorizontalDivider()
         }
-    }
-}
-
-@Composable
-private fun RecordRow(
-    entry: RecordEntry,
-    state: ProgressUiState.Ready,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = LiftLogDimens.minTouchTarget)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = LiftLogDimens.spacingXs),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(entry.exerciseName, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = stringResource(
-                    R.string.progress_record_line,
-                    stringResource(entry.record.type.labelRes()),
-                    dateText(entry.record.achievedAt),
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Text(
-            text = recordValueText(
-                type = entry.record.type,
-                value = entry.record.value,
-                weightKg = entry.record.weightKg,
-                exerciseType = entry.exerciseType,
-                unit = state.unit,
-            ),
-            style = MaterialTheme.typography.titleMedium,
-        )
     }
 }
 

@@ -19,6 +19,8 @@ data class SetRowUiModel(
     /** In display order; which fields exist depends on the exercise type. */
     val fields: List<SetFieldUiModel>,
     val isCompleted: Boolean,
+    /** Broke a personal record, as a trophy on its badge says. */
+    val isRecord: Boolean = false,
 )
 
 @Immutable

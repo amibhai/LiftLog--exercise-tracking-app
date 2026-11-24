@@ -22,6 +22,8 @@
     <string name="home_routine_delete">Delete routine</string>
     <string name="home_routine_deleted">Routine deleted</string>
 
+    <string name="home_records_title">Recent records</string>
+
     <string name="home_library_title">Exercise library</string>
     <plurals name="home_library_count">
         <item quantity="one">%1$,d exercise, available offline</item>

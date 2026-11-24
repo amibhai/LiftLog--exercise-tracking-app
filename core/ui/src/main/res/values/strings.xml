@@ -14,6 +14,7 @@
     <string name="ui_set_field_value">%1$s %2$s</string>
     <string name="ui_set_field_suggested">%1$s %2$s, suggested</string>
     <string name="ui_set_complete">Complete set</string>
+    <string name="ui_set_record">%1$s, personal record</string>
     <string name="ui_set_action_change_type">change set type</string>
     <string name="ui_set_action_use_previous">use these values</string>
     <string name="ui_set_type_working">Working set</string>
@@ -131,6 +132,18 @@
     <string name="ui_move_up">Move up</string>
     <string name="ui_move_down">Move down</string>
 
+    <!-- This week -->
+    <string name="ui_week_title">This week</string>
+    <string name="ui_week_workouts">Workouts</string>
+    <string name="ui_week_sets">Sets</string>
+    <string name="ui_week_volume">Volume</string>
+    <string name="ui_week_time">Time</string>
+    <plurals name="ui_week_streak">
+        <item quantity="one">%1$d week in a row</item>
+        <item quantity="other">%1$d weeks in a row</item>
+    </plurals>
+    <string name="ui_week_no_streak">Train once this week to start a streak.</string>
+
     <!-- Personal records -->
     <string name="ui_record_heaviest">Heaviest weight</string>
     <string name="ui_record_e1rm">Best estimated 1RM</string>
@@ -141,6 +154,11 @@
     <string name="ui_record_least_assistance">Least assistance</string>
     <string name="ui_record_longest_time">Longest time</string>
     <string name="ui_record_longest_distance">Longest distance</string>
+    <string name="ui_record_dated">%1$s · %2$s</string>
+    <plurals name="ui_set_count">
+        <item quantity="one">%1$s set</item>
+        <item quantity="other">%1$s sets</item>
+    </plurals>
     <plurals name="ui_reps">
         <item quantity="one">%1$d rep</item>
         <item quantity="other">%1$d reps</item>

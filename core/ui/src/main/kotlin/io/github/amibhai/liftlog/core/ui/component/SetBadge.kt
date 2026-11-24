@@ -1,6 +1,9 @@
 package io.github.amibhai.liftlog.core.ui.component
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -12,9 +15,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -22,10 +28,13 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.ui.R
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
+
+private val RecordMarkSize = 16.dp
 
 /** The set's number or type letter; tapping it opens the set menu. */
 @Composable
@@ -42,10 +51,15 @@ internal fun SetBadge(
         SetType.DROP -> stringResource(R.string.ui_set_badge_drop) to colors.secondary
         SetType.FAILURE -> stringResource(R.string.ui_set_badge_failure) to colors.error
     }
-    val description = if (model.type == SetType.WORKING) {
+    val kind = if (model.type == SetType.WORKING) {
         stringResource(R.string.ui_set_working, model.workingSetNumber ?: 0)
     } else {
         stringResource(model.type.labelRes())
+    }
+    val description = if (model.isRecord) {
+        stringResource(R.string.ui_set_record, kind)
+    } else {
+        kind
     }
     val duplicateLabel = stringResource(R.string.ui_set_action_duplicate)
     val deleteLabel = stringResource(R.string.ui_set_action_delete)
@@ -70,7 +84,30 @@ internal fun SetBadge(
         contentAlignment = Alignment.Center,
     ) {
         Text(text = label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
+        if (model.isRecord) {
+            RecordMark(Modifier.align(Alignment.TopEnd))
+        }
     }
+}
+
+/** A trophy that pops in on a set that is a personal record. */
+@Composable
+private fun RecordMark(modifier: Modifier = Modifier) {
+    val scale = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+    }
+    Icon(
+        painter = painterResource(LiftLogIcons.Trophy),
+        contentDescription = null,
+        modifier = modifier
+            .size(RecordMarkSize)
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
+        tint = MaterialTheme.colorScheme.tertiary,
+    )
 }
 
 /** Set type, duplicate and delete (SPEC §5). */

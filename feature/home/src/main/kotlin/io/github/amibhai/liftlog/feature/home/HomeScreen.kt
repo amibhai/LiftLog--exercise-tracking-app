@@ -41,58 +41,53 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
-import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.ui.component.ConfirmDialog
 import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
+import io.github.amibhai.liftlog.core.ui.component.RecordRow
+import io.github.amibhai.liftlog.core.ui.component.WeekCard
 import io.github.amibhai.liftlog.core.ui.format.relativeDays
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 import io.github.amibhai.liftlog.core.ui.R as UiR
 
 @Composable
-internal fun HomeRoute(
-    onOpenSettings: () -> Unit,
-    onBrowseExercises: () -> Unit,
-    onOpenWorkout: (WorkoutId) -> Unit,
-    onEditRoutine: (RoutineId) -> Unit,
-    viewModel: HomeViewModel = hiltViewModel(),
-) {
+internal fun HomeRoute(navigation: HomeNavigation, viewModel: HomeViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val openWorkout by rememberUpdatedState(onOpenWorkout)
-    val editRoutine by rememberUpdatedState(onEditRoutine)
     LaunchedEffect(state.openWorkout) {
         state.openWorkout?.let {
-            openWorkout(it)
+            navigation.onOpenWorkout(it)
             viewModel.onWorkoutOpened()
         }
     }
     LaunchedEffect(state.openRoutine) {
         state.openRoutine?.let {
-            editRoutine(it)
+            navigation.onEditRoutine(it)
             viewModel.onRoutineOpened()
         }
     }
-    val actions = remember(viewModel, onOpenSettings, onBrowseExercises) {
+    val actions = remember(viewModel) {
         HomeActions(
-            onOpenSettings = onOpenSettings,
-            onBrowseExercises = onBrowseExercises,
-            onResumeWorkout = { openWorkout(it) },
             onStartEmpty = viewModel::startEmpty,
             onRepeatLast = viewModel::repeatLast,
             onStartRoutine = viewModel::startRoutine,
             onNewRoutine = viewModel::newRoutine,
-            onEditRoutine = { editRoutine(it) },
             onDeleteRoutine = viewModel::deleteRoutine,
             onUndoDeleteRoutine = viewModel::undoDeleteRoutine,
             onDeleteMessageShown = viewModel::onDeleteMessageShown,
         )
     }
-    HomeScreen(state = state, actions = actions)
+    HomeScreen(state = state, navigation = navigation, actions = actions)
 }
 
 @Composable
-internal fun HomeScreen(state: HomeUiState, actions: HomeActions, modifier: Modifier = Modifier) {
+internal fun HomeScreen(
+    state: HomeUiState,
+    navigation: HomeNavigation,
+    actions: HomeActions,
+    modifier: Modifier = Modifier,
+) {
     var isAskingToResume by rememberSaveable { mutableStateOf(false) }
     val snackbars = remember { SnackbarHostState() }
     // There is one workout in progress at a time (SPEC §5).
@@ -106,7 +101,7 @@ internal fun HomeScreen(state: HomeUiState, actions: HomeActions, modifier: Modi
             TopAppBar(
                 title = { Text(stringResource(R.string.home_title)) },
                 actions = {
-                    IconButton(onClick = actions.onOpenSettings) {
+                    IconButton(onClick = navigation.onOpenSettings) {
                         Icon(painterResource(LiftLogIcons.Settings), stringResource(R.string.home_open_settings))
                     }
                 },
@@ -143,12 +138,20 @@ internal fun HomeScreen(state: HomeUiState, actions: HomeActions, modifier: Modi
                 RoutineCard(
                     routine = routine,
                     onStart = { start { actions.onStartRoutine(routine.id) } },
-                    onEdit = { actions.onEditRoutine(routine.id) },
+                    onEdit = { navigation.onEditRoutine(routine.id) },
                     onDelete = { actions.onDeleteRoutine(routine.id) },
                     modifier = Modifier.animateItem(),
                 )
             }
-            item(key = "library") { LibraryCard(state.exerciseCount, actions.onBrowseExercises) }
+            state.training?.let { training ->
+                item(key = "week") {
+                    WeekCard(training.week, training.streakWeeks, training.unit, onClick = navigation.onOpenProgress)
+                }
+                if (training.records.isNotEmpty()) {
+                    item(key = "records") { RecordsCard(training, onOpenExercise = navigation.onOpenExercise) }
+                }
+            }
+            item(key = "library") { LibraryCard(state.exerciseCount, navigation.onBrowseExercises) }
         }
     }
     if (isAskingToResume) {
@@ -158,7 +161,7 @@ internal fun HomeScreen(state: HomeUiState, actions: HomeActions, modifier: Modi
             confirmLabel = stringResource(R.string.home_resume),
             onConfirm = {
                 isAskingToResume = false
-                state.activeWorkoutId?.let(actions.onResumeWorkout)
+                state.activeWorkoutId?.let(navigation.onOpenWorkout)
             },
             onDismiss = { isAskingToResume = false },
         )
@@ -261,6 +264,25 @@ private fun RoutineCard(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+private fun RecordsCard(training: HomeTraining, onOpenExercise: (ExerciseId) -> Unit, modifier: Modifier = Modifier) {
+    LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingXs) {
+        Text(
+            text = stringResource(R.string.home_records_title),
+            modifier = Modifier.semantics { heading() },
+            style = MaterialTheme.typography.titleMedium,
+        )
+        for (entry in training.records) {
+            RecordRow(
+                entry = entry,
+                unit = training.unit,
+                withDate = true,
+                onClick = { onOpenExercise(entry.record.exerciseId) },
+            )
+        }
     }
 }
 

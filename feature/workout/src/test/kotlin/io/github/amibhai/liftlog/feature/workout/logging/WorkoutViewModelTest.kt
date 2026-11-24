@@ -4,13 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.domain.concurrent.SequentialWork
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
+import io.github.amibhai.liftlog.core.domain.model.ExerciseSession
+import io.github.amibhai.liftlog.core.domain.model.LoggedSet
 import io.github.amibhai.liftlog.core.domain.model.SetField
+import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
 import io.github.amibhai.liftlog.core.domain.units.Weight
 import io.github.amibhai.liftlog.core.testing.FakeExerciseEditor
 import io.github.amibhai.liftlog.core.testing.FakeHistoryRepository
+import io.github.amibhai.liftlog.core.testing.FakeProgressRepository
 import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
 import io.github.amibhai.liftlog.core.testing.FakeWorkoutRepository
 import io.github.amibhai.liftlog.core.testing.MainDispatcherRule
@@ -44,6 +48,7 @@ class WorkoutViewModelTest {
         workout(exercise("e", bench, set("1", target = values(80.0, 8)), set("2", target = values(80.0, 8)))),
     )
     private val id = WorkoutId("w")
+    private val progress = FakeProgressRepository()
     private val stored: Workout get() = workouts[id]!!
 
     @Test
@@ -77,6 +82,25 @@ class WorkoutViewModelTest {
         runCurrent()
         assertThat(stored.exercises[0].sets[0].isCompleted).isFalse()
         assertThat(row().isCompleted).isFalse()
+    }
+
+    @Test
+    fun aSetThatBeatsTheOldBestIsMarkedAsARecord() = runTest {
+        progress.sessions.value = mapOf(
+            bench.id to listOf(
+                ExerciseSession(
+                    workoutId = WorkoutId("old"),
+                    at = NOW - 1,
+                    sets = listOf(LoggedSet(SetType.WORKING, values(75.0, 8), id = WorkoutSetId("o"))),
+                ),
+            ),
+        )
+        val viewModel = viewModel()
+
+        viewModel.onAction(WorkoutAction.Row(SetRowAction.ToggleComplete("1")))
+        val rows = ready(viewModel).items.filterIsInstance<WorkoutItem.Set>().map { it.row }
+        assertThat(rows[0].isRecord).isTrue()
+        assertThat(rows[1].isRecord).isFalse()
     }
 
     @Test
@@ -185,6 +209,7 @@ class WorkoutViewModelTest {
             editor = WorkoutEditor(repository, work, IdGenerator { "new${nextId++}" }, testClock),
             history = FakeHistoryRepository(),
             settings = FakeSettingsRepository(),
+            progress = progress,
             exerciseEditor = FakeExerciseEditor(),
         )
         backgroundScope.launch(mainDispatcherRule.dispatcher) { viewModel.uiState.collect {} }

@@ -6,25 +6,39 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.amibhai.liftlog.core.domain.concurrent.SequentialWork
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
+import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.RoutineSummary
+import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.progress.WeekTotals
+import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
+import io.github.amibhai.liftlog.core.domain.progress.weeklyStreak
+import io.github.amibhai.liftlog.core.domain.progress.weeklyTotals
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseRepository
+import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
+import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.time.daysAgo
+import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Clock
+import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -36,12 +50,23 @@ data class HomeUiState(
     val repeatLast: RepeatLast? = null,
     /** Null until loaded. */
     val routines: List<RoutineCardUiModel>? = null,
+    /** Null until loaded, and before the first workout. */
+    val training: HomeTraining? = null,
     /** A workout that was just started, for the screen to open. */
     val openWorkout: WorkoutId? = null,
     /** A routine that was just created, for its editor to open. */
     val openRoutine: RoutineId? = null,
     /** A routine that was just deleted and can still be brought back. */
     val deletedRoutine: RoutineId? = null,
+)
+
+/** This week and the latest records (SPEC §11). */
+@Immutable
+data class HomeTraining(
+    val week: WeekTotals,
+    val streakWeeks: Int,
+    val records: List<RecordEntry>,
+    val unit: WeightUnit,
 )
 
 /** "Repeat last Push" (SPEC §5): the routine of the last workout, or that workout when it had none. */
@@ -69,6 +94,8 @@ class HomeViewModel @Inject constructor(
     workouts: WorkoutRepository,
     private val routines: RoutineRepository,
     private val startWorkout: StartWorkout,
+    private val progress: ProgressRepository,
+    settings: SettingsRepository,
     private val ids: IdGenerator,
     private val work: SequentialWork,
     private val clock: Clock,
@@ -76,7 +103,14 @@ class HomeViewModel @Inject constructor(
 
     private val local = MutableStateFlow(HomeLocalState())
 
-    val uiState: StateFlow<HomeUiState> = combine(
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val training: Flow<HomeTraining?> = settings.settings.flatMapLatest { current ->
+        combine(progress.observeWorkoutStats(), progress.observeRecentRecords(RECORDS)) { stats, records ->
+            training(stats, records, current)
+        }
+    }
+
+    private val base: Flow<HomeUiState> = combine(
         exercises.observeStats(),
         workouts.observeActive(),
         workouts.observeFinished(limit = 1).map { it.firstOrNull() },
@@ -92,7 +126,12 @@ class HomeViewModel @Inject constructor(
             openRoutine = local.openRoutine,
             deletedRoutine = local.deletedRoutine,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
+    }
+
+    /** Starting a workout does not wait for the statistics. */
+    val uiState: StateFlow<HomeUiState> =
+        combine(base, training.onStart { emit(null) }) { state, training -> state.copy(training = training) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
 
     fun startEmpty() = start { startWorkout.empty() }
 
@@ -136,6 +175,23 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun training(
+        stats: List<WorkoutStats>,
+        records: List<RecordEntry>,
+        settings: UserSettings,
+    ): HomeTraining? {
+        if (stats.isEmpty()) return null
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(clock.withZone(zone))
+        val firstDay = settings.weekStartsOn()
+        return HomeTraining(
+            week = weeklyTotals(stats, weeks = 1, today, firstDay, zone).single(),
+            streakWeeks = weeklyStreak(stats.map { it.day(zone) }, today, firstDay),
+            records = records,
+            unit = settings.weightUnit,
+        )
+    }
+
     private fun repeatLast(last: Workout, routines: List<RoutineSummary>): RepeatLast {
         val routine = routines.firstOrNull { it.routine.id == last.routineId }?.routine
         return RepeatLast(last.id, routine?.id, routine?.name?.ifBlank { null })
@@ -150,5 +206,6 @@ class HomeViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+        const val RECORDS = 3
     }
 }

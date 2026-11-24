@@ -3,6 +3,7 @@ package io.github.amibhai.liftlog.feature.progress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
@@ -15,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.amibhai.liftlog.core.ui.component.EmptyState
+import io.github.amibhai.liftlog.core.ui.component.WeekCard
 import io.github.amibhai.liftlog.core.ui.icon.LiftLogIcons
 import io.github.amibhai.liftlog.core.ui.theme.LiftLogDimens
 
@@ -36,16 +38,25 @@ internal fun ProgressScreen(state: ProgressUiState, actions: ProgressActions, mo
             is ProgressUiState.Ready -> if (state.hasWorkouts) {
                 Dashboard(state = state, actions = actions, modifier = Modifier.padding(padding))
             } else {
-                EmptyState(
-                    icon = LiftLogIcons.Progress,
-                    title = stringResource(R.string.progress_empty_title),
-                    body = stringResource(R.string.progress_empty_body),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                )
+                NoWorkouts(state = state, actions = actions, modifier = Modifier.padding(padding))
             }
         }
+    }
+}
+
+/** The body can be tracked before the first workout. */
+@Composable
+private fun NoWorkouts(state: ProgressUiState.Ready, actions: ProgressActions, modifier: Modifier = Modifier) {
+    LazyColumn(modifier = modifier.fillMaxSize(), contentPadding = PaddingValues(LiftLogDimens.screenGutter)) {
+        item(key = "empty") {
+            EmptyState(
+                icon = LiftLogIcons.Progress,
+                title = stringResource(R.string.progress_empty_title),
+                body = stringResource(R.string.progress_empty_body),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        item(key = "body") { BodyCard(state, onOpen = actions.onOpenBody) }
     }
 }
 
@@ -56,7 +67,7 @@ private fun Dashboard(state: ProgressUiState.Ready, actions: ProgressActions, mo
         contentPadding = PaddingValues(LiftLogDimens.screenGutter),
         verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingM),
     ) {
-        item(key = "week") { ThisWeekCard(state) }
+        item(key = "week") { WeekCard(state.thisWeek, state.streakWeeks, state.unit) }
         item(key = "calendar") { CalendarCard(state) }
         item(key = "weeks") { WeeklyChartCard(state) }
         item(key = "muscles") { MusclesCard(state) }

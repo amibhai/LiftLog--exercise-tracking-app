@@ -4,17 +4,6 @@
     <string name="progress_empty_title">Progress starts with your first workout</string>
     <string name="progress_empty_body">Estimated 1RMs, personal records, weekly sets per muscle and your training calendar will appear here.</string>
 
-    <string name="progress_this_week">This week</string>
-    <string name="progress_stat_workouts">Workouts</string>
-    <string name="progress_stat_sets">Sets</string>
-    <string name="progress_stat_volume">Volume</string>
-    <string name="progress_stat_time">Time</string>
-    <plurals name="progress_streak">
-        <item quantity="one">%1$d week in a row</item>
-        <item quantity="other">%1$d weeks in a row</item>
-    </plurals>
-    <string name="progress_no_streak">Train once this week to start a streak.</string>
-
     <string name="progress_calendar">Training calendar</string>
     <string name="progress_calendar_hint">Each column is a week and each square a day. Stronger colour means more sets.</string>
     <plurals name="progress_calendar_description">
@@ -37,10 +26,8 @@
     <string name="progress_muscles_target">Weekly target: %1$s sets per muscle</string>
     <string name="progress_muscles_none">No sets yet</string>
     <string name="progress_muscles_not_trained">Not trained this week: %1$s</string>
-    <string name="progress_sets">%1$s sets</string>
 
     <string name="progress_records">Recent records</string>
-    <string name="progress_record_line">%1$s, %2$s</string>
 
     <string name="progress_body">Body</string>
     <string name="progress_body_empty">Log your body weight, measurements and photos.</string>

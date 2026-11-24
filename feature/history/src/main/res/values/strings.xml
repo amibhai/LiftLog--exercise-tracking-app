@@ -21,6 +21,8 @@
     <string name="history_stat_volume">Volume</string>
     <string name="history_stat_sets">Sets</string>
     <string name="history_superset">Superset %1$s</string>
+    <string name="history_records">Personal records</string>
+    <string name="history_muscles">Muscles worked</string>
     <string name="history_edit">Edit workout</string>
     <string name="history_repeat">Repeat workout</string>
     <string name="history_delete">Delete workout</string>

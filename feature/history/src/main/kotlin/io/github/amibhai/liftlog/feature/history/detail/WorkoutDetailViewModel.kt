@@ -7,8 +7,11 @@ import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.amibhai.liftlog.core.domain.concurrent.SequentialWork
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
+import io.github.amibhai.liftlog.core.domain.model.Routine
+import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
 import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
@@ -38,6 +41,7 @@ class WorkoutDetailViewModel @Inject constructor(
     private val workouts: WorkoutRepository,
     private val routines: RoutineRepository,
     private val startWorkout: StartWorkout,
+    private val progress: ProgressRepository,
     private val ids: IdGenerator,
     private val work: SequentialWork,
     settings: SettingsRepository,
@@ -58,28 +62,10 @@ class WorkoutDetailViewModel @Inject constructor(
         .flatMapLatest { routineId -> routineId?.let(routines::observe) ?: flowOf(null) }
 
     val uiState: StateFlow<WorkoutDetailUiState> = combine(
-        stored,
-        routine,
-        workouts.observeActive().map { it?.id },
-        settings.settings,
-        local,
-    ) { stored, routine, activeId, settings, local ->
-        when {
-            stored == null -> WorkoutDetailUiState.Loading
-
-            stored.workout == null -> WorkoutDetailUiState.Gone
-
-            else -> detailState(
-                stored.workout,
-                routine,
-                activeId,
-                settings,
-                local,
-                route.justFinished,
-                ZoneId.systemDefault(),
-            )
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), WorkoutDetailUiState.Loading)
+        combine(stored, routine, workouts.observeActive().map { it?.id }, settings.settings, local, ::DetailInputs),
+        combine(progress.observeRecordsOf(id), progress.observeMuscleWork(id), ::DetailExtras),
+        ::state,
+    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), WorkoutDetailUiState.Loading)
 
     /** Starts the same exercises again, filled in from this workout. */
     fun repeat() {
@@ -121,6 +107,35 @@ class WorkoutDetailViewModel @Inject constructor(
     }
 
     fun delete() = work.submit { workouts.delete(id) }
+
+    private fun state(inputs: DetailInputs, extras: DetailExtras): WorkoutDetailUiState {
+        val stored = inputs.stored
+        val workout = stored?.workout
+        return when {
+            stored == null -> WorkoutDetailUiState.Loading
+
+            workout == null -> WorkoutDetailUiState.Gone
+
+            else -> detailState(
+                workout,
+                inputs.routine,
+                inputs.activeId,
+                inputs.settings,
+                inputs.local,
+                route.justFinished,
+                ZoneId.systemDefault(),
+                extras,
+            )
+        }
+    }
+
+    private class DetailInputs(
+        val stored: Stored?,
+        val routine: Routine?,
+        val activeId: WorkoutId?,
+        val settings: UserSettings,
+        val local: DetailLocalState,
+    )
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L

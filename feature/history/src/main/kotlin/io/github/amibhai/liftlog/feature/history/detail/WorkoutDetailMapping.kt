@@ -1,10 +1,13 @@
 package io.github.amibhai.liftlog.feature.history.detail
 
+import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
+import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
+import io.github.amibhai.liftlog.core.domain.progress.muscleSets
 import io.github.amibhai.liftlog.core.domain.time.partOfDay
 import io.github.amibhai.liftlog.core.domain.workout.differsFrom
 import io.github.amibhai.liftlog.core.domain.workout.durationSeconds
@@ -25,10 +28,12 @@ internal fun detailState(
     local: DetailLocalState,
     justFinished: Boolean,
     zone: ZoneId,
+    extras: DetailExtras,
 ): WorkoutDetailUiState.Ready {
     val text = SetText(settings.weightUnit)
     val totals = workout.totals()
     val letters = supersetLetters(workout.exercises) { it.supersetGroup }
+    val muscles = muscleSets(extras.work, settings.secondaryMuscleSets)
     return WorkoutDetailUiState.Ready(
         id = workout.id,
         title = WorkoutTitle(workout.name, partOfDay(workout.startedAt, zone)),
@@ -56,12 +61,19 @@ internal fun detailState(
             routine.differsFrom(workout) -> RoutineOffer.Update(routine.name)
             else -> RoutineOffer.None
         },
+        records = extras.records,
+        muscles = muscles.map { (muscle, sets) -> MuscleSets(muscle, sets) }.sortedByDescending { it.sets },
+        levels = muscles.mapValues { (_, sets) -> (sets / muscles.values.max()).toFloat() },
+        unit = settings.weightUnit,
         justFinished = justFinished,
         activeWorkoutId = activeId?.takeIf { it != workout.id },
         routineDone = local.routineDone,
         openWorkout = local.openWorkout,
     )
 }
+
+/** What the page adds to the stored workout: the records it broke and the muscles it worked. */
+internal class DetailExtras(val records: List<RecordEntry>, val work: List<MuscleWork>)
 
 /** Whatever was recorded, whichever scale is chosen now. */
 private fun WorkoutSet.effortText(): String? = rpe?.let { "RPE ${effortText(it)}" } ?: rir?.let { "RIR $it" }

@@ -3,10 +3,10 @@ package io.github.amibhai.liftlog.feature.history.detail
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -33,6 +33,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -48,8 +50,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.ui.component.Celebration
 import io.github.amibhai.liftlog.core.ui.component.ConfirmDialog
 import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
+import io.github.amibhai.liftlog.core.ui.component.StatItem
 import io.github.amibhai.liftlog.core.ui.component.TextInputDialog
 import io.github.amibhai.liftlog.core.ui.format.LiftLogFormat
 import io.github.amibhai.liftlog.core.ui.format.dateTimeText
@@ -120,12 +124,11 @@ internal fun WorkoutDetailScreen(
             verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingM),
         ) {
             if (state.justFinished) item(key = "finished") { FinishedCard() }
+            if (state.records.isNotEmpty()) item(key = "records") { RecordsCard(state, actions.onOpenExercise) }
             item(key = "summary") { SummaryCard(state) }
-            state.notes?.let { notes ->
-                item(
-                    key = "notes",
-                ) { Text(notes, style = MaterialTheme.typography.bodyLarge) }
-            }
+            val notes = state.notes
+            if (notes != null) item(key = "notes") { Text(notes, style = MaterialTheme.typography.bodyLarge) }
+            if (state.muscles.isNotEmpty()) item(key = "muscles") { MusclesCard(state) }
             items(state.exercises, key = { it.id.value }) { exercise ->
                 ExerciseCard(exercise, onOpen = { actions.onOpenExercise(exercise.exerciseId) })
             }
@@ -150,7 +153,18 @@ internal fun WorkoutDetailScreen(
             }
         }
     }
+    if (state.justFinished && state.records.isNotEmpty()) CelebrateRecords()
     dialog?.let { DetailDialogs(it, state, actions, onDismiss = { dialog = null }) }
+}
+
+/** A burst of confetti and a haptic, once, when a workout just finished broke records (SPEC §13). */
+@Composable
+private fun CelebrateRecords() {
+    val haptics = LocalHapticFeedback.current
+    var isOver by rememberSaveable { mutableStateOf(false) }
+    if (isOver) return
+    LaunchedEffect(Unit) { haptics.performHapticFeedback(HapticFeedbackType.LongPress) }
+    Celebration(onEnd = { isOver = true }, modifier = Modifier.fillMaxSize())
 }
 
 @Composable
@@ -222,18 +236,10 @@ private fun SummaryCard(state: WorkoutDetailUiState.Ready, modifier: Modifier = 
             horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingXl),
             verticalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingS),
         ) {
-            Stat(stringResource(R.string.history_stat_time), LiftLogFormat.duration(state.durationSeconds))
-            Stat(stringResource(R.string.history_stat_volume), state.volume)
-            Stat(stringResource(R.string.history_stat_sets), state.sets.toString())
+            StatItem(stringResource(R.string.history_stat_time), LiftLogFormat.duration(state.durationSeconds))
+            StatItem(stringResource(R.string.history_stat_volume), state.volume)
+            StatItem(stringResource(R.string.history_stat_sets), state.sets.toString())
         }
-    }
-}
-
-@Composable
-private fun Stat(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier.semantics(mergeDescendants = true) {}) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.titleLarge)
     }
 }
 

@@ -2,9 +2,12 @@ package io.github.amibhai.liftlog.feature.history.detail
 
 import androidx.compose.runtime.Immutable
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
+import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExerciseId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.ui.format.WorkoutTitle
 
 sealed interface WorkoutDetailUiState {
@@ -24,6 +27,13 @@ sealed interface WorkoutDetailUiState {
         val notes: String?,
         val exercises: List<DetailExercise>,
         val routine: RoutineOffer,
+        /** Records this workout broke. */
+        val records: List<RecordEntry>,
+        /** The muscles worked, most sets first. */
+        val muscles: List<MuscleSets>,
+        /** The same for the body figure: 1 is the muscle worked most. */
+        val levels: Map<Muscle, Float>,
+        val unit: WeightUnit,
         /** Opened right after finishing the workout. */
         val justFinished: Boolean,
         /** The workout in progress, when it is another one: starting a new one has to wait for it. */
@@ -43,6 +53,10 @@ data class DetailExercise(
     val notes: String?,
     val sets: List<DetailSet>,
 )
+
+/** Sets of a muscle in one workout. */
+@Immutable
+data class MuscleSets(val muscle: Muscle, val sets: Double)
 
 /** [number] counts working sets; [text] is "80 kg × 8"; [effort] is "RPE 8.5". */
 @Immutable

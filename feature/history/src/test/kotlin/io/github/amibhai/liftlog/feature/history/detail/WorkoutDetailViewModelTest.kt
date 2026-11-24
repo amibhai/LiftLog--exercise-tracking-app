@@ -4,14 +4,21 @@ import androidx.lifecycle.SavedStateHandle
 import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.domain.concurrent.SequentialWork
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
+import io.github.amibhai.liftlog.core.domain.model.ExerciseType
+import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.domain.model.PersonalRecord
+import io.github.amibhai.liftlog.core.domain.model.RecordEntry
+import io.github.amibhai.liftlog.core.domain.model.RecordType
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
 import io.github.amibhai.liftlog.core.testing.FakeHistoryRepository
+import io.github.amibhai.liftlog.core.testing.FakeProgressRepository
 import io.github.amibhai.liftlog.core.testing.FakeRoutineRepository
 import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
 import io.github.amibhai.liftlog.core.testing.FakeWorkoutRepository
@@ -40,6 +47,7 @@ class WorkoutDetailViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val id = WorkoutId("w")
+    private val progress = FakeProgressRepository()
     private val workout = finished(
         "w",
         NOW - HOUR,
@@ -103,6 +111,39 @@ class WorkoutDetailViewModelTest {
     }
 
     @Test
+    fun theRecordsAndMusclesOfTheWorkoutAreShown() = runTest {
+        progress.recordsOf.value = mapOf(
+            id to listOf(
+                RecordEntry(
+                    record = PersonalRecord(
+                        exerciseId = bench.id,
+                        type = RecordType.HEAVIEST_WEIGHT,
+                        value = 80.0,
+                        weightKg = 80.0,
+                        reps = 8,
+                        workoutId = id,
+                        setId = null,
+                        achievedAt = NOW,
+                    ),
+                    exerciseName = "Bench Press",
+                    exerciseType = ExerciseType.WEIGHT_REPS,
+                ),
+            ),
+        )
+        progress.workOf.value = mapOf(
+            id to listOf(MuscleWork(bench.id, listOf(Muscle.CHEST), listOf(Muscle.TRICEPS), sets = 2)),
+        )
+        val state = ready(viewModel())
+
+        assertThat(state.records.single().exerciseName).isEqualTo("Bench Press")
+        assertThat(state.muscles.map { it.muscle to it.sets }).containsExactly(
+            Muscle.CHEST to 2.0,
+            Muscle.TRICEPS to 1.0,
+        ).inOrder()
+        assertThat(state.levels[Muscle.CHEST]).isEqualTo(1f)
+    }
+
+    @Test
     fun deletingClosesTheScreen() = runTest {
         val viewModel = viewModel()
 
@@ -122,6 +163,7 @@ class WorkoutDetailViewModelTest {
             savedStateHandle = SavedStateHandle(mapOf("workoutId" to "w", "justFinished" to false)),
             workouts = workouts,
             routines = routines,
+            progress = progress,
             startWorkout = StartWorkout(workouts, routines, history, WorkoutFactory(ids), testClock),
             ids = ids,
             work = SequentialWork(CoroutineScope(backgroundScope.coroutineContext + mainDispatcherRule.dispatcher)),

@@ -32,7 +32,7 @@ import io.github.amibhai.liftlog.feature.history.navigation.historyGraph
 import io.github.amibhai.liftlog.feature.history.navigation.navigateToWorkoutDetail
 import io.github.amibhai.liftlog.feature.home.navigation.HomeDestination
 import io.github.amibhai.liftlog.feature.home.navigation.homeScreen
-import io.github.amibhai.liftlog.feature.progress.navigation.progressScreen
+import io.github.amibhai.liftlog.feature.progress.navigation.progressGraph
 import io.github.amibhai.liftlog.feature.routines.editor.RoutineEditorNavigation
 import io.github.amibhai.liftlog.feature.routines.navigation.navigateToRoutineEditor
 import io.github.amibhai.liftlog.feature.routines.navigation.routineEditorScreen
@@ -124,7 +124,10 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
                     }
                 },
             )
-            progressScreen()
+            progressGraph(
+                navController = navController,
+                onOpenExercise = { navController.navigateToExerciseDetail(it) },
+            )
             exercisesGraph(navController)
             settingsGraph(
                 appVersion = appVersion,

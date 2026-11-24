@@ -146,6 +146,19 @@
         <item quantity="other">%1$d reps</item>
     </plurals>
 
+    <!-- Body measurements -->
+    <string name="ui_metric_body_weight">Body weight</string>
+    <string name="ui_metric_body_fat">Body fat</string>
+    <string name="ui_metric_neck">Neck</string>
+    <string name="ui_metric_shoulders">Shoulders</string>
+    <string name="ui_metric_chest">Chest</string>
+    <string name="ui_metric_waist">Waist</string>
+    <string name="ui_metric_hips">Hips</string>
+    <string name="ui_metric_upper_arm">Upper arm</string>
+    <string name="ui_metric_forearm">Forearm</string>
+    <string name="ui_metric_thigh">Thigh</string>
+    <string name="ui_metric_calf">Calf</string>
+
     <!-- Muscle heatmap -->
     <string name="ui_heatmap_front">Front</string>
     <string name="ui_heatmap_back">Back</string>

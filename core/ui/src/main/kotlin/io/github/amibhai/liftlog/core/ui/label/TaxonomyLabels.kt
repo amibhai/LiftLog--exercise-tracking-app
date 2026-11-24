@@ -7,6 +7,7 @@ import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.Mechanic
 import io.github.amibhai.liftlog.core.domain.model.Muscle
 import io.github.amibhai.liftlog.core.domain.model.SetField
+import io.github.amibhai.liftlog.core.domain.progress.BodyMetricType
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.ui.R
 
@@ -89,4 +90,19 @@ fun SetField.labelRes(): Int = when (this) {
     SetField.REPS -> R.string.ui_field_reps
     SetField.DURATION -> R.string.ui_field_duration
     SetField.DISTANCE -> R.string.ui_field_distance
+}
+
+@StringRes
+fun BodyMetricType.labelRes(): Int = when (this) {
+    BodyMetricType.BODY_WEIGHT -> R.string.ui_metric_body_weight
+    BodyMetricType.BODY_FAT -> R.string.ui_metric_body_fat
+    BodyMetricType.NECK -> R.string.ui_metric_neck
+    BodyMetricType.SHOULDERS -> R.string.ui_metric_shoulders
+    BodyMetricType.CHEST -> R.string.ui_metric_chest
+    BodyMetricType.WAIST -> R.string.ui_metric_waist
+    BodyMetricType.HIPS -> R.string.ui_metric_hips
+    BodyMetricType.UPPER_ARM -> R.string.ui_metric_upper_arm
+    BodyMetricType.FOREARM -> R.string.ui_metric_forearm
+    BodyMetricType.THIGH -> R.string.ui_metric_thigh
+    BodyMetricType.CALF -> R.string.ui_metric_calf
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Pictures taken with the camera app, before they are copied into private storage. -->
+    <cache-path
+        name="camera"
+        path="camera/" />
+</paths>

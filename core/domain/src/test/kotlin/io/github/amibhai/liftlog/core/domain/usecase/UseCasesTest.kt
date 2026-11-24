@@ -2,6 +2,7 @@ package io.github.amibhai.liftlog.core.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
+import io.github.amibhai.liftlog.core.domain.model.ActiveProgram
 import io.github.amibhai.liftlog.core.domain.model.CatalogExercise
 import io.github.amibhai.liftlog.core.domain.model.Equipment
 import io.github.amibhai.liftlog.core.domain.model.ExerciseDetail
@@ -12,6 +13,11 @@ import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.ExerciseUsage
 import io.github.amibhai.liftlog.core.domain.model.LibrarySource
 import io.github.amibhai.liftlog.core.domain.model.LibraryStats
+import io.github.amibhai.liftlog.core.domain.model.Program
+import io.github.amibhai.liftlog.core.domain.model.ProgramDay
+import io.github.amibhai.liftlog.core.domain.model.ProgramDayId
+import io.github.amibhai.liftlog.core.domain.model.ProgramId
+import io.github.amibhai.liftlog.core.domain.model.ProgressionRule
 import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
@@ -22,16 +28,21 @@ import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExerciseId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.program.ProgramTemplates
+import io.github.amibhai.liftlog.core.domain.program.TemplateDayName
+import io.github.amibhai.liftlog.core.domain.program.TemplateKey
 import io.github.amibhai.liftlog.core.domain.progress.MuscleWork
 import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
 import io.github.amibhai.liftlog.core.domain.progression.PlannedSession
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseRepository
 import io.github.amibhai.liftlog.core.domain.repository.HistoryRepository
+import io.github.amibhai.liftlog.core.domain.repository.ProgramRepository
 import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
 import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.search.SearchIndex
+import io.github.amibhai.liftlog.core.domain.units.Weight
 import io.github.amibhai.liftlog.core.domain.workout.NOW
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
 import io.github.amibhai.liftlog.core.domain.workout.exercise
@@ -65,7 +76,8 @@ class UseCasesTest {
 
     private val progress = FixedProgress()
     private val advisor = ProgressionAdvisor(progress, FixedSettings())
-    private val start = StartWorkout(workouts, routines, history, advisor, WorkoutFactory(ids), clock)
+    private val programs = InMemoryPrograms()
+    private val start = StartWorkout(workouts, routines, programs, history, advisor, WorkoutFactory(ids), clock)
     private val add = AddExercises(workouts, routines, library, history, ids, clock)
 
     @Test
@@ -105,6 +117,50 @@ class UseCasesTest {
         start.fromRoutine(RoutineId("r"))
 
         assertThat(workouts.active()!!.exercises.single().sets.single().target).isEqualTo(values(82.5, 5))
+    }
+
+    @Test
+    fun `a routine of the followed program counts for its day`() = runTest {
+        routines.create(Routine(RoutineId("r"), "Push"))
+        programs.create(
+            Program(
+                ProgramId("p"),
+                "PPL",
+                days = listOf(ProgramDay(ProgramDayId("d1"), "Push", RoutineId("r"))),
+            ),
+        )
+
+        start.fromRoutine(RoutineId("r"))
+        assertThat(workouts.active()!!.programDayId).isNull()
+
+        workouts.edit(workouts.active()!!.id) { it.copy(isInProgress = false, endedAt = NOW) }
+        programs.activate(ProgramId("p"))
+        start.fromRoutine(RoutineId("r"))
+        assertThat(workouts.active()!!.programDayId).isEqualTo(ProgramDayId("d1"))
+    }
+
+    @Test
+    fun `a template becomes routines that are followed`() = runTest {
+        val squat = info("squat").copy(id = ProgramTemplates.of(TemplateKey.FIVE_THREE_ONE).trainingMaxLifts.last())
+        val create = CreateProgram(programs, routines, FixedLibrary(listOf(squat)), FixedSettings(), ids, clock)
+
+        val id = create(
+            template = ProgramTemplates.of(TemplateKey.FIVE_THREE_ONE),
+            name = "5/3/1",
+            dayNames = mapOf(TemplateDayName.SQUAT to "Squat day"),
+            trainingMaxes = mapOf(squat.id to Weight(120.0)),
+        )
+
+        val program = programs.observeActive().first()!!.program
+        assertThat(program.id).isEqualTo(id)
+        assertThat(program.templateKey).isEqualTo("FIVE_THREE_ONE")
+        assertThat(program.days).hasSize(4)
+        val day = program.days.last()
+        assertThat(day.name).isEqualTo("Squat day")
+        val slot = routines.get(day.routineId!!)!!.exercises.single()
+        assertThat(slot.progression)
+            .isEqualTo(ProgressionRule.FiveThreeOne(trainingMaxKg = 120.0, incrementKg = 5.0, since = NOW))
+        assertThat(slot.restSeconds).isEqualTo(180)
     }
 
     @Test
@@ -239,6 +295,32 @@ class UseCasesTest {
         override suspend fun restore(id: RoutineId) = Unit
 
         override suspend fun reorder(ids: List<RoutineId>) = Unit
+    }
+
+    private class InMemoryPrograms : ProgramRepository {
+        private val all = MutableStateFlow(emptyMap<ProgramId, Program>())
+
+        override fun observeAll(): Flow<List<Program>> = all.map { it.values.toList() }
+
+        override fun observe(id: ProgramId): Flow<Program?> = all.map { it[id] }
+
+        override fun observeActive(): Flow<ActiveProgram?> =
+            all.map { map -> map.values.firstOrNull { it.isActive }?.let { ActiveProgram(it, lastDay = null) } }
+
+        override suspend fun create(program: Program) {
+            all.value += program.id to program
+        }
+
+        override suspend fun edit(id: ProgramId, change: (Program) -> Program): Program? =
+            all.value[id]?.let(change)?.also { create(it) }
+
+        override suspend fun activate(id: ProgramId?) {
+            all.value = all.value.mapValues { (key, program) -> program.copy(isActive = key == id) }
+        }
+
+        override suspend fun delete(id: ProgramId) {
+            all.value -= id
+        }
     }
 
     private class FixedProgress : ProgressRepository {

@@ -16,6 +16,12 @@ value class RoutineId(val value: String)
 value class RoutineExerciseId(val value: String)
 
 @JvmInline
+value class ProgramId(val value: String)
+
+@JvmInline
+value class ProgramDayId(val value: String)
+
+@JvmInline
 value class BodyMetricId(val value: String)
 
 @JvmInline

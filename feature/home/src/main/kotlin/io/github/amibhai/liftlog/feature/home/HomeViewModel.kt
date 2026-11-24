@@ -13,11 +13,13 @@ import io.github.amibhai.liftlog.core.domain.model.RoutineSummary
 import io.github.amibhai.liftlog.core.domain.model.UserSettings
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.program.nextDay
 import io.github.amibhai.liftlog.core.domain.progress.WeekTotals
 import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
 import io.github.amibhai.liftlog.core.domain.progress.weeklyStreak
 import io.github.amibhai.liftlog.core.domain.progress.weeklyTotals
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseRepository
+import io.github.amibhai.liftlog.core.domain.repository.ProgramRepository
 import io.github.amibhai.liftlog.core.domain.repository.ProgressRepository
 import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
 import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
@@ -47,6 +49,8 @@ data class HomeUiState(
     val exerciseCount: Int? = null,
     /** Starting another workout has to wait while this one is in progress. */
     val activeWorkoutId: WorkoutId? = null,
+    /** The day of the followed program that is up next. */
+    val next: NextWorkout? = null,
     val repeatLast: RepeatLast? = null,
     /** Null until loaded. */
     val routines: List<RoutineCardUiModel>? = null,
@@ -67,6 +71,15 @@ data class HomeTraining(
     val streakWeeks: Int,
     val records: List<RecordEntry>,
     val unit: WeightUnit,
+)
+
+/** The suggested next workout (SPEC §5, §7). */
+@Immutable
+data class NextWorkout(
+    val programName: String,
+    val dayName: String,
+    val routineId: RoutineId,
+    val exercises: List<String>,
 )
 
 /** "Repeat last Push" (SPEC §5): the routine of the last workout, or that workout when it had none. */
@@ -94,6 +107,7 @@ class HomeViewModel @Inject constructor(
     workouts: WorkoutRepository,
     private val routines: RoutineRepository,
     private val startWorkout: StartWorkout,
+    programs: ProgramRepository,
     private val progress: ProgressRepository,
     settings: SettingsRepository,
     private val ids: IdGenerator,
@@ -128,9 +142,21 @@ class HomeViewModel @Inject constructor(
         )
     }
 
+    private val next: Flow<NextWorkout?> = combine(programs.observeActive(), routines.observeAll()) { active, all ->
+        val day = active?.nextDay
+        val routine = all.firstOrNull { it.routine.id == day?.routineId }?.routine
+        if (active == null || day == null || routine == null) {
+            null
+        } else {
+            NextWorkout(active.program.name, day.name, routine.id, routine.exercises.map { it.exercise.name })
+        }
+    }
+
     /** Starting a workout does not wait for the statistics. */
     val uiState: StateFlow<HomeUiState> =
-        combine(base, training.onStart { emit(null) }) { state, training -> state.copy(training = training) }
+        combine(base, next, training.onStart { emit(null) }) { state, next, training ->
+            state.copy(next = next, training = training)
+        }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
 
     fun startEmpty() = start { startWorkout.empty() }

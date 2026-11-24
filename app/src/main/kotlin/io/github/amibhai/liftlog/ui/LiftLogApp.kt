@@ -35,8 +35,9 @@ import io.github.amibhai.liftlog.feature.home.navigation.HomeDestination
 import io.github.amibhai.liftlog.feature.home.navigation.homeScreen
 import io.github.amibhai.liftlog.feature.progress.navigation.progressGraph
 import io.github.amibhai.liftlog.feature.routines.editor.RoutineEditorNavigation
+import io.github.amibhai.liftlog.feature.routines.navigation.navigateToPrograms
 import io.github.amibhai.liftlog.feature.routines.navigation.navigateToRoutineEditor
-import io.github.amibhai.liftlog.feature.routines.navigation.routineEditorScreen
+import io.github.amibhai.liftlog.feature.routines.navigation.routinesGraph
 import io.github.amibhai.liftlog.feature.settings.navigation.SettingsDestination
 import io.github.amibhai.liftlog.feature.settings.navigation.settingsGraph
 import io.github.amibhai.liftlog.feature.workout.active.ActiveWorkoutBanner
@@ -64,6 +65,7 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
             onBrowseExercises = { navController.navigateToTab(TopLevelDestination.EXERCISES) },
             onOpenProgress = { navController.navigateToTab(TopLevelDestination.PROGRESS) },
             onOpenExercise = { navController.navigateToExerciseDetail(it) },
+            onOpenPrograms = { navController.navigateToPrograms() },
             onOpenWorkout = { navController.navigateToWorkout(it) },
             onEditRoutine = { navController.navigateToRoutineEditor(it) },
         )
@@ -114,7 +116,7 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
                 .consumeWindowInsets(padding),
         ) {
             homeScreen(homeNavigation)
-            routineEditorScreen(routineNavigation)
+            routinesGraph(navController, routineNavigation)
             historyGraph(
                 navController = navController,
                 onOpenWorkout = { navController.navigateToWorkout(it) },

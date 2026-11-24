@@ -8,6 +8,10 @@ import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.PersonalRecord
+import io.github.amibhai.liftlog.core.domain.model.Program
+import io.github.amibhai.liftlog.core.domain.model.ProgramDay
+import io.github.amibhai.liftlog.core.domain.model.ProgramDayId
+import io.github.amibhai.liftlog.core.domain.model.ProgramId
 import io.github.amibhai.liftlog.core.domain.model.RecordEntry
 import io.github.amibhai.liftlog.core.domain.model.RecordType
 import io.github.amibhai.liftlog.core.domain.model.Routine
@@ -28,6 +32,7 @@ import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
 import io.github.amibhai.liftlog.core.testing.FakeExerciseRepository
 import io.github.amibhai.liftlog.core.testing.FakeHistoryRepository
+import io.github.amibhai.liftlog.core.testing.FakeProgramRepository
 import io.github.amibhai.liftlog.core.testing.FakeProgressRepository
 import io.github.amibhai.liftlog.core.testing.FakeRoutineRepository
 import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
@@ -58,6 +63,7 @@ class HomeViewModelTest {
     )
     private val routines = FakeRoutineRepository(push)
     private val progress = FakeProgressRepository()
+    private val programs = FakeProgramRepository()
 
     @Test
     fun repeatLastStartsTheRoutineOfTheLastWorkout() = runTest {
@@ -108,6 +114,20 @@ class HomeViewModelTest {
         viewModel.undoDeleteRoutine()
         assertThat(routines.all.map { it.id }).containsExactly(push.id)
         assertThat(viewModel.uiState.value.deletedRoutine).isNull()
+    }
+
+    @Test
+    fun theNextDayOfTheFollowedProgramIsSuggestedAndCounts() = runTest {
+        val day = ProgramDay(ProgramDayId("d"), "Push day", push.id)
+        programs.create(Program(ProgramId("p"), "My split", isActive = true, days = listOf(day)))
+        val workouts = FakeWorkoutRepository()
+        val viewModel = viewModel(workouts)
+
+        val next = viewModel.uiState.value.next
+        assertThat(next).isEqualTo(NextWorkout("My split", "Push day", push.id, listOf("Bench Press")))
+
+        viewModel.startRoutine(push.id)
+        assertThat(workouts.active!!.programDayId).isEqualTo(day.id)
     }
 
     @Test
@@ -185,7 +205,8 @@ class HomeViewModelTest {
             exercises = FakeExerciseRepository(),
             workouts = workouts,
             routines = routines,
-            startWorkout = StartWorkout(workouts, routines, FakeHistoryRepository(), advisor, factory, clock),
+            startWorkout = StartWorkout(workouts, routines, programs, FakeHistoryRepository(), advisor, factory, clock),
+            programs = programs,
             progress = progress,
             settings = settings,
             ids = ids,

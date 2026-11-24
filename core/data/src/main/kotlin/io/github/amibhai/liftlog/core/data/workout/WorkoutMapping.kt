@@ -9,6 +9,7 @@ import io.github.amibhai.liftlog.core.database.entity.WorkoutSetEntity
 import io.github.amibhai.liftlog.core.domain.model.ExerciseDefaults
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
+import io.github.amibhai.liftlog.core.domain.model.ProgramDayId
 import io.github.amibhai.liftlog.core.domain.model.RestTimer
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
@@ -41,6 +42,7 @@ internal fun WorkoutGraph.toDomain() = Workout(
     startedAt = workout.startedAt,
     endedAt = workout.endedAt,
     routineId = workout.routineId?.let(::RoutineId),
+    programDayId = workout.programDayId?.let(::ProgramDayId),
     notes = workout.notes,
     isInProgress = workout.isInProgress,
     restTimer = workout.restTimerEndsAt?.let { RestTimer(it, workout.restTimerTotalSeconds ?: 0) },
@@ -77,7 +79,7 @@ internal fun Workout.toEntity(stored: WorkoutEntity?, now: Long) = WorkoutEntity
     startedAt = startedAt,
     endedAt = endedAt,
     routineId = routineId?.value,
-    programDayId = stored?.programDayId,
+    programDayId = programDayId?.value,
     notes = notes,
     isInProgress = isInProgress,
     bodyweightKg = stored?.bodyweightKg,

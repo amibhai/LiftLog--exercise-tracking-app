@@ -6,10 +6,13 @@ import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import io.github.amibhai.liftlog.core.database.dao.ExerciseDao
 import io.github.amibhai.liftlog.core.domain.model.CatalogExercise
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.Muscle
+import io.github.amibhai.liftlog.core.domain.model.SetField
+import io.github.amibhai.liftlog.core.domain.program.ProgramTemplates
 import io.github.amibhai.liftlog.core.domain.search.FtsQuery
 import io.github.amibhai.liftlog.core.domain.search.SearchIndex
 import kotlinx.coroutines.flow.first
@@ -114,6 +117,18 @@ class PrepackagedDatabaseTest {
         assertThat(index.fuzzy("skulcrusher", emptyMap(), limit = 5).first().name).isEqualTo("EZ-Bar Skullcrusher")
         assertThat(index.fuzzy("bnech press", emptyMap(), limit = 5).first().name).isEqualTo("Barbell Bench Press")
         assertThat(index.fuzzy("romainan deadlift", emptyMap(), limit = 5).first().name).isEqualTo("Romanian Deadlift")
+    }
+
+    @Test
+    fun everyExerciseOfTheBuiltInProgramsExists() = runTest {
+        val library = dao.getAll().associateBy { ExerciseId(it.id) }
+
+        for (template in ProgramTemplates.all) {
+            for (exercise in template.exercises) {
+                assertWithMessage("$exercise in ${template.key}").that(library).containsKey(exercise)
+                assertThat(library.getValue(exercise).type.fields).contains(SetField.REPS)
+            }
+        }
     }
 
     @Test

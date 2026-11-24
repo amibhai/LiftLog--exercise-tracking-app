@@ -11,6 +11,7 @@ import io.github.amibhai.liftlog.core.database.LiftLogDatabaseFactory
 import io.github.amibhai.liftlog.core.database.dao.BodyDao
 import io.github.amibhai.liftlog.core.database.dao.ExerciseDao
 import io.github.amibhai.liftlog.core.database.dao.HistoryDao
+import io.github.amibhai.liftlog.core.database.dao.ProgramDao
 import io.github.amibhai.liftlog.core.database.dao.ProgressDao
 import io.github.amibhai.liftlog.core.database.dao.RoutineDao
 import io.github.amibhai.liftlog.core.database.dao.WorkoutDao
@@ -32,6 +33,9 @@ object DatabaseModule {
 
     @Provides
     fun provideRoutineDao(database: LiftLogDatabase): RoutineDao = database.routineDao()
+
+    @Provides
+    fun provideProgramDao(database: LiftLogDatabase): ProgramDao = database.programDao()
 
     @Provides
     fun provideHistoryDao(database: LiftLogDatabase): HistoryDao = database.historyDao()

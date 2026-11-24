@@ -5,7 +5,9 @@ import io.github.amibhai.liftlog.core.domain.model.LoggedSet
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.program.dayOf
 import io.github.amibhai.liftlog.core.domain.repository.HistoryRepository
+import io.github.amibhai.liftlog.core.domain.repository.ProgramRepository
 import io.github.amibhai.liftlog.core.domain.repository.RoutineRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
@@ -19,6 +21,7 @@ import java.time.Clock
 class StartWorkout(
     private val workouts: WorkoutRepository,
     private val routines: RoutineRepository,
+    private val programs: ProgramRepository,
     private val history: HistoryRepository,
     private val advisor: ProgressionAdvisor,
     private val factory: WorkoutFactory,
@@ -27,12 +30,13 @@ class StartWorkout(
 
     suspend fun empty(): WorkoutId = start { factory.empty(it) }
 
-    /** Null when the routine no longer exists. */
+    /** Null when the routine no longer exists. In a program that is followed, it counts for its day. */
     suspend fun fromRoutine(id: RoutineId): WorkoutId? {
         val routine = routines.get(id) ?: return null
         return start { now ->
             val latest = latest(routine.exercises.map { it.exercise.id }, now)
             factory.fromRoutine(routine, latest, advisor.advise(routine.exercises, now), now)
+                .copy(programDayId = programs.observeActive().first()?.dayOf(id)?.id)
         }
     }
 

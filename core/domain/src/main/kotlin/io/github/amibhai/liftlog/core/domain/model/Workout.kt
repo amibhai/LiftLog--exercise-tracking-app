@@ -58,6 +58,8 @@ data class Workout(
     val startedAt: Long,
     val endedAt: Long? = null,
     val routineId: RoutineId? = null,
+    /** The day of a program that this workout counts for. */
+    val programDayId: ProgramDayId? = null,
     val notes: String? = null,
     val isInProgress: Boolean = true,
     val restTimer: RestTimer? = null,

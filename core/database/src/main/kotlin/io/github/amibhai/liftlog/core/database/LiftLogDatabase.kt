@@ -5,6 +5,7 @@ import androidx.room3.RoomDatabase
 import io.github.amibhai.liftlog.core.database.dao.BodyDao
 import io.github.amibhai.liftlog.core.database.dao.ExerciseDao
 import io.github.amibhai.liftlog.core.database.dao.HistoryDao
+import io.github.amibhai.liftlog.core.database.dao.ProgramDao
 import io.github.amibhai.liftlog.core.database.dao.ProgressDao
 import io.github.amibhai.liftlog.core.database.dao.RoutineDao
 import io.github.amibhai.liftlog.core.database.dao.WorkoutDao
@@ -58,6 +59,8 @@ abstract class LiftLogDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao
 
     abstract fun routineDao(): RoutineDao
+
+    abstract fun programDao(): ProgramDao
 
     abstract fun historyDao(): HistoryDao
 

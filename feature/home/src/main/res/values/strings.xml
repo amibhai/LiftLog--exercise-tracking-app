@@ -4,6 +4,8 @@
     <string name="home_open_settings">Settings</string>
 
     <string name="home_start_title">Train</string>
+    <string name="home_next_up">Next up: %1$s (%2$s)</string>
+    <string name="home_start_next">Start %1$s</string>
     <string name="home_start_empty">Start empty workout</string>
     <string name="home_repeat_routine">Repeat last %1$s</string>
     <string name="home_repeat_workout">Repeat last workout</string>
@@ -12,6 +14,7 @@
     <string name="home_resume">Resume workout</string>
 
     <string name="home_routines_title">Routines</string>
+    <string name="home_programs">Programs</string>
     <string name="home_new_routine">New routine</string>
     <string name="home_routines_empty">Save a finished workout as a routine, or create one, to start it with one tap.</string>
     <string name="home_routine_untitled">Untitled routine</string>

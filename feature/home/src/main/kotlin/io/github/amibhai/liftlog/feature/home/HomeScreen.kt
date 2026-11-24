@@ -2,6 +2,8 @@ package io.github.amibhai.liftlog.feature.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -118,12 +120,15 @@ internal fun HomeScreen(
         ) {
             item(key = "start") {
                 StartCard(
-                    repeatLast = state.repeatLast,
+                    state = state,
+                    onStartNext = { id -> start { actions.onStartRoutine(id) } },
                     onRepeatLast = { start(actions.onRepeatLast) },
                     onStartEmpty = { start(actions.onStartEmpty) },
                 )
             }
-            item(key = "routines") { RoutinesHeader(onNewRoutine = actions.onNewRoutine) }
+            item(key = "routines") {
+                RoutinesHeader(onNewRoutine = actions.onNewRoutine, onOpenPrograms = navigation.onOpenPrograms)
+            }
             val routines = state.routines.orEmpty()
             if (state.routines != null && routines.isEmpty()) {
                 item(key = "no-routines") {
@@ -168,48 +173,90 @@ internal fun HomeScreen(
     }
 }
 
+/** The most likely way to start comes first and stands out. */
 @Composable
 private fun StartCard(
-    repeatLast: RepeatLast?,
+    state: HomeUiState,
+    onStartNext: (RoutineId) -> Unit,
     onRepeatLast: () -> Unit,
     onStartEmpty: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val next = state.next
+    val repeatLast = state.repeatLast
     LiftLogCard(modifier = modifier, spacing = LiftLogDimens.spacingM) {
         Text(stringResource(R.string.home_start_title), style = MaterialTheme.typography.titleLarge)
-        val wide = Modifier
-            .fillMaxWidth()
-            .heightIn(min = LiftLogDimens.primaryAction)
-        if (repeatLast != null) {
-            Button(onClick = onRepeatLast, modifier = wide) {
-                Text(
-                    repeatLast.routineName?.let { stringResource(R.string.home_repeat_routine, it) }
-                        ?: stringResource(R.string.home_repeat_workout),
-                )
-            }
-            FilledTonalButton(
-                onClick = onStartEmpty,
-                modifier = wide,
-            ) { Text(stringResource(R.string.home_start_empty)) }
-        } else {
-            Button(onClick = onStartEmpty, modifier = wide) { Text(stringResource(R.string.home_start_empty)) }
+        if (next != null) {
+            NextUp(next)
+            StartButton(
+                text = stringResource(R.string.home_start_next, next.dayName),
+                isPrimary = true,
+                onClick = { onStartNext(next.routineId) },
+            )
         }
+        if (repeatLast != null) {
+            StartButton(
+                text = repeatLast.routineName?.let { stringResource(R.string.home_repeat_routine, it) }
+                    ?: stringResource(R.string.home_repeat_workout),
+                isPrimary = next == null,
+                onClick = onRepeatLast,
+            )
+        }
+        StartButton(
+            text = stringResource(R.string.home_start_empty),
+            isPrimary = next == null && repeatLast == null,
+            onClick = onStartEmpty,
+        )
     }
 }
 
 @Composable
-private fun RoutinesHeader(onNewRoutine: () -> Unit, modifier: Modifier = Modifier) {
-    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+private fun NextUp(next: NextWorkout, modifier: Modifier = Modifier) {
+    Column(modifier.semantics(mergeDescendants = true) {}) {
+        Text(
+            text = stringResource(R.string.home_next_up, next.dayName, next.programName),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = next.exercises.joinToString(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun StartButton(text: String, isPrimary: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val wide = modifier
+        .fillMaxWidth()
+        .heightIn(min = LiftLogDimens.primaryAction)
+    if (isPrimary) {
+        Button(onClick = onClick, modifier = wide) { Text(text) }
+    } else {
+        FilledTonalButton(onClick = onClick, modifier = wide) { Text(text) }
+    }
+}
+
+@Composable
+private fun RoutinesHeader(onNewRoutine: () -> Unit, onOpenPrograms: () -> Unit, modifier: Modifier = Modifier) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(
             text = stringResource(R.string.home_routines_title),
-            modifier = Modifier
-                .weight(1f)
-                .semantics { heading() },
+            modifier = Modifier.semantics { heading() },
             style = MaterialTheme.typography.titleLarge,
         )
-        TextButton(onClick = onNewRoutine, modifier = Modifier.heightIn(min = LiftLogDimens.minTouchTarget)) {
-            Icon(painterResource(LiftLogIcons.Add), contentDescription = null)
-            Text(stringResource(R.string.home_new_routine), Modifier.padding(start = LiftLogDimens.spacingS))
+        FlowRow {
+            TextButton(onClick = onOpenPrograms, modifier = Modifier.heightIn(min = LiftLogDimens.minTouchTarget)) {
+                Text(stringResource(R.string.home_programs))
+            }
+            TextButton(onClick = onNewRoutine, modifier = Modifier.heightIn(min = LiftLogDimens.minTouchTarget)) {
+                Icon(painterResource(LiftLogIcons.Add), contentDescription = null)
+                Text(stringResource(R.string.home_new_routine), Modifier.padding(start = LiftLogDimens.spacingS))
+            }
         }
     }
 }

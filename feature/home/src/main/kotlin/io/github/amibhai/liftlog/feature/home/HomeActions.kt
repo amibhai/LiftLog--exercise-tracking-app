@@ -12,6 +12,7 @@ class HomeNavigation(
     val onBrowseExercises: () -> Unit,
     val onOpenProgress: () -> Unit,
     val onOpenExercise: (ExerciseId) -> Unit,
+    val onOpenPrograms: () -> Unit,
     val onOpenWorkout: (WorkoutId) -> Unit,
     val onEditRoutine: (RoutineId) -> Unit,
 )

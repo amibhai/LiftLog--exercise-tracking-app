@@ -19,6 +19,7 @@ import io.github.amibhai.liftlog.core.domain.usecase.ProgressionAdvisor
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
 import io.github.amibhai.liftlog.core.testing.FakeHistoryRepository
+import io.github.amibhai.liftlog.core.testing.FakeProgramRepository
 import io.github.amibhai.liftlog.core.testing.FakeProgressRepository
 import io.github.amibhai.liftlog.core.testing.FakeRoutineRepository
 import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
@@ -168,6 +169,7 @@ class WorkoutDetailViewModelTest {
             startWorkout = StartWorkout(
                 workouts = workouts,
                 routines = routines,
+                programs = FakeProgramRepository(),
                 history = history,
                 advisor = ProgressionAdvisor(progress, FakeSettingsRepository()),
                 factory = WorkoutFactory(ids),

@@ -64,4 +64,70 @@
 
     <string name="routine_effort_title">Effort target</string>
     <string name="routine_effort_none">No %1$s target</string>
+
+    <!-- Programs -->
+    <string name="programs_title">Programs</string>
+    <string name="programs_yours">Your programs</string>
+    <string name="programs_templates">Built-in programs</string>
+    <string name="programs_new">Create your own</string>
+    <string name="programs_untitled">New program</string>
+    <string name="programs_untitled_routine">Untitled routine</string>
+    <string name="programs_active">Following</string>
+    <plurals name="programs_days">
+        <item quantity="one">%1$d day in rotation</item>
+        <item quantity="other">%1$d days in rotation</item>
+    </plurals>
+    <string name="programs_use">Use this program</string>
+    <string name="programs_maxes">Training maxes</string>
+    <string name="programs_maxes_body">About 90% of your one-rep max. Leave one empty to set it later.</string>
+    <string name="programs_max_label">%1$s (%2$s)</string>
+    <string name="programs_follow">Follow this program</string>
+    <string name="programs_follow_body">Home suggests the next day of the rotation.</string>
+    <string name="programs_next">Next</string>
+    <string name="programs_no_routine">Its routine was deleted.</string>
+    <string name="programs_no_routines">Create a routine on Home first, then add it here as a day.</string>
+    <string name="programs_add_day">Add a day</string>
+    <string name="programs_name">Program name</string>
+    <string name="programs_rename">Rename program</string>
+    <string name="programs_reorder">Reorder days</string>
+    <string name="programs_delete">Delete program</string>
+    <string name="programs_delete_title">Delete this program?</string>
+    <string name="programs_delete_text">Its routines stay.</string>
+    <string name="programs_day_options">Options for %1$s</string>
+    <string name="programs_day_name">Day name</string>
+    <string name="programs_rename_day">Rename day</string>
+    <string name="programs_remove_day">Remove day</string>
+    <string name="programs_day_removed">Day removed</string>
+
+    <string name="program_ppl">Push / Pull / Legs</string>
+    <string name="program_ppl_body">Three days by movement, with double progression. Go through it once or twice a week.</string>
+    <string name="program_upper_lower">Upper / Lower</string>
+    <string name="program_upper_lower_body">Four days: heavier and lighter days for the upper and the lower body.</string>
+    <string name="program_full_body">Full Body 3×</string>
+    <string name="program_full_body_body">Three full-body days a week, a good start for most people.</string>
+    <string name="program_5x5" translatable="false">5×5</string>
+    <string name="program_5x5_body">Two alternating days of big lifts. More weight every session, a deload after three misses.</string>
+    <string name="program_gzclp" translatable="false">GZCLP</string>
+    <string name="program_gzclp_body">Four days with a heavy, a medium and a light lift. Missed reps change the sets instead of stopping you.</string>
+    <string name="program_531" translatable="false">5/3/1</string>
+    <string name="program_531_body">Four days around one big lift each, in four-week rounds at percentages of a training max.</string>
+
+    <string name="program_day_push">Push</string>
+    <string name="program_day_pull">Pull</string>
+    <string name="program_day_legs">Legs</string>
+    <string name="program_day_upper_a">Upper A</string>
+    <string name="program_day_lower_a">Lower A</string>
+    <string name="program_day_upper_b">Upper B</string>
+    <string name="program_day_lower_b">Lower B</string>
+    <string name="program_day_full_body_a">Full body A</string>
+    <string name="program_day_full_body_b">Full body B</string>
+    <string name="program_day_full_body_c">Full body C</string>
+    <string name="program_day_workout_a">Workout A</string>
+    <string name="program_day_workout_b">Workout B</string>
+    <string name="program_day_workout_c">Workout C</string>
+    <string name="program_day_workout_d">Workout D</string>
+    <string name="program_day_press">Press day</string>
+    <string name="program_day_deadlift">Deadlift day</string>
+    <string name="program_day_bench">Bench day</string>
+    <string name="program_day_squat">Squat day</string>
 </resources>

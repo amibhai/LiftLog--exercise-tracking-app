@@ -1,9 +1,11 @@
 package io.github.amibhai.liftlog.core.data.progress
 
+import io.github.amibhai.liftlog.core.database.dao.NamedSetRow
 import io.github.amibhai.liftlog.core.database.dao.PlannedSetRow
 import io.github.amibhai.liftlog.core.database.dao.ProgressSetRow
 import io.github.amibhai.liftlog.core.database.dao.RecordRow
 import io.github.amibhai.liftlog.core.database.entity.PersonalRecordEntity
+import io.github.amibhai.liftlog.core.domain.model.ExerciseHistory
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseSession
 import io.github.amibhai.liftlog.core.domain.model.LoggedSet
@@ -21,6 +23,16 @@ import io.github.amibhai.liftlog.core.domain.units.Weight
 /** Rows in the order of the database: by time, then by place in the workout. */
 internal fun List<ProgressSetRow>.toSessions(): List<ExerciseSession> = groupBy { it.workoutId }.values.map { rows ->
     ExerciseSession(WorkoutId(rows.first().workoutId), rows.first().at, rows.map { it.toLoggedSet() })
+}
+
+internal fun List<NamedSetRow>.toHistories(): List<ExerciseHistory> = groupBy { it.set.exerciseId }.values.map { rows ->
+    val first = rows.first()
+    ExerciseHistory(
+        id = ExerciseId(first.set.exerciseId),
+        name = first.exerciseName,
+        type = first.exerciseType,
+        sessions = rows.map { it.set }.toSessions(),
+    )
 }
 
 /** One session per exercise of a workout, so that two slots with the same exercise stay apart. */

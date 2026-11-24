@@ -6,6 +6,7 @@ import io.github.amibhai.liftlog.core.domain.model.ActiveProgram
 import io.github.amibhai.liftlog.core.domain.model.CatalogExercise
 import io.github.amibhai.liftlog.core.domain.model.Equipment
 import io.github.amibhai.liftlog.core.domain.model.ExerciseDetail
+import io.github.amibhai.liftlog.core.domain.model.ExerciseHistory
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
 import io.github.amibhai.liftlog.core.domain.model.ExerciseSession
@@ -223,6 +224,28 @@ class UseCasesTest {
     }
 
     @Test
+    fun `a stalled lift is pointed out until it is put away`() = runTest {
+        val week = 7 * 24 * 3_600_000L
+        progress.loaded = listOf(
+            ExerciseHistory(
+                ExerciseId("bench"),
+                "Bench",
+                ExerciseType.WEIGHT_REPS,
+                (4L downTo 1L).map { ExerciseSession(WorkoutId("w$it"), NOW - it * week, listOf(logged(80.0, 8))) },
+            ),
+        )
+        val settings = FixedSettings()
+        val insights = Insights(progress, settings, clock)
+
+        val found = insights.observe().first().single()
+        assertThat(found.exerciseName).isEqualTo("Bench")
+        assertThat(found.weeks).isEqualTo(4)
+
+        insights.dismiss(found)
+        assertThat(insights.observe().first()).isEmpty()
+    }
+
+    @Test
     fun `close spellings are only added when there are few matches`() = runTest {
         val search = SearchExercises(library)
         val index = SearchIndex(library.catalog)
@@ -325,6 +348,9 @@ class UseCasesTest {
 
     private class FixedProgress : ProgressRepository {
         var sessions: Map<ExerciseId, List<PlannedSession>> = emptyMap()
+        var loaded: List<ExerciseHistory> = emptyList()
+
+        override fun observeLoadedExercises(since: Long): Flow<List<ExerciseHistory>> = flowOf(loaded)
 
         override suspend fun plannedSessions(
             before: Long,
@@ -352,9 +378,11 @@ class UseCasesTest {
     }
 
     private class FixedSettings : SettingsRepository {
-        override val settings: Flow<UserSettings> = flowOf(UserSettings())
+        override val settings = MutableStateFlow(UserSettings())
 
-        override suspend fun update(transform: (UserSettings) -> UserSettings) = Unit
+        override suspend fun update(transform: (UserSettings) -> UserSettings) {
+            settings.value = transform(settings.value)
+        }
     }
 
     private class FixedHistory(sessions: Map<String, ExerciseSession>) : HistoryRepository {

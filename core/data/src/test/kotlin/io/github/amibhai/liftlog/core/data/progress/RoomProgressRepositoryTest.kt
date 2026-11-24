@@ -91,6 +91,17 @@ class RoomProgressRepositoryTest {
     }
 
     @Test
+    fun loadedExercisesComeWithTheirRecentSessions() = runTest {
+        start()
+        db.addExercise("plank", type = ExerciseType.DURATION)
+
+        val histories = progress().observeLoadedExercises(since = NOW).first()
+        assertThat(histories.single().name).isEqualTo("Bench Press")
+        assertThat(histories.single().sessions.map { it.at }).containsExactly(NOW, NOW + DAY).inOrder()
+        assertThat(progress().observeLoadedExercises(since = NOW + 1).first().single().sessions).hasSize(1)
+    }
+
+    @Test
     fun changingAFinishedWorkoutChangesItsRecords() = runTest {
         start()
 

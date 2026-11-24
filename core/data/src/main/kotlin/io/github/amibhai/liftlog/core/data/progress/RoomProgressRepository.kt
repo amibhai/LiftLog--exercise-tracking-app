@@ -3,6 +3,7 @@ package io.github.amibhai.liftlog.core.data.progress
 import io.github.amibhai.liftlog.core.database.dao.ExerciseSetsRow
 import io.github.amibhai.liftlog.core.database.dao.ProgressDao
 import io.github.amibhai.liftlog.core.database.dao.RecordRow
+import io.github.amibhai.liftlog.core.domain.model.ExerciseHistory
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseSession
 import io.github.amibhai.liftlog.core.domain.model.RecordEntry
@@ -25,6 +26,9 @@ internal class RoomProgressRepository @Inject constructor(
 
     override fun observeSessions(id: ExerciseId): Flow<List<ExerciseSession>> =
         dao.observeSets(id.value).map { it.toSessions() }.distinctUntilChanged()
+
+    override fun observeLoadedExercises(since: Long): Flow<List<ExerciseHistory>> =
+        dao.observeLoadedSets(since).map { it.toHistories() }.distinctUntilChanged()
 
     override suspend fun sessionsBefore(before: Long, ids: Set<ExerciseId>): Map<ExerciseId, List<ExerciseSession>> =
         if (ids.isEmpty()) {

@@ -49,6 +49,8 @@ data class UserSettings(
     /** Null follows the phone's language. */
     val firstDayOfWeek: DayOfWeek? = null,
     val warmupSteps: List<WarmupStep> = DEFAULT_WARMUP,
+    /** Keys of the insights that were read and put away. */
+    val dismissedInsights: Set<String> = emptySet(),
 ) {
     val weeklySetTarget: IntRange get() = weeklySetTargetMin..weeklySetTargetMax
 

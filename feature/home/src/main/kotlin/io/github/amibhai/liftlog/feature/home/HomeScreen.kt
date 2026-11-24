@@ -45,6 +45,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
+import io.github.amibhai.liftlog.core.domain.usecase.PlateauInsight
 import io.github.amibhai.liftlog.core.ui.component.ConfirmDialog
 import io.github.amibhai.liftlog.core.ui.component.LiftLogCard
 import io.github.amibhai.liftlog.core.ui.component.RecordRow
@@ -78,6 +79,7 @@ internal fun HomeRoute(navigation: HomeNavigation, viewModel: HomeViewModel = hi
             onDeleteRoutine = viewModel::deleteRoutine,
             onUndoDeleteRoutine = viewModel::undoDeleteRoutine,
             onDeleteMessageShown = viewModel::onDeleteMessageShown,
+            onDismissInsight = viewModel::dismissInsight,
         )
     }
     HomeScreen(state = state, navigation = navigation, actions = actions)
@@ -155,6 +157,14 @@ internal fun HomeScreen(
                 if (training.records.isNotEmpty()) {
                     item(key = "records") { RecordsCard(training, onOpenExercise = navigation.onOpenExercise) }
                 }
+            }
+            items(state.insights, key = { it.key }) { insight ->
+                InsightCard(
+                    insight = insight,
+                    onShow = { navigation.onOpenExercise(insight.exerciseId) },
+                    onDismiss = { actions.onDismissInsight(insight) },
+                    modifier = Modifier.animateItem(),
+                )
             }
             item(key = "library") { LibraryCard(state.exerciseCount, navigation.onBrowseExercises) }
         }
@@ -329,6 +339,42 @@ private fun RecordsCard(training: HomeTraining, onOpenExercise: (ExerciseId) -> 
                 withDate = true,
                 onClick = { onOpenExercise(entry.record.exerciseId) },
             )
+        }
+    }
+}
+
+/** A lift that stopped moving, and what may help (SPEC §7). */
+@Composable
+private fun InsightCard(
+    insight: PlateauInsight,
+    onShow: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LiftLogCard(modifier = modifier) {
+        Row(horizontalArrangement = Arrangement.spacedBy(LiftLogDimens.spacingM)) {
+            Icon(
+                painter = painterResource(LiftLogIcons.Insight),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+            )
+            Text(
+                text = pluralStringResource(
+                    R.plurals.home_plateau,
+                    insight.weeks,
+                    insight.exerciseName,
+                    insight.weeks,
+                ),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        FlowRow {
+            TextButton(onClick = onShow, modifier = Modifier.heightIn(min = LiftLogDimens.minTouchTarget)) {
+                Text(stringResource(R.string.home_insight_show))
+            }
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = LiftLogDimens.minTouchTarget)) {
+                Text(stringResource(R.string.home_insight_dismiss))
+            }
         }
     }
 }

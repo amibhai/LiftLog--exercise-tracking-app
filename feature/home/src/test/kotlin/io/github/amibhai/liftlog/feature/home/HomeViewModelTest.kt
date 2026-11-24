@@ -4,9 +4,12 @@ import com.google.common.truth.Truth.assertThat
 import io.github.amibhai.liftlog.core.domain.concurrent.SequentialWork
 import io.github.amibhai.liftlog.core.domain.id.IdGenerator
 import io.github.amibhai.liftlog.core.domain.model.Equipment
+import io.github.amibhai.liftlog.core.domain.model.ExerciseHistory
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseInfo
+import io.github.amibhai.liftlog.core.domain.model.ExerciseSession
 import io.github.amibhai.liftlog.core.domain.model.ExerciseType
+import io.github.amibhai.liftlog.core.domain.model.LoggedSet
 import io.github.amibhai.liftlog.core.domain.model.PersonalRecord
 import io.github.amibhai.liftlog.core.domain.model.Program
 import io.github.amibhai.liftlog.core.domain.model.ProgramDay
@@ -18,6 +21,7 @@ import io.github.amibhai.liftlog.core.domain.model.Routine
 import io.github.amibhai.liftlog.core.domain.model.RoutineExercise
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
+import io.github.amibhai.liftlog.core.domain.model.SetType
 import io.github.amibhai.liftlog.core.domain.model.SetValues
 import io.github.amibhai.liftlog.core.domain.model.Workout
 import io.github.amibhai.liftlog.core.domain.model.WorkoutExercise
@@ -27,6 +31,7 @@ import io.github.amibhai.liftlog.core.domain.model.WorkoutSet
 import io.github.amibhai.liftlog.core.domain.model.WorkoutSetId
 import io.github.amibhai.liftlog.core.domain.progress.WorkoutStats
 import io.github.amibhai.liftlog.core.domain.units.Weight
+import io.github.amibhai.liftlog.core.domain.usecase.Insights
 import io.github.amibhai.liftlog.core.domain.usecase.ProgressionAdvisor
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import io.github.amibhai.liftlog.core.domain.workout.WorkoutFactory
@@ -153,6 +158,25 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun aStalledLiftIsPointedOutUntilItIsDismissed() = runTest {
+        val set = LoggedSet(SetType.WORKING, SetValues(weight = Weight(80.0), reps = 8))
+        progress.loaded.value = listOf(
+            ExerciseHistory(
+                bench.id,
+                bench.name,
+                bench.type,
+                (4L downTo 1L).map { ExerciseSession(WorkoutId("w$it"), now - it * WEEK, listOf(set)) },
+            ),
+        )
+        val viewModel = viewModel(FakeWorkoutRepository())
+        val insight = viewModel.uiState.value.insights.single()
+        assertThat(insight.exerciseName).isEqualTo("Bench Press")
+
+        viewModel.dismissInsight(insight)
+        assertThat(viewModel.uiState.value.insights).isEmpty()
+    }
+
+    @Test
     fun thereAreNoStatisticsBeforeTheFirstWorkout() = runTest {
         assertThat(viewModel(FakeWorkoutRepository()).uiState.value.training).isNull()
     }
@@ -209,6 +233,7 @@ class HomeViewModelTest {
             programs = programs,
             progress = progress,
             settings = settings,
+            insights = Insights(progress, settings, clock),
             ids = ids,
             work = SequentialWork(CoroutineScope(backgroundScope.coroutineContext + mainDispatcherRule.dispatcher)),
             clock = clock,

@@ -1,5 +1,6 @@
 package io.github.amibhai.liftlog.core.domain.repository
 
+import io.github.amibhai.liftlog.core.domain.model.ExerciseHistory
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.ExerciseSession
 import io.github.amibhai.liftlog.core.domain.model.RecordEntry
@@ -13,6 +14,9 @@ import kotlinx.coroutines.flow.Flow
 interface ProgressRepository {
     /** Every finished session of one exercise, oldest first. */
     fun observeSessions(id: ExerciseId): Flow<List<ExerciseSession>>
+
+    /** Everything done with a load since [since]: what insights are drawn from. */
+    fun observeLoadedExercises(since: Long): Flow<List<ExerciseHistory>>
 
     /** The sessions of a few exercises before [before]: what records of the current workout are compared with. */
     suspend fun sessionsBefore(before: Long, ids: Set<ExerciseId>): Map<ExerciseId, List<ExerciseSession>>

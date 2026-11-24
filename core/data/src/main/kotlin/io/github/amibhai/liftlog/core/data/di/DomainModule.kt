@@ -17,6 +17,7 @@ import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.usecase.AddExercises
 import io.github.amibhai.liftlog.core.domain.usecase.CreateProgram
+import io.github.amibhai.liftlog.core.domain.usecase.Insights
 import io.github.amibhai.liftlog.core.domain.usecase.ProgressionAdvisor
 import io.github.amibhai.liftlog.core.domain.usecase.SearchExercises
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
@@ -67,6 +68,10 @@ object DomainModule {
         ids: IdGenerator,
         clock: Clock,
     ) = CreateProgram(programs, routines, exercises, settings, ids, clock)
+
+    @Provides
+    fun provideInsights(progress: ProgressRepository, settings: SettingsRepository, clock: Clock) =
+        Insights(progress, settings, clock)
 
     @Provides
     fun provideProgressionAdvisor(progress: ProgressRepository, settings: SettingsRepository) =

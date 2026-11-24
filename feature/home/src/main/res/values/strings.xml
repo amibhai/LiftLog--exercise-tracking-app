@@ -27,6 +27,13 @@
 
     <string name="home_records_title">Recent records</string>
 
+    <plurals name="home_plateau">
+        <item quantity="one">%1$s has stalled for %2$d week. Consider a deload or another rep range.</item>
+        <item quantity="other">%1$s has stalled for %2$d weeks. Consider a deload or another rep range.</item>
+    </plurals>
+    <string name="home_insight_show">Show progress</string>
+    <string name="home_insight_dismiss">Dismiss</string>
+
     <string name="home_library_title">Exercise library</string>
     <plurals name="home_library_count">
         <item quantity="one">%1$,d exercise, available offline</item>

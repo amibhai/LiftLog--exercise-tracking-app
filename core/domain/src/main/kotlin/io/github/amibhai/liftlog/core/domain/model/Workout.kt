@@ -79,5 +79,13 @@ data class LoggedSet(
 /** One exercise's completed sets in one past workout. */
 data class ExerciseSession(val workoutId: WorkoutId, val at: Long, val sets: List<LoggedSet>)
 
+/** An exercise with its past sessions, oldest first. */
+data class ExerciseHistory(
+    val id: ExerciseId,
+    val name: String,
+    val type: ExerciseType,
+    val sessions: List<ExerciseSession>,
+)
+
 /** A workout that contained an exercise; the raw data behind frecency and co-occurrence (SPEC §4). */
 data class ExerciseUsage(val exerciseId: ExerciseId, val workoutId: WorkoutId, val at: Long)

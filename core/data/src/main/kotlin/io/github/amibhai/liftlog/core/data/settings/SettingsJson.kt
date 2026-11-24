@@ -44,6 +44,7 @@ internal data class SettingsJson(
     /** The name of a [DayOfWeek]; null follows the phone's language. */
     val firstDayOfWeek: String? = null,
     val warmupSteps: List<WarmupStepJson> = DEFAULTS.warmupSteps.map { it.toJson() },
+    val dismissedInsights: Set<String> = emptySet(),
 )
 
 @Serializable
@@ -83,6 +84,7 @@ internal fun SettingsJson.toDomain() = UserSettings(
     weeklySetTargetMax = weeklySetTargetMax,
     firstDayOfWeek = DayOfWeek.entries.firstOrNull { it.name == firstDayOfWeek },
     warmupSteps = warmupSteps.map { WarmupStep(it.percent, it.reps) },
+    dismissedInsights = dismissedInsights,
 )
 
 internal fun UserSettings.toJson() = SettingsJson(
@@ -107,4 +109,5 @@ internal fun UserSettings.toJson() = SettingsJson(
     weeklySetTargetMax = weeklySetTargetMax,
     firstDayOfWeek = firstDayOfWeek?.name,
     warmupSteps = warmupSteps.map { it.toJson() },
+    dismissedInsights = dismissedInsights,
 )

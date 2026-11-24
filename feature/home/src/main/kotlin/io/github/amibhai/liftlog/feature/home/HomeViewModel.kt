@@ -26,6 +26,8 @@ import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.time.daysAgo
 import io.github.amibhai.liftlog.core.domain.units.WeightUnit
+import io.github.amibhai.liftlog.core.domain.usecase.Insights
+import io.github.amibhai.liftlog.core.domain.usecase.PlateauInsight
 import io.github.amibhai.liftlog.core.domain.usecase.StartWorkout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -56,6 +58,7 @@ data class HomeUiState(
     val routines: List<RoutineCardUiModel>? = null,
     /** Null until loaded, and before the first workout. */
     val training: HomeTraining? = null,
+    val insights: List<PlateauInsight> = emptyList(),
     /** A workout that was just started, for the screen to open. */
     val openWorkout: WorkoutId? = null,
     /** A routine that was just created, for its editor to open. */
@@ -110,6 +113,7 @@ class HomeViewModel @Inject constructor(
     programs: ProgramRepository,
     private val progress: ProgressRepository,
     settings: SettingsRepository,
+    private val insights: Insights,
     private val ids: IdGenerator,
     private val work: SequentialWork,
     private val clock: Clock,
@@ -154,8 +158,13 @@ class HomeViewModel @Inject constructor(
 
     /** Starting a workout does not wait for the statistics. */
     val uiState: StateFlow<HomeUiState> =
-        combine(base, next, training.onStart { emit(null) }) { state, next, training ->
-            state.copy(next = next, training = training)
+        combine(
+            base,
+            next,
+            training.onStart { emit(null) },
+            insights.observe().onStart { emit(emptyList()) },
+        ) { state, next, training, insights ->
+            state.copy(next = next, training = training, insights = insights)
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
 
@@ -190,6 +199,10 @@ class HomeViewModel @Inject constructor(
         val id = local.value.deletedRoutine ?: return
         work.submit { routines.restore(id) }
         local.update { it.copy(deletedRoutine = null) }
+    }
+
+    fun dismissInsight(insight: PlateauInsight) {
+        viewModelScope.launch { insights.dismiss(insight) }
     }
 
     fun onDeleteMessageShown() = local.update { it.copy(deletedRoutine = null) }

@@ -30,6 +30,7 @@ object LiftLogIcons {
     val Home = R.drawable.ic_home
     val Image = R.drawable.ic_image
     val Info = R.drawable.ic_info
+    val Insight = R.drawable.ic_lightbulb
     val Link = R.drawable.ic_link
     val LinkOff = R.drawable.ic_link_off
     val More = R.drawable.ic_more_vert

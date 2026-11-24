@@ -50,6 +50,14 @@ interface ProgressDao {
     )
     suspend fun plannedSetsBefore(ids: List<String>, before: Long): List<PlannedSetRow>
 
+    /** Everything done with weight and reps since [since]. */
+    @Query(
+        "SELECT $PROGRESS_SET_COLUMNS, e.name AS exercise_name, e.type AS exercise_type $COMPLETED_SETS " +
+            "JOIN exercise e ON e.id = we.exercise_id AND e.type = 'WEIGHT_REPS' " +
+            "$FINISHED AND w.started_at >= :since $IN_ORDER",
+    )
+    fun observeLoadedSets(since: Long): Flow<List<NamedSetRow>>
+
     @Query("SELECT $PROGRESS_SET_COLUMNS $FINISHED_SETS AND we.exercise_id IN (:ids) $IN_ORDER")
     suspend fun setsOf(ids: List<String>): List<ProgressSetRow>
 
@@ -144,6 +152,12 @@ data class PlannedSetRow(
     @ColumnInfo(name = "rep_min") val repMin: Int?,
     @ColumnInfo(name = "rep_max") val repMax: Int?,
     @ColumnInfo(name = "progression_rule") val progressionRule: ProgressionRuleType?,
+)
+
+data class NamedSetRow(
+    @Embedded val set: ProgressSetRow,
+    @ColumnInfo(name = "exercise_name") val exerciseName: String,
+    @ColumnInfo(name = "exercise_type") val exerciseType: ExerciseType,
 )
 
 data class WorkoutStatsRow(

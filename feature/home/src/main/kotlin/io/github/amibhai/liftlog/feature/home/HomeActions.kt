@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
 import io.github.amibhai.liftlog.core.domain.model.WorkoutId
+import io.github.amibhai.liftlog.core.domain.usecase.PlateauInsight
 
 /** Where the home screen leads; the app module decides. */
 @Stable
@@ -27,4 +28,5 @@ class HomeActions(
     val onDeleteRoutine: (RoutineId) -> Unit,
     val onUndoDeleteRoutine: () -> Unit,
     val onDeleteMessageShown: () -> Unit,
+    val onDismissInsight: (PlateauInsight) -> Unit,
 )

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Set row -->
+    <string name="ui_set_badge_warmup">W</string>
+    <string name="ui_set_badge_drop">D</string>
+    <string name="ui_set_badge_failure">F</string>
+    <string name="ui_set_warmup">Warm-up set</string>
+    <string name="ui_set_working">Set %1$d</string>
+    <string name="ui_set_drop">Drop set</string>
+    <string name="ui_set_failure">Failure set</string>
+    <string name="ui_set_previous_none" translatable="false">–</string>
+    <string name="ui_set_previous_description">Previous: %1$s</string>
+    <string name="ui_set_previous_none_description">No previous set</string>
+    <string name="ui_set_field_value">%1$s %2$s</string>
+    <string name="ui_set_field_suggested">%1$s %2$s, suggested</string>
+    <string name="ui_set_complete">Complete set</string>
+    <string name="ui_set_action_change_type">change set type</string>
+    <string name="ui_set_action_duplicate">Duplicate set</string>
+    <string name="ui_set_action_delete">Delete set</string>
+    <string name="ui_field_weight">Weight</string>
+    <string name="ui_field_reps">Reps</string>
+    <string name="ui_field_duration">Time</string>
+    <string name="ui_field_distance">Distance</string>
+
+    <!-- Number pad -->
+    <string name="ui_numpad_backspace">Backspace</string>
+    <string name="ui_numpad_decimal">Decimal point</string>
+    <string name="ui_numpad_step_down">Decrease by %1$s</string>
+    <string name="ui_numpad_step_up">Increase by %1$s</string>
+    <string name="ui_numpad_same_as_previous">Same as previous</string>
+    <string name="ui_numpad_next">Next field</string>
+    <string name="ui_numpad_done">Done</string>
+    <string name="ui_numpad_hide">Hide keypad</string>
+
+    <!-- Rest timer -->
+    <string name="ui_timer_remaining">Rest, %1$s remaining</string>
+    <string name="ui_timer_over">Rest over</string>
+    <string name="ui_timer_minus_15">−15s</string>
+    <string name="ui_timer_plus_15">+15s</string>
+    <string name="ui_timer_subtract_description">Subtract 15 seconds</string>
+    <string name="ui_timer_add_description">Add 15 seconds</string>
+    <string name="ui_timer_skip">Skip</string>
+</resources>

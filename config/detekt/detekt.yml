@@ -22,9 +22,9 @@ naming:
 
 style:
   MagicNumber:
-    ignoreAnnotated: ['Composable', 'Preview']
+    ignoreAnnotated: ['Composable', 'Preview', 'PreviewLiftLog']
   UnusedPrivateFunction:
-    ignoreAnnotated: ['Preview']
+    ignoreAnnotated: ['Preview', 'PreviewLiftLog']
 
 ktlint:
   # Kotlin coding conventions: 120 columns and trailing commas by default for every wrapping rule.

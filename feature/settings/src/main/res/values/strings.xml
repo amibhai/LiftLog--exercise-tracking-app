@@ -81,8 +81,8 @@
     <string name="warmup_example_none">No warm-up sets</string>
 
     <!-- Data -->
-    <string name="data_title">Backup, export and import</string>
-    <string name="data_summary">Automatic backups, moving data in and out, offline pictures</string>
+    <string name="data_title">Your data</string>
+    <string name="data_summary">Backups, export and import, offline pictures</string>
     <string name="data_section_backup">Automatic backups</string>
     <string name="data_folder">Backup folder</string>
     <string name="data_folder_none">Choose a folder, for example one that syncs to the cloud</string>

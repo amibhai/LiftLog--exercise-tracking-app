@@ -11,6 +11,7 @@ import io.github.amibhai.liftlog.core.database.dao.ExerciseDao
 import io.github.amibhai.liftlog.core.domain.importer.ExerciseMatcher
 import io.github.amibhai.liftlog.core.domain.model.CatalogExercise
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
+import io.github.amibhai.liftlog.core.domain.model.ExerciseType
 import io.github.amibhai.liftlog.core.domain.model.Muscle
 import io.github.amibhai.liftlog.core.domain.model.SetField
 import io.github.amibhai.liftlog.core.domain.program.ProgramTemplates
@@ -164,6 +165,8 @@ class PrepackagedDatabaseTest {
 
         val found = expected.mapValues { (name, _) -> matcher.match(name)?.exercise?.name }
         assertThat(found).isEqualTo(expected)
+        assertThat(matcher.match("Running", ExerciseType.DISTANCE_DURATION)?.exercise?.name).isEqualTo("Run")
+        assertThat(matcher.match("Air Bike", ExerciseType.DISTANCE_DURATION)?.exercise?.name).isNotEqualTo("Air Bike")
     }
 
     @Test

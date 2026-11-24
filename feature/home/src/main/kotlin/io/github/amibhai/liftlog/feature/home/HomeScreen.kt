@@ -128,6 +128,14 @@ internal fun HomeScreen(
                     onStartEmpty = { start(actions.onStartEmpty) },
                 )
             }
+            items(state.insights, key = { it.key }) { insight ->
+                InsightCard(
+                    insight = insight,
+                    onShow = { navigation.onOpenExercise(insight.exerciseId) },
+                    onDismiss = { actions.onDismissInsight(insight) },
+                    modifier = Modifier.animateItem(),
+                )
+            }
             item(key = "routines") {
                 RoutinesHeader(onNewRoutine = actions.onNewRoutine, onOpenPrograms = navigation.onOpenPrograms)
             }
@@ -157,14 +165,6 @@ internal fun HomeScreen(
                 if (training.records.isNotEmpty()) {
                     item(key = "records") { RecordsCard(training, onOpenExercise = navigation.onOpenExercise) }
                 }
-            }
-            items(state.insights, key = { it.key }) { insight ->
-                InsightCard(
-                    insight = insight,
-                    onShow = { navigation.onOpenExercise(insight.exerciseId) },
-                    onDismiss = { actions.onDismissInsight(insight) },
-                    modifier = Modifier.animateItem(),
-                )
             }
             item(key = "library") { LibraryCard(state.exerciseCount, navigation.onBrowseExercises) }
         }

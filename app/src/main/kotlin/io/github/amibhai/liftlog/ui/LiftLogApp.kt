@@ -64,7 +64,7 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
             onOpenSettings = { navController.navigate(SettingsDestination) },
             onBrowseExercises = { navController.navigateToTab(TopLevelDestination.EXERCISES) },
             onOpenProgress = { navController.navigateToTab(TopLevelDestination.PROGRESS) },
-            onOpenExercise = { navController.navigateToExerciseDetail(it) },
+            onOpenExercise = { navController.navigateToExerciseDetail(it, showProgress = true) },
             onOpenPrograms = { navController.navigateToPrograms() },
             onOpenWorkout = { navController.navigateToWorkout(it) },
             onEditRoutine = { navController.navigateToRoutineEditor(it) },
@@ -132,7 +132,7 @@ fun LiftLogApp(appVersion: String, showDeveloperOptions: Boolean, modifier: Modi
             )
             progressGraph(
                 navController = navController,
-                onOpenExercise = { navController.navigateToExerciseDetail(it) },
+                onOpenExercise = { navController.navigateToExerciseDetail(it, showProgress = true) },
             )
             exercisesGraph(navController)
             settingsGraph(navController, appVersion, showDeveloperOptions)

@@ -10,7 +10,7 @@ data class ExerciseMatch(val exercise: CatalogExercise, val isSure: Boolean)
 
 /**
  * Finds the exercises of the library behind names like "Bench Press (Barbell)" (SPEC §9): by the words
- * they have in common, and by the equipment, which other apps put in parentheses.
+ * they have in common, by the equipment, which other apps put in parentheses, and by what was logged.
  */
 class ExerciseMatcher(exercises: List<CatalogExercise>) {
 
@@ -28,10 +28,12 @@ class ExerciseMatcher(exercises: List<CatalogExercise>) {
 
     private val candidates = exercises.map(::Candidate)
 
-    fun match(name: String): ExerciseMatch? {
+    /** An exercise that cannot hold what was [loggedAs] is no match: its sets would be lost. */
+    fun match(name: String, loggedAs: ExerciseType? = null): ExerciseMatch? {
         val words = wordsOf(name)
         val equipment = equipmentIn(name)
         val best = candidates
+            .filter { loggedAs == null || it.exercise.type.fields.containsAll(loggedAs.fields) }
             .map { Scored(it, score(words, equipment, it)) }
             .filter { it.score >= POSSIBLE }
             .maxWithOrNull(
@@ -85,6 +87,11 @@ private val Spellings = mapOf(
     "pullover" to "pull over",
     "flye" to "fly",
     "flie" to "fly",
+    "running" to "run",
+    "jogging" to "jog",
+    "walking" to "walk",
+    "cycling" to "cycle",
+    "biking" to "bike",
 )
 
 private fun wordsOf(name: String): Set<String> = SearchText.tokens(name)

@@ -4,12 +4,14 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 private const val PREFIX = "liftlog-backup-"
 private const val EXTENSION = ".json"
+private const val DAYS_PER_WEEK = 7L
 private val NameTime = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss", Locale.ROOT)
 
-enum class BackupFrequency { OFF, DAILY, WEEKLY }
+enum class BackupFrequency(val days: Long?) { OFF(null), DAILY(1), WEEKLY(DAYS_PER_WEEK) }
 
 /** Automatic backups (SPEC §9). They belong to this phone and are not part of a backup themselves. */
 data class BackupSettings(
@@ -24,6 +26,14 @@ data class BackupSettings(
     val lastFailed: Boolean = false,
 ) {
     val isAutomatic: Boolean get() = folderUri != null && frequency != BackupFrequency.OFF
+
+    /**
+     * Milliseconds until the next automatic backup; null without automatic backups. The first one is made when
+     * the folder is chosen, so the schedule begins one period later.
+     */
+    fun nextBackupIn(now: Long): Long? = frequency.days?.takeIf { isAutomatic }?.let { days ->
+        ((lastBackupAt ?: now) + TimeUnit.DAYS.toMillis(days) - now).coerceAtLeast(0)
+    }
 
     companion object {
         const val DEFAULT_KEEP = 10

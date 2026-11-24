@@ -145,6 +145,40 @@ class ImportedWorkoutsTest {
         assertThat(matcher.match("Underwater Basket Weaving")).isNull()
     }
 
+    @Test
+    fun `an exercise that cannot hold what was logged is no match`() {
+        val matcher = ExerciseMatcher(
+            listOf(
+                catalog("Running in Place", Equipment.BODYWEIGHT, type = ExerciseType.REPS_ONLY),
+                catalog("Run", Equipment.BODYWEIGHT, type = ExerciseType.DISTANCE_DURATION),
+                catalog("Push-Up", Equipment.BODYWEIGHT, type = ExerciseType.REPS_ONLY),
+                catalog("Bench Dip", Equipment.BODYWEIGHT, type = ExerciseType.WEIGHT_REPS),
+            ),
+        )
+
+        assertThat(matcher.match("Running in Place", ExerciseType.DISTANCE_DURATION)?.exercise?.name).isEqualTo("Run")
+        assertThat(matcher.match("Running", ExerciseType.DISTANCE_DURATION)?.isSure).isTrue()
+        assertThat(matcher.match("Running", ExerciseType.DURATION)?.exercise?.name).isEqualTo("Run")
+        assertThat(matcher.match("Push Up", ExerciseType.WEIGHT_REPS)).isNull()
+        assertThat(matcher.match("Bench Dip", ExerciseType.REPS_ONLY)?.exercise?.name).isEqualTo("Bench Dip")
+    }
+
+    @Test
+    fun `most sets decide what an exercise was logged as`() {
+        val log = log(
+            exercise("Push Up", ImportedSet(reps = 20), ImportedSet(reps = 20), ImportedSet(weight = 10.0, reps = 8)),
+            exercise("Squat", ImportedSet(weight = 60.0, reps = 5)),
+            exercise("Run", ImportedSet(distance = 5.0, seconds = 1_500)),
+            exercise("Plank", ImportedSet(seconds = 60)),
+        )
+
+        assertThat(log.usualType("Push Up")).isEqualTo(ExerciseType.REPS_ONLY)
+        assertThat(log.draftFor("Push Up").type).isEqualTo(ExerciseType.WEIGHT_REPS)
+        assertThat(log.usualType("Squat")).isEqualTo(ExerciseType.WEIGHT_REPS)
+        assertThat(log.usualType("Run")).isEqualTo(ExerciseType.DISTANCE_DURATION)
+        assertThat(log.usualType("Plank")).isEqualTo(ExerciseType.DURATION)
+    }
+
     private fun distance(log: ImportedLog, exercises: Map<String, ExerciseInfo>, unit: WeightUnit) =
         log.toWorkouts(exercises, unit, ZoneOffset.UTC).single().exercises.single().sets.single().entered.distanceMeters
 

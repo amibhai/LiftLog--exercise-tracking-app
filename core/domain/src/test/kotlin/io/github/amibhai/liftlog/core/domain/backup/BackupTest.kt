@@ -11,6 +11,7 @@ import io.github.amibhai.liftlog.core.domain.workout.values
 import io.github.amibhai.liftlog.core.domain.workout.workout
 import org.junit.jupiter.api.Test
 import java.time.ZoneOffset
+import java.util.concurrent.TimeUnit
 
 class BackupTest {
 
@@ -31,6 +32,19 @@ class BackupTest {
     @Test
     fun `backup names sort by time`() {
         assertThat(backupFileName(NOW, ZoneOffset.UTC)).isEqualTo("liftlog-backup-2023-11-14-221320.json")
+    }
+
+    @Test
+    fun `the next automatic backup follows one period after the last one`() {
+        val daily = BackupSettings(folderUri = "content://folder")
+        val day = TimeUnit.DAYS.toMillis(1)
+
+        assertThat(daily.nextBackupIn(NOW)).isEqualTo(day)
+        assertThat(daily.copy(lastBackupAt = NOW - 1_000).nextBackupIn(NOW)).isEqualTo(day - 1_000)
+        assertThat(daily.copy(lastBackupAt = NOW - 3 * day).nextBackupIn(NOW)).isEqualTo(0)
+        assertThat(daily.copy(frequency = BackupFrequency.WEEKLY).nextBackupIn(NOW)).isEqualTo(7 * day)
+        assertThat(daily.copy(frequency = BackupFrequency.OFF).nextBackupIn(NOW)).isNull()
+        assertThat(BackupSettings().nextBackupIn(NOW)).isNull()
     }
 
     @Test

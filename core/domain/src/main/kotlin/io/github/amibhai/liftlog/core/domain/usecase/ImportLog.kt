@@ -4,6 +4,7 @@ import io.github.amibhai.liftlog.core.domain.importer.ExerciseMatcher
 import io.github.amibhai.liftlog.core.domain.importer.ImportedLog
 import io.github.amibhai.liftlog.core.domain.importer.draftFor
 import io.github.amibhai.liftlog.core.domain.importer.toWorkouts
+import io.github.amibhai.liftlog.core.domain.importer.usualType
 import io.github.amibhai.liftlog.core.domain.model.CatalogExercise
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.repository.ExerciseEditor
@@ -39,7 +40,7 @@ class ImportLog(
     suspend fun matches(log: ImportedLog): List<NameMatch> {
         val matcher = ExerciseMatcher(exercises.observeCatalog().first())
         return log.exerciseNames.map { name ->
-            val match = matcher.match(name)
+            val match = matcher.match(name, log.usualType(name))
             NameMatch(name, match?.exercise, isSure = match?.isSure ?: false)
         }
     }

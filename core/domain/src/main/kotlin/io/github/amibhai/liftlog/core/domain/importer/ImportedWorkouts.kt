@@ -39,17 +39,28 @@ fun ImportedLog.toWorkouts(exercises: Map<String, ExerciseInfo>, unit: WeightUni
 
 /** A custom exercise for a name the library does not know, with what its sets say about it. */
 fun ImportedLog.draftFor(name: String): ExerciseDraft {
-    val sets = workouts.flatMap { it.exercises }.filter { it.name == name }.flatMap { it.sets }
-    val hasWeight = sets.any { it.weight != null }
-    val type = when {
-        sets.any { it.distance != null } && hasWeight -> ExerciseType.WEIGHT_DISTANCE
-        sets.any { it.distance != null } -> ExerciseType.DISTANCE_DURATION
-        sets.any { it.reps != null } && hasWeight -> ExerciseType.WEIGHT_REPS
-        sets.any { it.reps != null } -> ExerciseType.REPS_ONLY
+    val sets = setsOf(name)
+    val bare = if (sets.any { it.weight != null }) Equipment.OTHER else Equipment.BODYWEIGHT
+    return ExerciseDraft(name = name, type = typeOf(sets::any), equipment = equipmentIn(name) ?: bare)
+}
+
+/** The type that fits most of the sets under [name]; a few with weight do not make push-ups another exercise. */
+fun ImportedLog.usualType(name: String): ExerciseType {
+    val sets = setsOf(name)
+    return typeOf { has -> sets.count(has) * 2 > sets.size }
+}
+
+private fun ImportedLog.setsOf(name: String): List<ImportedSet> =
+    workouts.flatMap { it.exercises }.filter { it.name == name }.flatMap { it.sets }
+
+private fun typeOf(have: ((ImportedSet) -> Boolean) -> Boolean): ExerciseType {
+    val haveWeight = have { it.weight != null }
+    val haveReps = have { it.reps != null }
+    return when {
+        have { it.distance != null } -> if (haveWeight) ExerciseType.WEIGHT_DISTANCE else ExerciseType.DISTANCE_DURATION
+        haveReps -> if (haveWeight) ExerciseType.WEIGHT_REPS else ExerciseType.REPS_ONLY
         else -> ExerciseType.DURATION
     }
-    val equipment = equipmentIn(name) ?: if (hasWeight) Equipment.OTHER else Equipment.BODYWEIGHT
-    return ExerciseDraft(name = name, type = type, equipment = equipment)
 }
 
 private class WorkoutBuilder(

@@ -5,6 +5,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import io.github.amibhai.liftlog.core.domain.model.ExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineExerciseId
 import io.github.amibhai.liftlog.core.domain.model.RoutineId
@@ -19,8 +20,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object ExercisesDestination
 
+/** Opens on the records and charts with [showProgress]. */
 @Serializable
-data class ExerciseDetailDestination(val exerciseId: String)
+data class ExerciseDetailDestination(val exerciseId: String, val showProgress: Boolean = false)
 
 /** Edits [exerciseId], or creates a custom exercise called [name]. */
 @Serializable
@@ -43,8 +45,9 @@ fun NavGraphBuilder.exercisesGraph(navController: NavController) {
 
     composable<ExercisesDestination> { ExercisesRoute(onOpenExercise = openDetail, onCreateExercise = create) }
 
-    composable<ExerciseDetailDestination> {
+    composable<ExerciseDetailDestination> { entry ->
         ExerciseDetailRoute(
+            showProgress = entry.toRoute<ExerciseDetailDestination>().showProgress,
             onBack = navController::popBackStack,
             onEdit = { navController.navigate(ExerciseEditorDestination(exerciseId = it.value)) },
         )
@@ -72,8 +75,8 @@ fun NavGraphBuilder.exercisesGraph(navController: NavController) {
     }
 }
 
-fun NavController.navigateToExerciseDetail(id: ExerciseId) {
-    navigate(ExerciseDetailDestination(id.value))
+fun NavController.navigateToExerciseDetail(id: ExerciseId, showProgress: Boolean = false) {
+    navigate(ExerciseDetailDestination(id.value, showProgress))
 }
 
 fun NavController.navigateToExercisePicker(workout: WorkoutId, slot: WorkoutExerciseId? = null) {

@@ -48,6 +48,7 @@ import io.github.amibhai.liftlog.core.ui.R as UiR
 internal fun ExerciseDetailRoute(
     onBack: () -> Unit,
     onEdit: (ExerciseId) -> Unit,
+    showProgress: Boolean = false,
     viewModel: ExerciseDetailViewModel = hiltViewModel(),
     progressViewModel: ExerciseProgressViewModel = hiltViewModel(),
 ) {
@@ -70,6 +71,7 @@ internal fun ExerciseDetailRoute(
     ExerciseDetailScreen(
         state = state,
         actions = actions,
+        showProgress = showProgress,
         progress = progress,
         onSelectMetric = progressViewModel::selectMetric,
         onSelectRange = progressViewModel::selectRange,
@@ -81,6 +83,7 @@ internal fun ExerciseDetailScreen(
     state: ExerciseDetailUiState,
     actions: ExerciseDetailActions,
     modifier: Modifier = Modifier,
+    showProgress: Boolean = false,
     progress: ExerciseProgressUiState? = null,
     onSelectMetric: (ProgressMetric) -> Unit = {},
     onSelectRange: (ProgressRange) -> Unit = {},
@@ -112,6 +115,7 @@ internal fun ExerciseDetailScreen(
 
             is ExerciseDetailUiState.Loaded -> DetailTabs(
                 state = state,
+                first = if (showProgress) DetailTab.PROGRESS else DetailTab.ABOUT,
                 actions = actions,
                 progress = progress,
                 onSelectMetric = onSelectMetric,
@@ -190,13 +194,14 @@ private enum class DetailTab(@StringRes val label: Int) {
 @Composable
 private fun DetailTabs(
     state: ExerciseDetailUiState.Loaded,
+    first: DetailTab,
     actions: ExerciseDetailActions,
     progress: ExerciseProgressUiState?,
     onSelectMetric: (ProgressMetric) -> Unit,
     onSelectRange: (ProgressRange) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var tab by rememberSaveable { mutableStateOf(DetailTab.ABOUT) }
+    var tab by rememberSaveable { mutableStateOf(first) }
     Column(modifier = modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = tab.ordinal) {
             DetailTab.entries.forEach {

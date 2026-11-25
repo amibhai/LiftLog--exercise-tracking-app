@@ -61,9 +61,11 @@ private fun WidgetContent(state: WidgetState) {
         .appWidgetBackground()
         .roundedBackground(GlanceTheme.colors.surface)
         .clickable(actionStartActivity(openAppIntent(context)))
+    // Large fonts need more room: the third line only shows where it still fits.
+    val fontScale = state.fontScale.coerceAtLeast(1f)
     if (size.height >= WidgetSize.CARD.size.height) {
         Column(modifier = open.padding(16.dp)) {
-            Lines(state, isTall = size.height >= WidgetSize.TALL_CARD.size.height)
+            Lines(state, isTall = size.height >= WidgetSize.TALL_CARD.size.height * fontScale)
             StartButton(state, GlanceModifier.fillMaxWidth())
         }
     } else {
@@ -85,7 +87,7 @@ private fun WidgetContent(state: WidgetState) {
 private fun ColumnScope.Lines(state: WidgetState, isTall: Boolean) {
     val context = LocalContext.current
     Column(modifier = GlanceModifier.defaultWeight().fillMaxWidth()) {
-        Line(state.title(context), GlanceTheme.colors.onSurface, isTitle = true)
+        Line(state.title(context), GlanceTheme.colors.onSurface, isTitle = true, maxLines = 2)
         Line(state.streakText(context), GlanceTheme.colors.onSurfaceVariant)
         if (isTall) {
             val count = state.workoutsThisWeek
@@ -96,7 +98,7 @@ private fun ColumnScope.Lines(state: WidgetState, isTall: Boolean) {
 }
 
 @Composable
-private fun Line(text: String, color: ColorProvider, isTitle: Boolean = false) {
+private fun Line(text: String, color: ColorProvider, isTitle: Boolean = false, maxLines: Int = 1) {
     Text(
         text = text,
         style = TextStyle(
@@ -104,7 +106,7 @@ private fun Line(text: String, color: ColorProvider, isTitle: Boolean = false) {
             fontSize = if (isTitle) 16.sp else 14.sp,
             fontWeight = if (isTitle) FontWeight.Medium else FontWeight.Normal,
         ),
-        maxLines = 1,
+        maxLines = maxLines,
     )
 }
 
@@ -131,10 +133,14 @@ private fun Streak(weeks: Int) {
 @Composable
 private fun StartButton(state: WidgetState, modifier: GlanceModifier = GlanceModifier) {
     val context = LocalContext.current
+    val label = state.buttonLabel(context)
+    // Short, so that it fits at large font sizes; the lines above say what it starts.
     FilledButton(
-        text = state.buttonText(context),
+        text = context.getString(if (state.active != null) R.string.widget_resume else R.string.widget_start),
         onClick = actionStartActivity(LaunchAction.START_NEXT.intent(context)),
-        modifier = modifier.height(48.dp),
+        modifier = modifier
+            .height(48.dp)
+            .semantics { contentDescription = label },
         icon = ImageProvider(UiR.drawable.ic_play_arrow),
         maxLines = 1,
     )
@@ -160,8 +166,9 @@ private fun WidgetState.streakText(context: Context): String = if (streakWeeks >
     context.getString(R.string.widget_no_streak)
 }
 
-private fun WidgetState.buttonText(context: Context): String = when {
-    active != null -> context.getString(R.string.widget_resume)
-    nextDay != null -> context.getString(R.string.widget_start_day, nextDay)
-    else -> context.getString(R.string.widget_start)
+/** What the button does, in full, for TalkBack. */
+private fun WidgetState.buttonLabel(context: Context): String = when {
+    active != null -> context.getString(R.string.widget_resume_label)
+    nextDay != null -> context.getString(R.string.widget_start_day_label, nextDay)
+    else -> context.getString(R.string.widget_start_label)
 }

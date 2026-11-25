@@ -95,16 +95,24 @@ internal class RestNotifications(private val context: Context) {
             // A Live Update: a status bar chip with the time left, on Android 16 and later.
             .setRequestPromotedOngoing(true)
             .setTimeoutAfter((rest.endsAt - now).coerceAtLeast(1))
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) builder.setStyle(countdown(rest))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+            // The style shows the title and the metrics, but not the text.
+            builder.setStyle(countdown(rest))
+            rest.nextExercise?.let(builder::setContentTitle)
+        }
         manager.notify(COUNTDOWN_ID, builder.build())
     }
 
-    /** Android 17 shows the countdown large when the notification is opened. */
+    /** Android 17 shows the time left large, and the numbers of the next set next to it. */
     @RequiresApi(Build.VERSION_CODES.CINNAMON_BUN)
     private fun countdown(rest: ActiveRest): NotificationCompat.Style {
         val end = Instant.ofEpochMilli(rest.endsAt)
         val timer = Metric.TimeDifference.forTimer(end, Metric.TimeDifference.FORMAT_CHRONOMETER)
-        return NotificationCompat.MetricStyle().addMetric(Metric(timer, context.getString(R.string.rest_metric)))
+        val style = NotificationCompat.MetricStyle().addMetric(Metric(timer, context.getString(R.string.rest_metric)))
+        rest.nextValues?.let { values ->
+            style.addMetric(Metric(Metric.FixedText(values), context.getString(R.string.rest_metric_next)))
+        }
+        return style
     }
 
     @SuppressLint("MissingPermission") // See showCountdown.

@@ -20,36 +20,44 @@ class WidgetContentTest {
 
     @Test
     fun withoutAWorkoutOneCanBeStarted() = showing(WidgetState()) {
-        onNode(hasText("Start workout")).assertExists()
+        onNode(hasText("Start")).assertExists()
+        onNode(hasContentDescriptionEqualTo("Start a workout")).assertExists()
         onNode(hasText("Ready to train")).assertExists()
         onNode(hasText("No streak yet")).assertExists()
     }
 
     @Test
     fun theWorkoutInProgressCanBeResumed() = showing(WidgetState(active = WorkoutTitle("Push", PartOfDay.EVENING))) {
-        onNode(hasText("Resume workout")).assertExists()
+        onNode(hasText("Resume")).assertExists()
+        onNode(hasContentDescriptionEqualTo("Resume the workout")).assertExists()
         onNode(hasText("Push")).assertExists()
     }
 
     @Test
     fun theNextDayOfTheProgramCanBeStarted() =
         showing(WidgetState(nextDay = "Legs", streakWeeks = 3, workoutsThisWeek = 1)) {
-            onNode(hasText("Start Legs")).assertExists()
+            onNode(hasContentDescriptionEqualTo("Start Legs")).assertExists()
             onNode(hasText("Next up: Legs")).assertExists()
             onNode(hasText("3-week streak")).assertExists()
             onNode(hasText("1 workout this week")).assertExists()
         }
 
     @Test
+    fun largeTextLeavesOutTheThirdLine() = showing(WidgetState(streakWeeks = 3, workoutsThisWeek = 1, fontScale = 2f)) {
+        onNode(hasText("3-week streak")).assertExists()
+        onNode(hasText("1 workout this week")).assertDoesNotExist()
+    }
+
+    @Test
     fun inOneRowTheStreakIsANumberNextToTheButton() = showing(WidgetState(streakWeeks = 3), WidgetSize.BAR.size) {
-        onNode(hasText("Start workout")).assertExists()
+        onNode(hasText("Start")).assertExists()
         onNode(hasContentDescriptionEqualTo("3-week streak")).assertExists()
         onNode(hasText("Ready to train")).assertDoesNotExist()
     }
 
     @Test
     fun theSmallestOneIsOnlyTheButton() = showing(WidgetState(streakWeeks = 3), WidgetSize.BUTTON.size) {
-        onNode(hasText("Start workout")).assertExists()
+        onNode(hasText("Start")).assertExists()
         onNode(hasContentDescriptionEqualTo("3-week streak")).assertDoesNotExist()
     }
 

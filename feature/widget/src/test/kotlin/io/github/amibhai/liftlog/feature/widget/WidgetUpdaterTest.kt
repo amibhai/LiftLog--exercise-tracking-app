@@ -8,6 +8,7 @@ import io.github.amibhai.liftlog.core.testing.FakeProgressRepository
 import io.github.amibhai.liftlog.core.testing.FakeSettingsRepository
 import io.github.amibhai.liftlog.core.testing.FakeWorkoutRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -29,6 +30,7 @@ class WidgetUpdaterTest {
         Clock.fixed(Instant.EPOCH, ZoneOffset.UTC),
     )
     private var isPlaced = true
+    private val fontScale = MutableStateFlow(1f)
     private var updates = 0
     private var previews = 0
 
@@ -39,6 +41,16 @@ class WidgetUpdaterTest {
         assertThat(updates).isEqualTo(1)
 
         workouts.create(Workout(id = WorkoutId("w"), startedAt = 0, name = "Push"))
+        settle()
+        assertThat(updates).isEqualTo(2)
+    }
+
+    @Test
+    fun aNewFontSizeDrawsTheWidgetsAgain() = runTest {
+        start()
+        settle()
+
+        fontScale.value = 2f
         settle()
         assertThat(updates).isEqualTo(2)
     }
@@ -73,6 +85,7 @@ class WidgetUpdaterTest {
         isPlaced = { isPlaced },
         update = { updates++ },
         publishPreview = { previews++ },
+        fontScale = fontScale,
     ).also { it.start() }
 
     private fun TestScope.settle() {

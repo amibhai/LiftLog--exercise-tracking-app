@@ -9,7 +9,6 @@ import io.github.amibhai.liftlog.core.domain.model.WorkoutId
 import io.github.amibhai.liftlog.core.domain.repository.SettingsRepository
 import io.github.amibhai.liftlog.core.domain.repository.WorkoutRepository
 import io.github.amibhai.liftlog.core.domain.time.partOfDay
-import io.github.amibhai.liftlog.core.domain.units.WeightUnit
 import io.github.amibhai.liftlog.core.domain.workout.adjustedBy
 import io.github.amibhai.liftlog.core.domain.workout.upNext
 import io.github.amibhai.liftlog.core.ui.format.SetText
@@ -37,9 +36,14 @@ internal data class ActiveRest(
     val workoutId: WorkoutId,
     val title: WorkoutTitle,
     val endsAt: Long,
-    /** "Bench Press, 82.5 kg × 8"; null after the last set. */
-    val next: String? = null,
-)
+    /** The exercise of the set to do next; null after the last set. */
+    val nextExercise: String? = null,
+    /** "82.5 kg × 8"; null when the next set has no numbers yet. */
+    val nextValues: String? = null,
+) {
+    /** "Bench Press, 82.5 kg × 8". */
+    val next: String? get() = listOfNotNull(nextExercise, nextValues).joinToString().ifEmpty { null }
+}
 
 /**
  * Takes the rest timer outside the app (SPEC §6). The stored workout holds the timer as an absolute end
@@ -152,13 +156,19 @@ class RestTimerCoordinator internal constructor(
 
     private fun activeRest(): Flow<ActiveRest?> =
         combine(workouts.observeActive(), settings.settings.map { it.weightUnit }) { workout, unit ->
-            workout?.restTimer?.let { ActiveRest(workout.id, workout.title(), it.endsAt, workout.nextSet(unit)) }
+            workout?.restTimer?.let { timer ->
+                val next = workout.upNext()
+                ActiveRest(
+                    workoutId = workout.id,
+                    title = workout.title(),
+                    endsAt = timer.endsAt,
+                    nextExercise = next?.first?.exercise?.name,
+                    nextValues = next?.let { (exercise, set) ->
+                        SetText(unit).summary(exercise.exercise.type, set.shown).ifEmpty { null }
+                    },
+                )
+            }
         }.distinctUntilChanged()
-
-    private fun Workout.nextSet(unit: WeightUnit): String? = upNext()?.let { (exercise, set) ->
-        val values = SetText(unit).summary(exercise.exercise.type, set.shown)
-        listOf(exercise.exercise.name, values).filter { it.isNotEmpty() }.joinToString()
-    }
 
     /** Rotating the phone stops and starts the activity; that is no reason to flash a notification. */
     @OptIn(FlowPreview::class)

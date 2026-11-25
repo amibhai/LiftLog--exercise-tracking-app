@@ -12,6 +12,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 
 /** Starts or resumes a workout and shows the weekly streak (SPEC §11). */
@@ -22,7 +23,10 @@ internal class LiftLogWidget : GlanceAppWidget() {
     override val previewSizeMode: PreviewSizeMode = SizeMode.Responsive(setOf(WidgetSize.CARD.size))
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val states = widgetEntryPoint(context).widgetStates().observe()
+        // A composition runs on for a while after an update, so it has to follow the font size itself.
+        val states = combine(widgetEntryPoint(context).widgetStates().observe(), fontScaleOf(context)) { state, scale ->
+            state.copy(fontScale = scale)
+        }
         val first = states.first()
         provideContent {
             val state by states.collectAsState(first)

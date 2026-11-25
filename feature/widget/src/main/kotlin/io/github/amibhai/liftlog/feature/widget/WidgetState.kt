@@ -30,6 +30,8 @@ internal data class WidgetState(
     val workoutsThisWeek: Int = 0,
     val themeMode: ThemeMode = ThemeMode.DARK,
     val useDynamicColor: Boolean = true,
+    /** Of the system: larger text leaves room for less. */
+    val fontScale: Float = 1f,
 )
 
 /** The state of the widget as it changes. */

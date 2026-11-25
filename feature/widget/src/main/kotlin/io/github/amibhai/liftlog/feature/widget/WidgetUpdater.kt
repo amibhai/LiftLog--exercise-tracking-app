@@ -1,7 +1,9 @@
 package io.github.amibhai.liftlog.feature.widget
 
 import android.appwidget.AppWidgetManager
+import android.content.ComponentCallbacks
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -14,9 +16,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
@@ -26,8 +33,8 @@ import javax.inject.Singleton
 private const val TAG = "WidgetUpdater"
 
 /**
- * Draws the widgets again when something they show has changed. While the app is not running, the system
- * asks for it a few times a day, which is when a streak can end.
+ * Draws the widgets again when something they show has changed, or the font size, which decides how much fits.
+ * While the app is not running, the system asks for it a few times a day, which is when a streak can end.
  */
 @Singleton
 class WidgetUpdater internal constructor(
@@ -36,6 +43,7 @@ class WidgetUpdater internal constructor(
     private val isPlaced: () -> Boolean,
     private val update: suspend () -> Unit,
     private val publishPreview: suspend () -> Unit,
+    private val fontScale: Flow<Float>,
 ) {
     @Inject
     constructor(@ApplicationContext context: Context, states: WidgetStates) : this(
@@ -50,6 +58,7 @@ class WidgetUpdater internal constructor(
         publishPreview = {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) publishPreviewOnce(context)
         },
+        fontScale = fontScaleOf(context),
     )
 
     private val hasWidgets = MutableStateFlow(false)
@@ -59,7 +68,9 @@ class WidgetUpdater internal constructor(
     fun start() {
         scope.launch {
             onPlacedChanged()
-            hasWidgets.flatMapLatest { if (it) states.observe() else emptyFlow() }
+            hasWidgets.flatMapLatest { placed ->
+                if (placed) combine(states.observe(), fontScale) { state, scale -> state to scale } else emptyFlow()
+            }
                 .debounce(UPDATE_DELAY_MS)
                 .collect { update() }
         }
@@ -82,6 +93,21 @@ class WidgetUpdater internal constructor(
 
 private fun placedWidgets(context: Context): IntArray =
     AppWidgetManager.getInstance(context).getAppWidgetIds(widgetProvider(context))
+
+/** The font size of the system. Apps are not told about changes while they are not running. */
+internal fun fontScaleOf(context: Context): Flow<Float> = callbackFlow {
+    val callbacks = object : ComponentCallbacks {
+        override fun onConfigurationChanged(newConfig: Configuration) {
+            trySend(newConfig.fontScale)
+        }
+
+        @Deprecated("The system no longer calls it")
+        override fun onLowMemory() = Unit
+    }
+    send(context.resources.configuration.fontScale)
+    context.registerComponentCallbacks(callbacks)
+    awaitClose { context.unregisterComponentCallbacks(callbacks) }
+}.distinctUntilChanged()
 
 /** What the widget picker shows; it stays until the app is updated. */
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)

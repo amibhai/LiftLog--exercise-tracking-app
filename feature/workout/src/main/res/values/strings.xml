@@ -85,6 +85,8 @@
     <string name="rest_countdown_title">Resting</string>
     <!-- At most ten characters. -->
     <string name="rest_metric">Rest</string>
+    <!-- At most ten characters. -->
+    <string name="rest_metric_next">Next</string>
     <string name="rest_next">Next: %1$s</string>
     <string name="rest_add_15">+15s</string>
     <string name="rest_skip">Skip</string>

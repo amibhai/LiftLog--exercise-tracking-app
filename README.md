@@ -8,6 +8,19 @@ Log a set in a couple of taps, see what you lifted last time, and let the app su
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203%20Expressive-4285F4?logo=jetpackcompose&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue)
 
+<p align="center">
+  <img src="docs/screenshots/workout.png" width="200" alt="Logging a workout with the rest timer running">
+  <img src="docs/screenshots/home.png" width="200" alt="Home with the weekly summary">
+  <img src="docs/screenshots/exercise-progress.png" width="200" alt="Estimated 1RM chart and personal records">
+  <img src="docs/screenshots/progress.png" width="200" alt="Progress dashboard with the training calendar">
+</p>
+<p align="center">
+  <img src="docs/screenshots/exercise-picker.png" width="200" alt="Exercise picker with popular lifts">
+  <img src="docs/screenshots/workout-summary.png" width="200" alt="Workout summary with muscles worked">
+  <img src="docs/screenshots/exercise-library.png" width="200" alt="Offline exercise library">
+  <img src="docs/screenshots/exercise-detail.png" width="200" alt="Exercise detail with muscles and settings">
+</p>
+
 ---
 
 ## Features
